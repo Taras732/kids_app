@@ -1,0 +1,51 @@
+{
+  "app": {
+    "name": "Школярик",
+    "tagline": "Граймо та вчимося разом!"
+  },
+  "auth": {
+    "login": "Увійти",
+    "register": "Реєстрація",
+    "forgotPassword": "Забули пароль?",
+    "email": "Email",
+    "password": "Пароль",
+    "confirmPassword": "Підтвердіть пароль",
+    "signIn": "Вхід",
+    "signUp": "Створити акаунт",
+    "parentAccount": "Акаунт для батьків"
+  },
+  "onboarding": {
+    "chooseLanguage": "Оберіть мову",
+    "enterName": "Як тебе звати?",
+    "chooseAgeGroup": "Скільки тобі років?",
+    "chooseAvatar": "Обери аватар",
+    "welcome": "Вітаємо, {{name}}!",
+    "tutorialStart": "Зараз я покажу як грати"
+  },
+  "hub": {
+    "greeting": "Привіт, {{name}}!",
+    "islands": "Острови",
+    "level": "Рівень {{level}}",
+    "parentMode": "Батьківський режим"
+  },
+  "game": {
+    "correct": "Правильно!",
+    "wrong": "Спробуй ще раз",
+    "next": "Далі",
+    "finish": "Завершити"
+  },
+  "parent": {
+    "enterPin": "Введіть PIN",
+    "dashboard": "Панель батьків",
+    "stats": "Статистика",
+    "settings": "Налаштування",
+    "profiles": "Профілі дітей"
+  },
+  "common": {
+    "continue": "Продовжити",
+    "back": "Назад",
+    "skip": "Пропустити",
+    "cancel": "Скасувати",
+    "save": "Зберегти"
+  }
+}

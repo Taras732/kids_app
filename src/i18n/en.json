@@ -1,0 +1,51 @@
+{
+  "app": {
+    "name": "Shkolyaryk",
+    "tagline": "Play and learn together!"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Sign up",
+    "forgotPassword": "Forgot password?",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "parentAccount": "Parent account"
+  },
+  "onboarding": {
+    "chooseLanguage": "Choose language",
+    "enterName": "What's your name?",
+    "chooseAgeGroup": "How old are you?",
+    "chooseAvatar": "Pick an avatar",
+    "welcome": "Welcome, {{name}}!",
+    "tutorialStart": "Let me show you how to play"
+  },
+  "hub": {
+    "greeting": "Hi, {{name}}!",
+    "islands": "Islands",
+    "level": "Level {{level}}",
+    "parentMode": "Parent mode"
+  },
+  "game": {
+    "correct": "Correct!",
+    "wrong": "Try again",
+    "next": "Next",
+    "finish": "Finish"
+  },
+  "parent": {
+    "enterPin": "Enter PIN",
+    "dashboard": "Parent dashboard",
+    "stats": "Stats",
+    "settings": "Settings",
+    "profiles": "Child profiles"
+  },
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "skip": "Skip",
+    "cancel": "Cancel",
+    "save": "Save"
+  }
+}
