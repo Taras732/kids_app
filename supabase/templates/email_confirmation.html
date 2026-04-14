@@ -1,0 +1,28 @@
+<!--
+  US-003 / AC-6: Email confirmation (Ukrainian)
+  Paste into: Supabase Dashboard → Authentication → Email Templates → Confirm signup
+  Subject: Підтвердіть email для Школярик 🎓
+-->
+<h2>Привіт! 👋</h2>
+
+<p>Дякуємо, що створили акаунт у <strong>Школярик</strong> — додатку для розвитку дітей 3-8 років.</p>
+
+<p>Натисніть кнопку нижче, щоб підтвердити вашу email-адресу і почати навчальну пригоду разом з дитиною:</p>
+
+<p style="text-align: center; margin: 32px 0;">
+  <a href="{{ .ConfirmationURL }}"
+     style="background-color: #FF6B6B; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700; display: inline-block;">
+    Підтвердити email
+  </a>
+</p>
+
+<p style="color: #636E72; font-size: 14px;">
+  Або скопіюйте це посилання у браузер: <br>
+  <a href="{{ .ConfirmationURL }}">{{ .ConfirmationURL }}</a>
+</p>
+
+<hr style="border: none; border-top: 1px solid #E8E8E8; margin: 32px 0;">
+
+<p style="color: #636E72; font-size: 12px;">
+  Якщо ви не реєструвались у Школярик, просто проігноруйте цей лист.
+</p>

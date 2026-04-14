@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-interface KVStore {
+export interface MmkvStorage {
   getString(key: string): string | undefined;
   set(key: string, value: string | number | boolean): void;
   delete(key: string): void;
@@ -8,10 +8,10 @@ interface KVStore {
   getAllKeys(): string[];
 }
 
-let storage: KVStore;
+let mmkvStorage: MmkvStorage;
 
 if (Platform.OS === 'web') {
-  storage = {
+  mmkvStorage = {
     getString: (key) => {
       if (typeof window === 'undefined') return undefined;
       const v = window.localStorage.getItem(key);
@@ -36,14 +36,19 @@ if (Platform.OS === 'web') {
   };
 } else {
   const { MMKV } = require('react-native-mmkv');
-  const mmkv = new MMKV({ id: 'shkolyaryk' });
-  storage = {
-    getString: (key) => mmkv.getString(key),
-    set: (key, value) => mmkv.set(key, value),
-    delete: (key) => mmkv.delete(key),
-    clearAll: () => mmkv.clearAll(),
-    getAllKeys: () => mmkv.getAllKeys(),
+  const instance = new MMKV({
+    id: 'shkolyaryk-storage',
+    encryptionKey: process.env.EXPO_PUBLIC_MMKV_ENCRYPTION_KEY ?? 'shkolyaryk-enc-key',
+  });
+  mmkvStorage = {
+    getString: (key) => instance.getString(key),
+    set: (key, value) => instance.set(key, value),
+    delete: (key) => instance.delete(key),
+    clearAll: () => instance.clearAll(),
+    getAllKeys: () => instance.getAllKeys(),
   };
 }
 
-export { storage };
+export { mmkvStorage };
+
+export const storage = mmkvStorage;

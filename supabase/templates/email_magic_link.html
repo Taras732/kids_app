@@ -1,0 +1,21 @@
+<!--
+  Optional: Magic Link (Ukrainian)
+  Paste into: Supabase Dashboard → Authentication → Email Templates → Magic Link
+  Subject: Вхід у Школярик ✨
+-->
+<h2>Вхід у Школярик ✨</h2>
+
+<p>Натисніть кнопку нижче, щоб увійти в додаток:</p>
+
+<p style="text-align: center; margin: 32px 0;">
+  <a href="{{ .ConfirmationURL }}"
+     style="background-color: #FF6B6B; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700; display: inline-block;">
+    Увійти
+  </a>
+</p>
+
+<hr style="border: none; border-top: 1px solid #E8E8E8; margin: 32px 0;">
+
+<p style="color: #636E72; font-size: 12px;">
+  Якщо ви не запрошували вхід, просто проігноруйте цей лист.
+</p>

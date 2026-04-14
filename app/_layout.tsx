@@ -5,31 +5,47 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/src/stores/authStore';
 import { useChildProfilesStore } from '@/src/stores/childProfilesStore';
+import { useAuthSession } from '@/src/hooks/useAuthSession';
 
 export default function RootLayout() {
+  useAuthSession();
+
   const router = useRouter();
   const segments = useSegments();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const emailConfirmed = useAuthStore((s) => s.emailConfirmed);
+  const isLoading = useAuthStore((s) => s.isLoading);
   const hasProfiles = useChildProfilesStore((s) => s.profiles.length > 0);
 
   useEffect(() => {
+    if (isLoading) return;
+
     const segs = segments as unknown as string[];
     const group = segs[0];
     const inAuth = group === '(auth)';
     const inOnboarding = segs[1] === 'onboarding';
+    const onConfirmScreen = segs[1] === 'email-confirmation';
+    const onResetScreen = segs[1] === 'reset-password';
 
-    if (!isAuthenticated && !inAuth) {
-      router.replace('/(auth)/login');
+    if (!isAuthenticated) {
+      if (!inAuth) router.replace('/(auth)/login');
       return;
     }
-    if (isAuthenticated && inAuth) {
+
+    if (!emailConfirmed && !onConfirmScreen && !onResetScreen) {
+      router.replace('/(auth)/email-confirmation');
+      return;
+    }
+
+    if (emailConfirmed && inAuth && !onResetScreen) {
       router.replace(hasProfiles ? '/(main)' : '/(main)/onboarding/language');
       return;
     }
-    if (isAuthenticated && !hasProfiles && !inOnboarding && group !== '(auth)') {
+
+    if (emailConfirmed && !hasProfiles && !inOnboarding && group !== '(auth)') {
       router.replace('/(main)/onboarding/language');
     }
-  }, [isAuthenticated, hasProfiles, segments, router]);
+  }, [isAuthenticated, emailConfirmed, hasProfiles, isLoading, segments, router]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

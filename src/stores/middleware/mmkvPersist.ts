@@ -1,15 +1,10 @@
 import type { StateStorage } from 'zustand/middleware';
-import { storage } from '../../utils/mmkv';
+import { mmkvStorage } from '../../utils/mmkv';
 
-export const mmkvStorage: StateStorage = {
-  getItem: (key) => {
-    const value = storage.getString(key);
-    return value ?? null;
-  },
-  setItem: (key, value) => {
-    storage.set(key, value);
-  },
-  removeItem: (key) => {
-    storage.delete(key);
-  },
+export const zustandMmkvStorage: StateStorage = {
+  getItem: (key) => mmkvStorage.getString(key) ?? null,
+  setItem: (key, value) => mmkvStorage.set(key, value),
+  removeItem: (key) => mmkvStorage.delete(key),
 };
+
+export { zustandMmkvStorage as mmkvStorage };

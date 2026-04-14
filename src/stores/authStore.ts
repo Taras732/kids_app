@@ -6,8 +6,11 @@ interface AuthState {
   userId: string | null;
   email: string | null;
   isAuthenticated: boolean;
-  setSession: (userId: string, email: string) => void;
+  emailConfirmed: boolean;
+  isLoading: boolean;
+  setSession: (userId: string, email: string, emailConfirmed: boolean) => void;
   clearSession: () => void;
+  setLoading: (loading: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -16,12 +19,29 @@ export const useAuthStore = create<AuthState>()(
       userId: null,
       email: null,
       isAuthenticated: false,
-      setSession: (userId, email) => set({ userId, email, isAuthenticated: true }),
-      clearSession: () => set({ userId: null, email: null, isAuthenticated: false }),
+      emailConfirmed: false,
+      isLoading: true,
+      setSession: (userId, email, emailConfirmed) =>
+        set({ userId, email, emailConfirmed, isAuthenticated: true, isLoading: false }),
+      clearSession: () =>
+        set({
+          userId: null,
+          email: null,
+          emailConfirmed: false,
+          isAuthenticated: false,
+          isLoading: false,
+        }),
+      setLoading: (isLoading) => set({ isLoading }),
     }),
     {
       name: 'auth',
       storage: createJSONStorage(() => mmkvStorage),
+      partialize: (state) => ({
+        userId: state.userId,
+        email: state.email,
+        isAuthenticated: state.isAuthenticated,
+        emailConfirmed: state.emailConfirmed,
+      }),
     },
   ),
 );
