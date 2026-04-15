@@ -6,9 +6,8 @@ interface AuthState {
   userId: string | null;
   email: string | null;
   isAuthenticated: boolean;
-  emailConfirmed: boolean;
   isLoading: boolean;
-  setSession: (userId: string, email: string, emailConfirmed: boolean) => void;
+  setSession: (userId: string, email: string) => void;
   clearSession: () => void;
   setLoading: (loading: boolean) => void;
 }
@@ -19,15 +18,13 @@ export const useAuthStore = create<AuthState>()(
       userId: null,
       email: null,
       isAuthenticated: false,
-      emailConfirmed: false,
       isLoading: true,
-      setSession: (userId, email, emailConfirmed) =>
-        set({ userId, email, emailConfirmed, isAuthenticated: true, isLoading: false }),
+      setSession: (userId, email) =>
+        set({ userId, email, isAuthenticated: true, isLoading: false }),
       clearSession: () =>
         set({
           userId: null,
           email: null,
-          emailConfirmed: false,
           isAuthenticated: false,
           isLoading: false,
         }),
@@ -40,7 +37,6 @@ export const useAuthStore = create<AuthState>()(
         userId: state.userId,
         email: state.email,
         isAuthenticated: state.isAuthenticated,
-        emailConfirmed: state.emailConfirmed,
       }),
     },
   ),

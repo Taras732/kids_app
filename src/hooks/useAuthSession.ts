@@ -15,27 +15,26 @@ export function useAuthSession(): void {
 
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      if (session?.user) {
-        setSession(
-          session.user.id,
-          session.user.email ?? '',
-          session.user.email_confirmed_at !== null,
-        );
-      } else {
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        if (!mounted) return;
+        if (session?.user) {
+          setSession(session.user.id, session.user.email ?? '');
+        } else {
+          clearSession();
+        }
+      })
+      .catch((err) => {
+        if (!mounted) return;
+        console.warn('[auth] getSession failed', err);
         clearSession();
-      }
-    });
+      });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
       if (session?.user) {
-        setSession(
-          session.user.id,
-          session.user.email ?? '',
-          session.user.email_confirmed_at !== null,
-        );
+        setSession(session.user.id, session.user.email ?? '');
       } else {
         clearSession();
       }

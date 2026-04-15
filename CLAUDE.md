@@ -30,16 +30,20 @@ src/
   assets/               ← images, sounds, voice, fonts
 ```
 
-## BMAD Workflow
-Активний. Команди в `.claude/commands/`: `/pm`, `/sm`, `/dev`, `/qa`, `/architect`.
+## BMAD Workflow (адаптовано під Школярик 2026-04-15)
+Активний. Команди в `.claude/commands/`: `/pm`, `/sm`, `/dev`, `/qa`, `/architect` — кожна знає Expo/RN/TS/Supabase стек, cross-platform pitfalls (Alert.alert на web, safe-area з фейковим notch, MMKV web fallback) і i18n правила (uk.json + en.json синхронно).
+
 Stories: `.bmad/stories/US-XXX — *.md` (11 в Phase 1, до US-072 в роадмапі).
+Hotfix log: `.bmad/stories/_HOTFIXES.md` (роботи без `/sm` циклу).
 PRD: `prd.md`.
 
-### Цикл
-1. `/sm` → story з AC (якщо задача >30 хв)
-2. `/dev` → реалізація за AC
-3. `/qa` → перевірка AC
-4. Commit: `feat(us-XXX): короткий опис`
+### Цикл (ОБОВ'ЯЗКОВИЙ для задач >30 хв або фідбеку 2+ пунктів)
+1. `/sm` → story з AC (Acceptance Criteria) та Tasks
+2. `/dev` → реалізація строго за AC (статус `in_progress`)
+3. `/qa` → перевірка кожного AC + typecheck + cross-platform патерни (статус `review` → `done`)
+4. Commit: `feat(us-XXX): короткий опис` (тільки після ✅ QA)
+
+Без BMAD → drift, регресії, фідбек-цикл "ще одне сюди, ще туди". З BMAD → AC спіймає edge-кейси наперед.
 
 ## Правила коду
 - TypeScript strict — 0 помилок у `npx tsc --noEmit`

@@ -1,29 +1,29 @@
-import { Text, type TextProps, StyleSheet } from 'react-native';
-import { colors, fontSizes } from '../constants/theme';
+import { Text, type TextProps, type TextStyle } from 'react-native';
+import { colors, fontFamily, fontSizes, lineHeightMultiplier } from '../constants/theme';
 
-type Variant = 'display' | 'title' | 'body' | 'caption';
+type Variant = 'display' | 'h1' | 'h2' | 'title' | 'body' | 'caption';
 
 interface AppTextProps extends TextProps {
   variant?: Variant;
   color?: string;
 }
 
-const variantStyles: Record<Variant, { fontSize: number; fontWeight: TextProps['style'] extends undefined ? never : '400' | '600' | '700' }> = {
-  display: { fontSize: fontSizes.display, fontWeight: '700' },
-  title: { fontSize: fontSizes.xl, fontWeight: '700' },
-  body: { fontSize: fontSizes.md, fontWeight: '400' },
-  caption: { fontSize: fontSizes.sm, fontWeight: '400' },
+const variantStyles: Record<Variant, TextStyle> = {
+  display: { fontSize: fontSizes.display, fontFamily: fontFamily.extraBold },
+  h1: { fontSize: fontSizes.xl, fontFamily: fontFamily.bold },
+  title: { fontSize: fontSizes.xl, fontFamily: fontFamily.bold },
+  h2: { fontSize: fontSizes.lg, fontFamily: fontFamily.semiBold },
+  body: { fontSize: fontSizes.md, fontFamily: fontFamily.regular },
+  caption: { fontSize: fontSizes.sm, fontFamily: fontFamily.regular },
 };
 
 export function AppText({ variant = 'body', color, style, ...rest }: AppTextProps) {
+  const base = variantStyles[variant];
+  const lineHeight = (base.fontSize ?? fontSizes.md) * lineHeightMultiplier;
   return (
     <Text
-      style={[styles.base, variantStyles[variant], { color: color ?? colors.text }, style]}
+      style={[base, { lineHeight, color: color ?? colors.text }, style]}
       {...rest}
     />
   );
 }
-
-const styles = StyleSheet.create({
-  base: {},
-});

@@ -1,27 +1,357 @@
-import { View, StyleSheet } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { useState } from 'react';
+import { View, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/src/components/AppText';
-import { AppButton } from '@/src/components/AppButton';
-import { colors, spacing } from '@/src/constants/theme';
+import { ConfirmModal } from '@/src/components/ConfirmModal';
+import { colors, radius, spacing, shadows } from '@/src/constants/theme';
 import { t } from '@/src/i18n';
+import { signOut, deleteAccount } from '@/src/hooks/useAuthActions';
+import { useChildProfilesStore } from '@/src/stores/childProfilesStore';
+import { useProgressStore } from '@/src/stores/progressStore';
+import { usePinStore } from '@/src/stores/pinStore';
+import { mmkvStorage } from '@/src/utils/mmkv';
+
+type Tab = 'progress' | 'time' | 'settings';
+type DialogKind = null | 'logout' | 'delete1' | 'delete2';
+
+const TABS: { id: Tab; icon: string; labelKey: string }[] = [
+  { id: 'progress', icon: '📊', labelKey: 'parent.tabProgress' },
+  { id: 'time', icon: '⏱️', labelKey: 'parent.tabTime' },
+  { id: 'settings', icon: '⚙️', labelKey: 'parent.tabSettings' },
+];
 
 export default function ParentDashboardScreen() {
   const router = useRouter();
+  const hasProfiles = useChildProfilesStore((s) => s.profiles.length > 0);
+  const setUnlocked = usePinStore((s) => s.setUnlocked);
+  const [tab, setTab] = useState<Tab>('progress');
+  const [dialog, setDialog] = useState<DialogKind>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const exitParent = () => {
+    setUnlocked(false);
+    router.replace('/(main)');
+  };
+
+  const performLogout = async () => {
+    setLoggingOut(true);
+    setUnlocked(false);
+    useChildProfilesStore.setState({ activeProfileId: null });
+    await signOut();
+    setLoggingOut(false);
+    setDialog(null);
+    router.replace('/(auth)/login');
+  };
+
+  const performDelete = async () => {
+    setDeleting(true);
+    const res = await deleteAccount();
+    if (!res.ok) {
+      setDeleting(false);
+      setDialog(null);
+      return;
+    }
+    mmkvStorage.clearAll();
+    useChildProfilesStore.setState({ profiles: [], activeProfileId: null });
+    setUnlocked(false);
+    setDeleting(false);
+    setDialog(null);
+    if (Platform.OS === 'web') {
+      router.replace('/phone-home' as never);
+    } else {
+      router.replace('/(auth)/login');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+      <View style={styles.header}>
+        {hasProfiles ? (
+          <Pressable onPress={exitParent} hitSlop={12} style={styles.backBtn}>
+            <AppText variant="h2" color={colors.primary}>‹</AppText>
+          </Pressable>
+        ) : <View style={{ width: 32 }} />}
         <AppText variant="title">{t('parent.dashboard')}</AppText>
-        <Link href="/(parent)/stats" asChild><AppButton title={t('parent.stats')} size="lg" /></Link>
-        <Link href="/(parent)/profiles" asChild><AppButton title={t('parent.profiles')} size="lg" tone="secondary" /></Link>
-        <Link href="/(parent)/settings" asChild><AppButton title={t('parent.settings')} size="lg" tone="secondary" /></Link>
-        <AppButton title={t('common.back')} tone="ghost" onPress={() => router.replace('/(main)')} />
+        <View style={{ width: 32 }} />
       </View>
+
+      <View style={styles.tabs}>
+        {TABS.map((tb) => (
+          <TabButton
+            key={tb.id}
+            icon={tb.icon}
+            label={t(tb.labelKey)}
+            active={tab === tb.id}
+            onPress={() => setTab(tb.id)}
+          />
+        ))}
+      </View>
+
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentInner}>
+        {tab === 'progress' ? <ProgressTab /> : null}
+        {tab === 'time' ? <TimeTab /> : null}
+        {tab === 'settings' ? (
+          <SettingsTab
+            onOpenProfiles={() => router.push('/(parent)/profiles')}
+            onChangePin={() => router.push('/(parent)/pin-setup' as never)}
+            onLogout={() => setDialog('logout')}
+            onDelete={() => setDialog('delete1')}
+          />
+        ) : null}
+      </ScrollView>
+
+      <ConfirmModal
+        visible={dialog === 'logout'}
+        title={t('auth.signOutConfirmTitle')}
+        message={t('auth.signOutConfirmMessage')}
+        cancelLabel={t('common.cancel')}
+        confirmLabel={t('auth.signOut')}
+        tone="danger"
+        loading={loggingOut}
+        onCancel={() => setDialog(null)}
+        onConfirm={() => void performLogout()}
+      />
+      <ConfirmModal
+        visible={dialog === 'delete1'}
+        title={t('auth.deleteConfirm1Title')}
+        message={t('auth.deleteConfirm1Message')}
+        cancelLabel={t('common.cancel')}
+        confirmLabel={t('auth.deleteButton')}
+        tone="danger"
+        onCancel={() => setDialog(null)}
+        onConfirm={() => setDialog('delete2')}
+      />
+      <ConfirmModal
+        visible={dialog === 'delete2'}
+        title={t('auth.deleteConfirm2Title')}
+        message={t('auth.deleteConfirm2Message')}
+        cancelLabel={t('common.cancel')}
+        confirmLabel={t('auth.deleteButton')}
+        tone="danger"
+        loading={deleting}
+        onCancel={() => setDialog(null)}
+        onConfirm={() => void performDelete()}
+      />
     </SafeAreaView>
+  );
+}
+
+function TabButton({ icon, label, active, onPress }: { icon: string; label: string; active: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.tabBtn, active && styles.tabBtnActive]}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
+    >
+      <AppText style={styles.tabIcon}>{icon}</AppText>
+      <AppText
+        variant="caption"
+        color={active ? '#fff' : colors.textMuted}
+        style={{ fontWeight: active ? '700' : '600' }}
+      >
+        {label}
+      </AppText>
+    </Pressable>
+  );
+}
+
+function ProgressTab() {
+  const activeId = useChildProfilesStore((s) => s.activeProfileId);
+  const getXp = useProgressStore((s) => s.getXp);
+  const getLevel = useProgressStore((s) => s.getLevel);
+  const badgesMap = useProgressStore((s) => s.badgesByProfile);
+
+  const xp = activeId ? getXp(activeId) : 0;
+  const level = activeId ? getLevel(activeId) : 1;
+  const badges = activeId ? (badgesMap[activeId]?.length ?? 0) : 0;
+  const streak = 0;
+
+  const week = [40, 65, 30, 80, 55, 90, 60];
+  const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
+
+  return (
+    <View style={{ gap: spacing.md }}>
+      <View style={styles.statRow}>
+        <StatCard value={String(xp)} label={t('parent.statXp')} />
+        <StatCard value={String(level)} label={t('parent.statLevel')} />
+        <StatCard value={`${streak} 🔥`} label={t('parent.statStreak')} />
+        <StatCard value={String(badges)} label={t('parent.statBadges')} />
+      </View>
+
+      <View style={styles.panel}>
+        <AppText variant="h2" style={styles.panelTitle}>{t('parent.weekActivity')}</AppText>
+        <View style={styles.bars}>
+          {week.map((h, i) => (
+            <View key={i} style={styles.barCol}>
+              <View style={[styles.bar, { height: h * 1.2 }]} />
+              <AppText variant="caption" color={colors.textMuted}>{days[i]}</AppText>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.panel}>
+        <AppText variant="h2" style={styles.panelTitle}>{t('parent.recentActivity')}</AppText>
+        <AppText variant="caption" color={colors.textMuted}>{t('parent.activityEmpty')}</AppText>
+      </View>
+    </View>
+  );
+}
+
+function TimeTab() {
+  return (
+    <View style={{ gap: spacing.md }}>
+      <View style={styles.statRow}>
+        <StatCard value="0 хв" label={t('parent.statToday')} />
+        <StatCard value="—" label={t('parent.statLimit')} />
+      </View>
+      <View style={styles.panel}>
+        <AppText variant="h2" style={styles.panelTitle}>{t('parent.dailyLimit')}</AppText>
+        <AppText variant="caption" color={colors.textMuted}>{t('parent.timeHint')}</AppText>
+      </View>
+      <View style={styles.panel}>
+        <AppText variant="h2" style={styles.panelTitle}>{t('parent.schedule')}</AppText>
+        <AppText variant="caption" color={colors.textMuted}>{t('parent.scheduleHint')}</AppText>
+      </View>
+    </View>
+  );
+}
+
+function SettingsTab({
+  onOpenProfiles,
+  onChangePin,
+  onLogout,
+  onDelete,
+}: {
+  onOpenProfiles: () => void;
+  onChangePin: () => void;
+  onLogout: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <View style={{ gap: spacing.md }}>
+      <View style={styles.panel}>
+        <SettingsRow icon="👧" label={t('parent.profiles')} onPress={onOpenProfiles} />
+        <SettingsRow icon="🔒" label={t('parent.changePin')} onPress={onChangePin} />
+      </View>
+      <View style={styles.panel}>
+        <SettingsRow icon="🚪" label={t('auth.signOut')} onPress={onLogout} />
+        <SettingsRow icon="🗑️" label={t('auth.deleteAccount')} onPress={onDelete} tone="danger" />
+      </View>
+    </View>
+  );
+}
+
+function SettingsRow({
+  icon,
+  label,
+  onPress,
+  tone = 'default',
+}: {
+  icon: string;
+  label: string;
+  onPress: () => void;
+  tone?: 'default' | 'danger';
+}) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.settingsRow, pressed && { opacity: 0.7 }]}>
+      <AppText style={styles.settingsIcon}>{icon}</AppText>
+      <AppText variant="body" color={tone === 'danger' ? colors.danger : colors.text} style={{ flex: 1, fontWeight: '600' }}>
+        {label}
+      </AppText>
+      <AppText color={colors.textMuted}>›</AppText>
+    </Pressable>
+  );
+}
+
+function StatCard({ value, label }: { value: string; label: string }) {
+  return (
+    <View style={styles.statCard}>
+      <AppText variant="title" color={colors.primary}>{value}</AppText>
+      <AppText variant="caption" color={colors.textMuted}>{label}</AppText>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  content: { flex: 1, padding: spacing.lg, gap: spacing.md, justifyContent: 'center' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  backBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  tabs: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    backgroundColor: colors.surface,
+    marginHorizontal: spacing.md,
+    padding: spacing.xs,
+    borderRadius: radius.lg,
+    ...shadows.card,
+  },
+  tabBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    gap: 2,
+  },
+  tabBtnActive: { backgroundColor: colors.primary },
+  tabIcon: { fontSize: 22 },
+  content: { flex: 1 },
+  contentInner: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl },
+  statRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  statCard: {
+    flexBasis: '48%',
+    flexGrow: 1,
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    gap: spacing.xs,
+    ...shadows.card,
+  },
+  panel: {
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    gap: spacing.sm,
+    ...shadows.card,
+  },
+  panelTitle: { marginBottom: spacing.xs },
+  bars: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    height: 130,
+    paddingHorizontal: spacing.xs,
+  },
+  barCol: { alignItems: 'center', gap: 4, flex: 1 },
+  bar: {
+    width: '70%',
+    backgroundColor: colors.primaryLight,
+    borderTopLeftRadius: radius.sm,
+    borderTopRightRadius: radius.sm,
+    borderWidth: 0,
+  },
+  settingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.smd,
+    paddingHorizontal: spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  settingsIcon: { fontSize: 24 },
 });

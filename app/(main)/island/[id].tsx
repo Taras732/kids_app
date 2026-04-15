@@ -1,31 +1,93 @@
-import { View, StyleSheet } from 'react-native';
+import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
 import { getIslandById } from '@/src/constants/islands';
-import { colors, spacing } from '@/src/constants/theme';
+import { listGamesByIsland } from '@/src/games/registry';
+import { colors, radius, spacing, shadows } from '@/src/constants/theme';
 import { t } from '@/src/i18n';
 
 export default function IslandScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const island = getIslandById(id ?? '');
+  const insets = useSafeAreaInsets();
+  const topPad = Math.max(insets.top, 50);
+  const islandId = id ?? '';
+  const island = getIslandById(islandId);
+  const games = listGamesByIsland(islandId);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: topPad }]}>
         <AppText variant="display">{island?.icon ?? '❓'}</AppText>
         <AppText variant="title">{island?.name ?? 'Острів'}</AppText>
-        <AppText variant="body" color={colors.textMuted}>{island?.description ?? ''}</AppText>
-        <AppText variant="caption" color={colors.textMuted}>Ігри скоро з'являться 🎮</AppText>
+        {island?.description ? (
+          <AppText variant="body" color={colors.textMuted} style={styles.desc}>
+            {island.description}
+          </AppText>
+        ) : null}
+
+        <View style={styles.gamesList}>
+          {games.length === 0 ? (
+            <AppText variant="caption" color={colors.textMuted}>
+              Ігри скоро з'являться 🎮
+            </AppText>
+          ) : (
+            games.map((g) => (
+              <Pressable
+                key={g.id}
+                style={styles.gameCard}
+                onPress={() =>
+                  router.push({ pathname: '/(main)/game/[id]', params: { id: g.id } })
+                }
+              >
+                <AppText style={styles.gameIcon}>{g.icon ?? '🎯'}</AppText>
+                <View style={{ flex: 1 }}>
+                  <AppText variant="h2" numberOfLines={1}>
+                    {g.name.startsWith('game.') ? t(g.name) : g.name}
+                  </AppText>
+                  <AppText variant="caption" color={colors.textMuted}>
+                    {t('common.continue')} →
+                  </AppText>
+                </View>
+              </Pressable>
+            ))
+          )}
+        </View>
+
         <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  content: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.lg, gap: spacing.md },
+  content: {
+    padding: spacing.lg,
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  desc: {
+    textAlign: 'center',
+  },
+  gamesList: {
+    width: '100%',
+    maxWidth: 420,
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  gameCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.md,
+    ...shadows.card,
+  },
+  gameIcon: {
+    fontSize: 40,
+  },
 });

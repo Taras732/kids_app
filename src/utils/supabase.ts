@@ -1,9 +1,16 @@
+import 'react-native-url-polyfill/auto';
 import { Platform } from 'react-native';
 import { createClient, type SupabaseClientOptions } from '@supabase/supabase-js';
 import { mmkvStorage } from './mmkv';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+const rawUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
+const rawKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+
+const PLACEHOLDER_URL = 'https://placeholder.supabase.co';
+const PLACEHOLDER_KEY = 'placeholder-anon-key';
+
+const supabaseUrl = rawUrl.length > 0 ? rawUrl : PLACEHOLDER_URL;
+const supabaseAnonKey = rawKey.length > 0 ? rawKey : PLACEHOLDER_KEY;
 
 const mmkvAdapter = {
   getItem: (key: string): string | null => mmkvStorage.getString(key) ?? null,
@@ -24,4 +31,4 @@ const options: SupabaseClientOptions<'public'> = {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, options);
 
 export const isSupabaseConfigured = (): boolean =>
-  supabaseUrl.length > 0 && supabaseAnonKey.length > 0;
+  rawUrl.length > 0 && rawKey.length > 0;

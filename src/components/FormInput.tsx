@@ -1,38 +1,96 @@
-import { View, TextInput, StyleSheet, type TextInputProps } from 'react-native';
+import { useState } from 'react';
+import { View, TextInput, StyleSheet, Pressable, type TextInputProps } from 'react-native';
 import { AppText } from './AppText';
-import { colors, spacing, radius, fontSizes } from '../constants/theme';
+import { colors, spacing, radius, fontSizes, fontFamily } from '../constants/theme';
 
 interface FormInputProps extends TextInputProps {
   label?: string;
   error?: string | null;
+  leadingIcon?: string;
+  showPasswordToggle?: boolean;
 }
 
-export function FormInput({ label, error, style, ...rest }: FormInputProps) {
+export function FormInput({
+  label,
+  error,
+  leadingIcon,
+  showPasswordToggle = false,
+  secureTextEntry,
+  style,
+  onFocus,
+  onBlur,
+  ...rest
+}: FormInputProps) {
+  const [focused, setFocused] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+
+  const borderColor = error
+    ? colors.error
+    : focused
+    ? colors.primary
+    : colors.border;
+
+  const effectiveSecure = secureTextEntry && !passwordVisible;
+
   return (
     <View style={{ gap: spacing.xs }}>
-      {label && <AppText variant="caption" color={colors.textMuted}>{label}</AppText>}
-      <TextInput
-        placeholderTextColor={colors.textMuted}
-        style={[styles.input, error ? styles.inputError : null, style]}
-        {...rest}
-      />
-      {error && <AppText variant="caption" color={colors.danger}>{error}</AppText>}
+      {label ? <AppText style={styles.label} color={colors.textMuted}>{label}</AppText> : null}
+      <View style={[styles.wrapper, { borderColor }]}>
+        {leadingIcon ? <AppText style={styles.icon}>{leadingIcon}</AppText> : null}
+        <TextInput
+          placeholderTextColor={colors.textDisabled}
+          secureTextEntry={effectiveSecure}
+          underlineColorAndroid="transparent"
+          selectionColor={colors.primary}
+          style={[styles.input, style]}
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
+          {...rest}
+        />
+        {showPasswordToggle ? (
+          <Pressable onPress={() => setPasswordVisible((v) => !v)} hitSlop={8}>
+            <AppText style={styles.icon}>{passwordVisible ? '🙈' : '👁'}</AppText>
+          </Pressable>
+        ) : null}
+      </View>
+      {error && <AppText variant="caption" color={colors.error}>{error}</AppText>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  input: {
-    backgroundColor: colors.card,
+  wrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
     borderRadius: radius.md,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    fontSize: fontSizes.md,
-    borderWidth: 2,
-    borderColor: colors.border,
-    color: colors.text,
+    borderWidth: 1.5,
+    paddingHorizontal: spacing.smd,
+    gap: spacing.sm,
+    minHeight: 52,
   },
-  inputError: {
-    borderColor: colors.danger,
+  input: {
+    flex: 1,
+    fontSize: fontSizes.md,
+    fontFamily: fontFamily.regular,
+    color: colors.text,
+    paddingVertical: spacing.sm,
+    // @ts-expect-error web-only style
+    outlineStyle: 'none',
+  },
+  icon: {
+    fontSize: fontSizes.lg,
+  },
+  label: {
+    fontSize: 13,
+    fontFamily: fontFamily.bold,
+    paddingLeft: spacing.xs,
+    marginBottom: 2,
   },
 });

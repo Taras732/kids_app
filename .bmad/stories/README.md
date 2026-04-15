@@ -43,6 +43,19 @@
 ## Повна декомпозиція
 Див. [[../../02_Estimation/Decomposition|Decomposition]] — оцінки, пріоритети, mapping FR→Epic→Story.
 
+## BMAD Workflow (активовано 2026-04-15)
+
+Команди в `.claude/commands/`:
+- `/pm` — оновлення `prd.md`, беклог, пріоритизація
+- `/sm` — створення story з AC та Tasks (цей файл — формат)
+- `/dev` — реалізація story (статус `in_progress`)
+- `/qa` — перевірка AC, патернів, typecheck (статус `review` → `done`)
+- `/architect` — технічні рішення, оновлення `CLAUDE.md`
+
+**Правило:** задача > 30 хв або фідбек 2+ пунктів → `/sm` ПЕРЕД кодом.
+
+Hotfix-роботи (без story) трекаємо у `_HOTFIXES.md` для прозорості.
+
 ---
 
 **Related:** [[../../01_Discovery/ТЗ|ТЗ]] · [[../../01_Discovery/Функціональні вимоги|FR]] · [[../../Roadmap|Roadmap]]
