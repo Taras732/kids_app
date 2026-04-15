@@ -1,7 +1,7 @@
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
 import { GradientBackground } from '@/src/components/GradientBackground';
@@ -24,6 +24,7 @@ const options: LangOption[] = [
 
 export default function LanguageScreen() {
   const router = useRouter();
+  const { from } = useLocalSearchParams<{ from?: string }>();
   const currentLocale = useSettingsStore((s) => s.locale);
   const setLocale = useSettingsStore((s) => s.setLocale);
   const markLanguageChosen = useOnboardingStore((s) => s.markLanguageChosen);
@@ -63,7 +64,11 @@ export default function LanguageScreen() {
   const handleContinue = () => {
     setLocale(selected);
     markLanguageChosen();
-    router.replace('/welcome');
+    if (from === 'settings' && router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/welcome');
+    }
   };
 
   return (

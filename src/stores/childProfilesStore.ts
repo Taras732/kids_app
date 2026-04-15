@@ -15,6 +15,7 @@ interface ChildProfilesState {
   profiles: ChildProfile[];
   activeProfileId: string | null;
   addProfile: (profile: Omit<ChildProfile, 'id' | 'createdAt'>) => string;
+  updateProfile: (id: string, patch: Partial<Omit<ChildProfile, 'id' | 'createdAt'>>) => void;
   removeProfile: (id: string) => void;
   setActiveProfile: (id: string) => void;
   getActiveProfile: () => ChildProfile | null;
@@ -37,11 +38,19 @@ export const useChildProfilesStore = create<ChildProfilesState>()(
         }));
         return id;
       },
-      removeProfile: (id) =>
+      updateProfile: (id, patch) =>
         set((state) => ({
-          profiles: state.profiles.filter((p) => p.id !== id),
-          activeProfileId: state.activeProfileId === id ? null : state.activeProfileId,
+          profiles: state.profiles.map((p) => (p.id === id ? { ...p, ...patch } : p)),
         })),
+      removeProfile: (id) =>
+        set((state) => {
+          const remaining = state.profiles.filter((p) => p.id !== id);
+          let nextActive = state.activeProfileId;
+          if (state.activeProfileId === id) {
+            nextActive = remaining[0]?.id ?? null;
+          }
+          return { profiles: remaining, activeProfileId: nextActive };
+        }),
       setActiveProfile: (id) => set({ activeProfileId: id }),
       getActiveProfile: () => {
         const { profiles, activeProfileId } = get();

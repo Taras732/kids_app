@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,7 +14,24 @@ export default function HubScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const topPad = Math.max(insets.top, 50);
+  const profiles = useChildProfilesStore((s) => s.profiles);
+  const activeProfileId = useChildProfilesStore((s) => s.activeProfileId);
+  const setActiveProfile = useChildProfilesStore((s) => s.setActiveProfile);
   const activeProfile = useChildProfilesStore((s) => s.getActiveProfile());
+
+  useEffect(() => {
+    if (activeProfileId) return;
+    if (profiles.length === 1) {
+      setActiveProfile(profiles[0].id);
+    } else if (profiles.length >= 2) {
+      router.replace('/(main)/profile-picker');
+    }
+  }, [activeProfileId, profiles, setActiveProfile, router]);
+
+  const canSwitchProfile = profiles.length >= 2;
+  const onHeaderPress = () => {
+    if (canSwitchProfile) router.replace('/(main)/profile-picker');
+  };
   const level = useProgressStore((s) => (activeProfile ? s.getLevel(activeProfile.id) : 1));
   const xp = useProgressStore((s) => (activeProfile ? s.getXp(activeProfile.id) : 0));
   const xpForLevel = 100;
@@ -26,15 +44,25 @@ export default function HubScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <View style={styles.avatar}>
-            <AppText style={{ fontSize: 28 }}>{activeProfile?.avatarId ?? '🐱'}</AppText>
-          </View>
-          <View style={{ flex: 1 }}>
-            <AppText variant="caption" color={colors.textMuted}>Привіт,</AppText>
-            <AppText variant="h2" style={{ fontWeight: '800' }}>
-              {activeProfile?.name ?? '👋'}!
-            </AppText>
-          </View>
+          <Pressable
+            style={styles.headerProfile}
+            onPress={onHeaderPress}
+            disabled={!canSwitchProfile}
+            accessibilityRole="button"
+          >
+            <View style={styles.avatar}>
+              <AppText style={{ fontSize: 28 }}>{activeProfile?.avatarId ?? '🐱'}</AppText>
+            </View>
+            <View style={{ flex: 1 }}>
+              <AppText variant="caption" color={colors.textMuted}>Привіт,</AppText>
+              <AppText variant="h2" style={{ fontWeight: '800' }}>
+                {activeProfile?.name ?? '👋'}!
+              </AppText>
+            </View>
+            {canSwitchProfile ? (
+              <AppText style={styles.switchHint}>⇄</AppText>
+            ) : null}
+          </Pressable>
           <Pressable style={styles.parentBtn} onPress={() => router.push('/(parent)/dashboard')}>
             <AppText style={{ fontSize: 22 }}>👨‍👩‍👧</AppText>
           </Pressable>
@@ -104,6 +132,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.smd,
+  },
+  headerProfile: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.smd,
+  },
+  switchHint: {
+    fontSize: 20,
+    color: colors.primary,
+    fontWeight: '800',
+    paddingHorizontal: spacing.sm,
   },
   avatar: {
     width: 52,

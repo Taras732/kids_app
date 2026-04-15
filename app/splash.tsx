@@ -6,6 +6,8 @@ import { AppText } from '@/src/components/AppText';
 import { useAuthStore } from '@/src/stores/authStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import { useChildProfilesStore } from '@/src/stores/childProfilesStore';
+import { useSettingsStore } from '@/src/stores/settingsStore';
+import { getDeviceLocale } from '@/src/utils/deviceLocale';
 
 const MIN_DURATION_MS = 2000;
 
@@ -16,9 +18,14 @@ export default function SplashScreen() {
   const authLoading = useAuthStore((s) => s.isLoading);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const hasChosenLanguage = useOnboardingStore((s) => s.hasChosenLanguage);
+  const markLanguageChosen = useOnboardingStore((s) => s.markLanguageChosen);
+  const setLocale = useSettingsStore((s) => s.setLocale);
   const hasSeenWelcome = useOnboardingStore((s) => s.hasSeenWelcome);
   const onboardingHydrated = useOnboardingStore((s) => s.hydrated);
-  const hasProfiles = useChildProfilesStore((s) => s.profiles.length > 0);
+  const profilesCount = useChildProfilesStore((s) => s.profiles.length);
+  const firstProfileId = useChildProfilesStore((s) => s.profiles[0]?.id ?? null);
+  const activeProfileId = useChildProfilesStore((s) => s.activeProfileId);
+  const setActiveProfile = useChildProfilesStore((s) => s.setActiveProfile);
   const startedAtRef = useRef(Date.now());
 
   useEffect(() => {
@@ -36,13 +43,22 @@ export default function SplashScreen() {
 
     const timer = setTimeout(() => {
       if (!hasChosenLanguage) {
-        router.replace('/language');
-      } else if (!hasSeenWelcome) {
+        setLocale(getDeviceLocale());
+        markLanguageChosen();
+      }
+      if (!hasSeenWelcome) {
         router.replace('/welcome');
       } else if (!isAuthenticated) {
         router.replace('/(auth)/login');
+      } else if (profilesCount === 0) {
+        router.replace('/(main)/onboarding/name');
+      } else if (profilesCount === 1) {
+        if (activeProfileId !== firstProfileId && firstProfileId) {
+          setActiveProfile(firstProfileId);
+        }
+        router.replace('/(main)');
       } else {
-        router.replace(hasProfiles ? '/(main)' : '/(main)/onboarding/language');
+        router.replace('/(main)/profile-picker');
       }
     }, remaining);
 
@@ -53,7 +69,12 @@ export default function SplashScreen() {
     hasChosenLanguage,
     hasSeenWelcome,
     isAuthenticated,
-    hasProfiles,
+    profilesCount,
+    firstProfileId,
+    activeProfileId,
+    setActiveProfile,
+    setLocale,
+    markLanguageChosen,
     router,
   ]);
 

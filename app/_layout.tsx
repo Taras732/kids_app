@@ -88,12 +88,12 @@ export default function RootLayout() {
     }
 
     if (inAuth && !onResetScreen) {
-      router.replace(hasProfiles ? '/(main)' : '/(main)/onboarding/language');
+      router.replace(hasProfiles ? '/(main)' : '/(main)/onboarding/name');
       return;
     }
 
     if (!hasProfiles && !inOnboarding && first !== '(parent)') {
-      router.replace('/(main)/onboarding/language');
+      router.replace('/(main)/onboarding/name');
     }
   }, [
     mounted,

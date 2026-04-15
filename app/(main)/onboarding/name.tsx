@@ -1,5 +1,5 @@
 import { View, StyleSheet, TextInput } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/src/components/AppText';
@@ -9,6 +9,7 @@ import { t } from '@/src/i18n';
 
 export default function NameScreen() {
   const router = useRouter();
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
   const [name, setName] = useState('');
 
   return (
@@ -26,8 +27,11 @@ export default function NameScreen() {
           title={t('common.continue')}
           size="lg"
           disabled={name.trim().length < 2}
-          onPress={() => router.push({ pathname: '/(main)/onboarding/age-group', params: { name: name.trim() } })}
+          onPress={() => router.push({ pathname: '/(main)/onboarding/age-group', params: { name: name.trim(), ...(mode ? { mode } : {}) } })}
         />
+        {router.canGoBack() ? (
+          <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
+        ) : null}
       </View>
     </SafeAreaView>
   );

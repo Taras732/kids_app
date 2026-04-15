@@ -130,6 +130,7 @@
     "scheduleHint": "Coming soon: allowed hours for playing.",
     "activityEmpty": "Stats will appear after the first game.",
     "changePin": "Change PIN",
+    "changeLanguage": "App language",
     "pinSetupTitle": "Create parent PIN",
     "pinChangeTitle": "Change PIN",
     "pinEnterNew": "Enter 4 digits",
@@ -151,6 +152,24 @@
     "back": "Back",
     "skip": "Skip",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "ok": "OK"
+  },
+  "picker": {
+    "title": "Who's playing?",
+    "addChild": "+ Add child",
+    "settings": "Settings"
+  },
+  "profiles": {
+    "active": "Active",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "deleteConfirmTitle": "Delete {{name}}?",
+    "deleteConfirmMsg": "This child's progress will be lost.",
+    "addChild": "+ Add child",
+    "empty": "No profiles yet",
+    "editTitle": "Edit profile",
+    "namePlaceholder": "Child's name"
   }
 }

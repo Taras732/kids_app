@@ -2,16 +2,20 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/src/components/AppText';
+import { AppButton } from '@/src/components/AppButton';
 import { AGE_GROUPS, type AgeGroupId } from '@/src/constants/ageGroups';
 import { colors, spacing, radius, shadows } from '@/src/constants/theme';
 import { t } from '@/src/i18n';
 
 export default function AgeGroupScreen() {
   const router = useRouter();
-  const { name } = useLocalSearchParams<{ name: string }>();
+  const { name, mode } = useLocalSearchParams<{ name: string; mode?: string }>();
 
   const choose = (id: AgeGroupId) => {
-    router.push({ pathname: '/(main)/onboarding/avatar', params: { name, ageGroupId: id } });
+    router.push({
+      pathname: '/(main)/onboarding/avatar',
+      params: { name, ageGroupId: id, ...(mode ? { mode } : {}) },
+    });
   };
 
   return (
@@ -27,6 +31,9 @@ export default function AgeGroupScreen() {
             </View>
           </Pressable>
         ))}
+        {router.canGoBack() ? (
+          <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
+        ) : null}
       </View>
     </SafeAreaView>
   );

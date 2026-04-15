@@ -130,6 +130,7 @@
     "scheduleHint": "Скоро: дозволені години доступу до ігор.",
     "activityEmpty": "Статистика з'явиться після першої гри.",
     "changePin": "Змінити PIN",
+    "changeLanguage": "Мова застосунку",
     "pinSetupTitle": "Створіть PIN батьків",
     "pinChangeTitle": "Змінити PIN",
     "pinEnterNew": "Введіть 4 цифри",
@@ -151,6 +152,24 @@
     "back": "Назад",
     "skip": "Пропустити",
     "cancel": "Скасувати",
-    "save": "Зберегти"
+    "save": "Зберегти",
+    "ok": "OK"
+  },
+  "picker": {
+    "title": "Хто гратиме?",
+    "addChild": "+ Додати дитину",
+    "settings": "Налаштування"
+  },
+  "profiles": {
+    "active": "Активна",
+    "edit": "Редагувати",
+    "delete": "Видалити",
+    "save": "Зберегти",
+    "deleteConfirmTitle": "Видалити {{name}}?",
+    "deleteConfirmMsg": "Прогрес цієї дитини буде втрачено.",
+    "addChild": "+ Додати дитину",
+    "empty": "Профілів поки немає",
+    "editTitle": "Редагувати профіль",
+    "namePlaceholder": "Ім'я дитини"
   }
 }

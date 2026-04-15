@@ -13,7 +13,7 @@ import { usePinStore } from '@/src/stores/pinStore';
 import { mmkvStorage } from '@/src/utils/mmkv';
 
 type Tab = 'progress' | 'time' | 'settings';
-type DialogKind = null | 'logout' | 'delete1' | 'delete2';
+type DialogKind = null | 'logout' | 'delete1' | 'delete2' | 'deleteError';
 
 const TABS: { id: Tab; icon: string; labelKey: string }[] = [
   { id: 'progress', icon: '📊', labelKey: 'parent.tabProgress' },
@@ -50,7 +50,7 @@ export default function ParentDashboardScreen() {
     const res = await deleteAccount();
     if (!res.ok) {
       setDeleting(false);
-      setDialog(null);
+      setDialog('deleteError');
       return;
     }
     mmkvStorage.clearAll();
@@ -96,6 +96,7 @@ export default function ParentDashboardScreen() {
           <SettingsTab
             onOpenProfiles={() => router.push('/(parent)/profiles')}
             onChangePin={() => router.push('/(parent)/pin-setup' as never)}
+            onChangeLanguage={() => router.push('/language?from=settings' as never)}
             onLogout={() => setDialog('logout')}
             onDelete={() => setDialog('delete1')}
           />
@@ -133,6 +134,14 @@ export default function ParentDashboardScreen() {
         loading={deleting}
         onCancel={() => setDialog(null)}
         onConfirm={() => void performDelete()}
+      />
+      <ConfirmModal
+        visible={dialog === 'deleteError'}
+        title={t('auth.deleteAccount')}
+        message={t('auth.deleteFailed')}
+        confirmLabel={t('common.ok')}
+        onConfirm={() => setDialog(null)}
+        onCancel={() => setDialog(null)}
       />
     </SafeAreaView>
   );
@@ -223,11 +232,13 @@ function TimeTab() {
 function SettingsTab({
   onOpenProfiles,
   onChangePin,
+  onChangeLanguage,
   onLogout,
   onDelete,
 }: {
   onOpenProfiles: () => void;
   onChangePin: () => void;
+  onChangeLanguage: () => void;
   onLogout: () => void;
   onDelete: () => void;
 }) {
@@ -236,6 +247,7 @@ function SettingsTab({
       <View style={styles.panel}>
         <SettingsRow icon="👧" label={t('parent.profiles')} onPress={onOpenProfiles} />
         <SettingsRow icon="🔒" label={t('parent.changePin')} onPress={onChangePin} />
+        <SettingsRow icon="🌐" label={t('parent.changeLanguage')} onPress={onChangeLanguage} />
       </View>
       <View style={styles.panel}>
         <SettingsRow icon="🚪" label={t('auth.signOut')} onPress={onLogout} />

@@ -6,21 +6,26 @@ import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
 import { useChildProfilesStore } from '@/src/stores/childProfilesStore';
 import type { AgeGroupId } from '@/src/constants/ageGroups';
+import { AVATARS } from '@/src/constants/avatars';
 import { colors, spacing, radius } from '@/src/constants/theme';
 import { t } from '@/src/i18n';
 
-const AVATARS = ['🦁', '🐻', '🦄', '🐸', '🐵', '🐧'];
-
 export default function AvatarScreen() {
   const router = useRouter();
-  const { name, ageGroupId } = useLocalSearchParams<{ name: string; ageGroupId: AgeGroupId }>();
+  const { name, ageGroupId, mode } = useLocalSearchParams<{ name: string; ageGroupId: AgeGroupId; mode?: string }>();
   const [avatarId, setAvatarId] = useState<string | null>(null);
   const addProfile = useChildProfilesStore((s) => s.addProfile);
+  const setActiveProfile = useChildProfilesStore((s) => s.setActiveProfile);
 
   const confirm = () => {
     if (!avatarId || !name || !ageGroupId) return;
-    addProfile({ name, ageGroupId, avatarId });
-    router.replace('/(main)/onboarding/tutorial');
+    const newId = addProfile({ name, ageGroupId, avatarId });
+    if (mode === 'add') {
+      setActiveProfile(newId);
+      router.replace('/(main)');
+    } else {
+      router.replace('/(main)/onboarding/tutorial');
+    }
   };
 
   return (
@@ -39,6 +44,9 @@ export default function AvatarScreen() {
           ))}
         </View>
         <AppButton title={t('common.continue')} size="lg" disabled={!avatarId} onPress={confirm} />
+        {router.canGoBack() ? (
+          <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
+        ) : null}
       </View>
     </SafeAreaView>
   );
