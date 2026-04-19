@@ -4,6 +4,7 @@ import countObjects from './count-objects';
 import mathExpressions from './math-expressions';
 import mathCompare from './math-compare';
 import shapes from './shapes';
+import lettersFind from './letters-find';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -31,3 +32,4 @@ registerGame(countObjects);
 registerGame(mathExpressions);
 registerGame(mathCompare);
 registerGame(shapes);
+registerGame(lettersFind);

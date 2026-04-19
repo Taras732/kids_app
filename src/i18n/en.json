@@ -129,6 +129,11 @@
         "triangle": "triangle",
         "rectangle": "rectangle"
       }
+    },
+    "letters": {
+      "name": "Find the letter",
+      "prompt": "Find the letter {{letter}}",
+      "rules": "A letter will appear with 4 options.\n\nTap the same letter shown at the top.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
     }
   },
   "parent": {
