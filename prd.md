@@ -46,6 +46,7 @@
 | **EP-05 Game Engine** | 2 | US-012..015 | 🟡 US-012 ✅, US-013 ✅ review, US-015 draft (blocked by US-100) |
 | **EP-06 Математика** | 2 | US-016..020 | 🟡 US-016/017/018 ✅ review — 3/5 готово (US-019/020 tangram deferred) |
 | **EP-07 Букви** | 2 | US-021..026 | 🟡 US-021 ✅ review — 1/6 готово |
+| **EP-09 Логіка** | 2 | US-030..035 | 🟡 US-030 ✅ review — 1/6 готово (tap-the-dot до логіки) |
 | EP-INF Infrastructure | — | US-100 | 🟡 ready (blocked: user needs to install CLI + create Supabase projects) |
 
 Повна декомпозиція: `.bmad/stories/README.md`
@@ -58,7 +59,8 @@
 5. **US-021 Letters Find** ✅ review (commit `fc90f2a`) — manual QA pending, **перший островів letters**
 6. **US-100 Supabase DevOps** 🚧 drafted, потребує user-action (install CLI, create 2 projects)
 7. **US-015 Profile Sync** 📝 stub, depends on US-100
-8. **MVP set progress:** 5 ігор (math×4 + letters×1), треба ще 3-4 з різних островів (logic, memory, science)
+8. **US-030 Odd One Out** ✅ review (commit `634cacd`) — EP-09 Логіка started
+9. **MVP set progress:** 6 ігор на 3 островах (math×4 + letters×1 + logic×2 incl. tap-the-dot), ще 2-3 з memory/science/emotions
 
 ## Монетизація
 - Ігри — безкоштовно
