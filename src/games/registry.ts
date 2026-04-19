@@ -12,6 +12,7 @@ import memoryMatch from './memory-match';
 import animalsHabitat from './animals-habitat';
 import colorsFind from './colors-find';
 import sequenceRepeat from './sequence-repeat';
+import whatsChanged from './whats-changed';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -47,3 +48,4 @@ registerGame(memoryMatch);
 registerGame(animalsHabitat);
 registerGame(colorsFind);
 registerGame(sequenceRepeat);
+registerGame(whatsChanged);
