@@ -46,7 +46,7 @@
 | **EP-05 Game Engine** | 2 | US-012..015 | 🟡 US-012 ✅, US-013 ✅ review, US-015 draft (blocked by US-100) |
 | **EP-06 Математика** | 2 | US-016..020 | 🟡 US-016/017/018 ✅ review — 3/5 готово (US-019/020 tangram deferred) |
 | **EP-07 Букви** | 2 | US-021..026 | 🟡 US-021, US-023 ✅ review — 2/6 готово |
-| **EP-08 English** | 2 | US-027..029 | 🟡 US-027 ✅ review — 1/3 готово |
+| **EP-08 English** | 2 | US-027..029 | 🟡 US-027, US-028 ✅ review — 2/3 готово |
 | **EP-09 Логіка** | 2 | US-030..035 | 🟡 US-030, US-031 ✅ review — 2/6 готово |
 | **EP-10 Пам'ять** | 2 | US-036..040 | 🟡 US-036, US-037, US-038 ✅ review — 3/5 готово |
 | **EP-11 Наука** | 2.5 | US-041..044 | 🟡 US-041 ✅ review — 1/4 готово |
@@ -77,6 +77,7 @@
 17. **US-052 Engagement Foundation** ✅ review (commit `16003a8`) — P3 phase started: 12-badge catalog, pure evaluateBadges engine, session tracking wired in game screen, badges Hub tab + screen, i18n uk/en
 18. **US-023 Syllable Build MVP** ✅ review (commit `ff23b73`) — letters island 2-я гра, tap-from-options pattern reuse. 14 games total.
 19. **US-031 Pattern Continuation MVP** ✅ review (commit `c33135d`) — logic island 2-я гра, ABAB repeat2 pattern reuse. 15 games total.
+20. **US-028 English Word Picture MVP** ✅ review (commit `96f132e`) — english island 2-я гра, 20-word vocab pool + 3-option scalar pattern. 16 games total.
 
 ## Монетизація
 - Ігри — безкоштовно

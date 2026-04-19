@@ -69,6 +69,7 @@
 | US-038 | M38 What's Changed MVP | review | `89ea78b` |
 | US-023 | M23 Syllable Build MVP | review | `ff23b73` |
 | US-031 | M29 Pattern Continuation MVP | review | `c33135d` |
+| US-028 | M26 English Word Picture MVP | review | `96f132e` |
 | US-052 | Engagement Foundation (session + badges + Hub) | review | `16003a8` |
 | US-100 | Supabase DevOps Setup | ready (blocked) | — |
 
