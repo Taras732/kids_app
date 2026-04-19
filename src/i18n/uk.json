@@ -82,7 +82,22 @@
     "tabBadges": "Бейджі",
     "tabAvatar": "Аватар",
     "tabParents": "Батьки",
-    "soon": "Скоро"
+    "soon": "Скоро",
+    "badgesTitle": "Мої бейджі"
+  },
+  "badges": {
+    "first-game": { "name": "Перший крок", "description": "Завершив першу гру" },
+    "first-stars-3": { "name": "Молодець!", "description": "3 зірки вперше" },
+    "ten-games": { "name": "Десятка", "description": "10 ігор завершено" },
+    "fifty-games": { "name": "Півсотні", "description": "50 ігор завершено" },
+    "all-islands": { "name": "Дослідник", "description": "Гра на кожному острові" },
+    "math-master": { "name": "Математик", "description": "3 math-ігри з 3 зірками" },
+    "letters-first": { "name": "Перша літера", "description": "Перша гра з буквами" },
+    "memory-master": { "name": "Пам'ятливий", "description": "3 memory-ігри з 3 зірками" },
+    "english-first": { "name": "Хеллоу!", "description": "Перша гра English" },
+    "emotions-first": { "name": "Чуйний", "description": "Перша гра про емоції" },
+    "science-first": { "name": "Дослідник природи", "description": "Перша гра про науку" },
+    "level-5": { "name": "Рівень 5", "description": "Досяг 5-го рівня" }
   },
   "game": {
     "correct": "Молодець!",

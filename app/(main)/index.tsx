@@ -111,7 +111,7 @@ export default function HubScreen() {
         activeKey="islands"
         tabs={[
           { key: 'islands', icon: '🏝', label: t('hub.tabIslands') },
-          { key: 'badges', icon: '🏆', label: t('hub.tabBadges'), disabled: true },
+          { key: 'badges', icon: '🏆', label: t('hub.tabBadges'), onPress: () => router.push('/(main)/badges') },
           { key: 'avatar', icon: '😀', label: t('hub.tabAvatar'), disabled: true },
           { key: 'parents', icon: '👨‍👩‍👧', label: t('hub.tabParents'), onPress: () => router.push('/(parent)/dashboard') },
         ]}

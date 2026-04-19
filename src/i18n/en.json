@@ -82,7 +82,22 @@
     "tabBadges": "Badges",
     "tabAvatar": "Avatar",
     "tabParents": "Parents",
-    "soon": "Soon"
+    "soon": "Soon",
+    "badgesTitle": "My badges"
+  },
+  "badges": {
+    "first-game": { "name": "First step", "description": "Finished your first game" },
+    "first-stars-3": { "name": "Great job!", "description": "Three stars earned" },
+    "ten-games": { "name": "Ten in a row", "description": "10 games completed" },
+    "fifty-games": { "name": "Fifty plays", "description": "50 games completed" },
+    "all-islands": { "name": "Explorer", "description": "Played on every island" },
+    "math-master": { "name": "Math master", "description": "3 math games with 3 stars" },
+    "letters-first": { "name": "First letter", "description": "First letters game" },
+    "memory-master": { "name": "Sharp memory", "description": "3 memory games with 3 stars" },
+    "english-first": { "name": "Hello!", "description": "First English game" },
+    "emotions-first": { "name": "Kind heart", "description": "First emotions game" },
+    "science-first": { "name": "Nature explorer", "description": "First science game" },
+    "level-5": { "name": "Level 5", "description": "Reached level 5" }
   },
   "game": {
     "correct": "Great!",

@@ -11,6 +11,7 @@ import { getGame } from '@/src/games/registry';
 import { useGameSession } from '@/src/games/useGameSession';
 import { useChildProfilesStore } from '@/src/stores/childProfilesStore';
 import { useProgressStore } from '@/src/stores/progressStore';
+import { evaluateBadges } from '@/src/utils/badgeEngine';
 import { colors, radius, spacing, shadows } from '@/src/constants/theme';
 import { t } from '@/src/i18n';
 
@@ -22,6 +23,8 @@ export default function GameScreen() {
 
   const activeProfile = useChildProfilesStore((s) => s.getActiveProfile());
   const addXp = useProgressStore((s) => s.addXp);
+  const recordGameSession = useProgressStore((s) => s.recordGameSession);
+  const awardBadge = useProgressStore((s) => s.awardBadge);
 
   const gameId = id ?? '';
   const game = gameId ? getGame(gameId) : undefined;
@@ -43,6 +46,8 @@ export default function GameScreen() {
       gameId={gameId}
       profileId={activeProfile?.id ?? null}
       addXp={addXp}
+      recordGameSession={recordGameSession}
+      awardBadge={awardBadge}
       topPad={topPad}
       onExit={() => router.replace('/(main)')}
       onFinished={(stars, xp) => {
@@ -59,12 +64,14 @@ interface InnerProps {
   gameId: string;
   profileId: string | null;
   addXp: (profileId: string, amount: number) => void;
+  recordGameSession: (profileId: string, gameId: string, score: number, difficulty: number) => void;
+  awardBadge: (profileId: string, badgeId: string) => void;
   topPad: number;
   onExit: () => void;
   onFinished: (stars: 1 | 2 | 3, xp: number) => void;
 }
 
-function GameScreenInner({ gameId, profileId, addXp, topPad, onExit, onFinished }: InnerProps) {
+function GameScreenInner({ gameId, profileId, addXp, recordGameSession, awardBadge, topPad, onExit, onFinished }: InnerProps) {
   const session = useGameSession(gameId);
   const game = getGame(gameId)!;
   const Renderer = game.Renderer;
@@ -76,10 +83,17 @@ function GameScreenInner({ gameId, profileId, addXp, topPad, onExit, onFinished 
   useEffect(() => {
     if (session.phase === 'finished' && !committedRef.current) {
       committedRef.current = true;
-      if (profileId) addXp(profileId, session.xpEarned);
+      if (profileId) {
+        const stars = session.stars as 1 | 2 | 3;
+        recordGameSession(profileId, gameId, stars, 1.0);
+        addXp(profileId, session.xpEarned);
+        const state = useProgressStore.getState();
+        const newly = evaluateBadges(state, profileId);
+        for (const id of newly) awardBadge(profileId, id);
+      }
       onFinished(session.stars as 1 | 2 | 3, session.xpEarned);
     }
-  }, [session.phase, session.stars, session.xpEarned, profileId, addXp, onFinished]);
+  }, [session.phase, session.stars, session.xpEarned, profileId, gameId, addXp, recordGameSession, awardBadge, onFinished]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
