@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, TextInput, StyleSheet, Pressable, type TextInputProps } from 'react-native';
+import { View, TextInput, StyleSheet, Pressable, Platform, type TextInputProps } from 'react-native';
 import { AppText } from './AppText';
 import { colors, spacing, radius, fontSizes, fontFamily } from '../constants/theme';
 
@@ -81,8 +81,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.regular,
     color: colors.text,
     paddingVertical: spacing.sm,
-    // @ts-expect-error web-only style
-    outlineStyle: 'none',
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null),
   },
   icon: {
     fontSize: fontSizes.lg,
