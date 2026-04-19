@@ -110,6 +110,10 @@
       "name": "Count the apples",
       "question": "How many apples?",
       "rules": "Apples 🍎 will appear on the screen.\n\nCount them and enter the number using the keypad.\n\nTap ⌫ to erase, OK to answer.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+    },
+    "mathExpressions": {
+      "name": "Math Problems",
+      "rules": "An ➕ addition or ➖ subtraction problem will appear.\n\nTap the correct answer from four options.\n\nNumbers up to 10.\n\nThere are 5 problems per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
     }
   },
   "parent": {
