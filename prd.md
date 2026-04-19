@@ -51,6 +51,7 @@
 | **EP-10 Пам'ять** | 2 | US-036..040 | 🟡 US-036 ✅ review — 1/5 готово |
 | **EP-11 Наука** | 2.5 | US-041..044 | 🟡 US-041 ✅ review — 1/4 готово |
 | **EP-12 Емоції** | 2.5 | US-045..048 | 🟡 US-045 ✅ review — 1/4 готово |
+| **EP-13 Творчість** | 2.5 | US-049..051 | 🟡 US-049 ✅ review — 1/3 готово |
 | EP-INF Infrastructure | — | US-100 | 🟡 ready (blocked: user needs to install CLI + create Supabase projects) |
 
 Повна декомпозиція: `.bmad/stories/README.md`
@@ -68,7 +69,8 @@
 10. **US-045 Emotions Recognize** ✅ review (commit `62d0ce2`) — EP-12 Емоції started
 11. **US-036 Memory Match MVP** ✅ review (commit `77ad1cb`) — EP-10 Пам'ять started, перший multi-tap pattern
 12. **US-041 Animals Habitat MVP** ✅ review (commit `21bdd72`) — EP-11 Наука started, 7-й острів
-13. **MVP set progress:** 10 ігор на 7 островах (math 4 + letters 1 + logic 2 + english 1 + emotions 1 + memory 1 + science 1). MVP recommend ≥8 — **перевищено**. Залишається manual QA.
+13. **US-049 Color Find MVP** ✅ review (commit `6cbc762`) — EP-13 Творчість started, **всі 8 островів покриті ≥1 грою**
+14. **MVP set progress:** 11 ігор на 8 островах (math 4 + letters 1 + logic 2 + english 1 + emotions 1 + memory 1 + science 1 + creativity 1). **Full 8-island coverage досягнуто**. Залишається manual QA.
 
 ## Монетизація
 - Ігри — безкоштовно
