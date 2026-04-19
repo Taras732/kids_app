@@ -144,6 +144,19 @@
       "name": "Find the letter (EN)",
       "prompt": "Find the letter {{letter}}",
       "rules": "A Latin letter will appear with 4 options.\n\nTap the same letter shown at the top.\n\nABC practice — letters A to T.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+    },
+    "emotions": {
+      "name": "Emotions",
+      "prompt": "Which emotion is this?",
+      "rules": "A face with an emotion will appear on screen.\n\nPick the correct emotion name from three options.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
+      "names": {
+        "happy": "happy",
+        "sad": "sad",
+        "angry": "angry",
+        "scared": "scared",
+        "surprised": "surprised",
+        "sleepy": "sleepy"
+      }
     }
   },
   "parent": {

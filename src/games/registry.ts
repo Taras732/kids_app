@@ -7,6 +7,7 @@ import shapes from './shapes';
 import lettersFind from './letters-find';
 import oddOneOut from './odd-one-out';
 import lettersFindEn from './letters-find-en';
+import emotionsRecognize from './emotions-recognize';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -37,3 +38,4 @@ registerGame(shapes);
 registerGame(lettersFind);
 registerGame(oddOneOut);
 registerGame(lettersFindEn);
+registerGame(emotionsRecognize);
