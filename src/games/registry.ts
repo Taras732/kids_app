@@ -8,6 +8,7 @@ import lettersFind from './letters-find';
 import oddOneOut from './odd-one-out';
 import lettersFindEn from './letters-find-en';
 import emotionsRecognize from './emotions-recognize';
+import memoryMatch from './memory-match';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -39,3 +40,4 @@ registerGame(lettersFind);
 registerGame(oddOneOut);
 registerGame(lettersFindEn);
 registerGame(emotionsRecognize);
+registerGame(memoryMatch);
