@@ -45,7 +45,7 @@
 | EP-04 Hub | 1 | US-010..011 | ✅ done |
 | **EP-05 Game Engine** | 2 | US-012..015 | 🟡 US-012 ✅, US-013 ✅ review, US-015 draft (blocked by US-100) |
 | **EP-06 Математика** | 2 | US-016..020 | 🟡 US-016/017/018 ✅ review — 3/5 готово (US-019/020 tangram deferred) |
-| **EP-07 Букви** | 2 | US-021..026 | 🟡 US-021 ✅ review — 1/6 готово |
+| **EP-07 Букви** | 2 | US-021..026 | 🟡 US-021, US-023 ✅ review — 2/6 готово |
 | **EP-08 English** | 2 | US-027..029 | 🟡 US-027 ✅ review — 1/3 готово |
 | **EP-09 Логіка** | 2 | US-030..035 | 🟡 US-030 ✅ review — 1/6 готово (tap-the-dot до логіки) |
 | **EP-10 Пам'ять** | 2 | US-036..040 | 🟡 US-036, US-037, US-038 ✅ review — 3/5 готово |
@@ -75,6 +75,7 @@
 15. **US-038 What's Changed MVP** ✅ review (commit `89ea78b`) — EP-10 3rd game, memorize→detect pattern
 16. **MVP set progress:** 13 ігор на 8 островах (math 4 + letters 1 + logic 2 + english 1 + emotions 1 + memory 3 + science 1 + creativity 1). Architecture validated on 6 unique patterns. Memory island — 3 distinct mechanics.
 17. **US-052 Engagement Foundation** ✅ review (commit `16003a8`) — P3 phase started: 12-badge catalog, pure evaluateBadges engine, session tracking wired in game screen, badges Hub tab + screen, i18n uk/en
+18. **US-023 Syllable Build MVP** ✅ review (commit `ff23b73`) — letters island 2-я гра, tap-from-options pattern reuse. 14 games total.
 
 ## Монетизація
 - Ігри — безкоштовно

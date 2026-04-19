@@ -67,6 +67,7 @@
 | US-049 | M47 Color Find MVP | review | `6cbc762` |
 | US-037 | M37 Sequence Repeat MVP | review | `88aff2c` |
 | US-038 | M38 What's Changed MVP | review | `89ea78b` |
+| US-023 | M23 Syllable Build MVP | review | `ff23b73` |
 | US-052 | Engagement Foundation (session + badges + Hub) | review | `16003a8` |
 | US-100 | Supabase DevOps Setup | ready (blocked) | — |
 
