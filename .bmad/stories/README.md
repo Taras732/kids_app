@@ -59,7 +59,9 @@
 | US-017 | M16 Number Compare MVP | review | `bc5645d` |
 | US-018 | M17 Shapes Recognize MVP | review | `723c99b` |
 | US-021 | M19 Letters Find MVP | review | `fc90f2a` |
+| US-027 | M25 ABC Find Letter EN | review | `10c05a9` |
 | US-030 | M28 Odd One Out MVP | review | `634cacd` |
+| US-045 | M43 Emotions Recognize | review | `62d0ce2` |
 | US-100 | Supabase DevOps Setup | ready (blocked) | — |
 
 ## Повна декомпозиція

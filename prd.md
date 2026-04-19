@@ -46,7 +46,9 @@
 | **EP-05 Game Engine** | 2 | US-012..015 | 🟡 US-012 ✅, US-013 ✅ review, US-015 draft (blocked by US-100) |
 | **EP-06 Математика** | 2 | US-016..020 | 🟡 US-016/017/018 ✅ review — 3/5 готово (US-019/020 tangram deferred) |
 | **EP-07 Букви** | 2 | US-021..026 | 🟡 US-021 ✅ review — 1/6 готово |
+| **EP-08 English** | 2 | US-027..029 | 🟡 US-027 ✅ review — 1/3 готово |
 | **EP-09 Логіка** | 2 | US-030..035 | 🟡 US-030 ✅ review — 1/6 готово (tap-the-dot до логіки) |
+| **EP-12 Емоції** | 2.5 | US-045..048 | 🟡 US-045 ✅ review — 1/4 готово |
 | EP-INF Infrastructure | — | US-100 | 🟡 ready (blocked: user needs to install CLI + create Supabase projects) |
 
 Повна декомпозиція: `.bmad/stories/README.md`
@@ -60,7 +62,9 @@
 6. **US-100 Supabase DevOps** 🚧 drafted, потребує user-action (install CLI, create 2 projects)
 7. **US-015 Profile Sync** 📝 stub, depends on US-100
 8. **US-030 Odd One Out** ✅ review (commit `634cacd`) — EP-09 Логіка started
-9. **MVP set progress:** 6 ігор на 3 островах (math×4 + letters×1 + logic×2 incl. tap-the-dot), ще 2-3 з memory/science/emotions
+9. **US-027 ABC Find Letter EN** ✅ review (commit `10c05a9`) — EP-08 English started
+10. **US-045 Emotions Recognize** ✅ review (commit `62d0ce2`) — EP-12 Емоції started
+11. **MVP set progress:** 8 ігор на 5 островах (math 4 + letters 1 + logic 2 + english 1 + emotions 1). MVP recommend ≥8 — **досягнуто**. Залишається manual QA.
 
 ## Монетизація
 - Ігри — безкоштовно
