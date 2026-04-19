@@ -139,6 +139,11 @@
       "name": "Що зайве?",
       "prompt": "Що зайве?",
       "rules": "На екрані з'являться 4 предмети.\n\nТри з них — схожі (наприклад, фрукти), а один — не підходить.\n\nНатисни на той, який не підходить!\n\nУ рівні 5 завдань. Що менше помилок — то більше зірок:\n⭐⭐⭐ без помилок\n⭐⭐ 1-2 помилки\n⭐ більше"
+    },
+    "lettersEn": {
+      "name": "Find the letter (EN)",
+      "prompt": "Find the letter {{letter}}",
+      "rules": "A Latin letter will appear with 4 options.\n\nTap the same letter shown at the top.\n\nABC practice — letters A to T.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
     }
   },
   "parent": {

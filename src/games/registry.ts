@@ -6,6 +6,7 @@ import mathCompare from './math-compare';
 import shapes from './shapes';
 import lettersFind from './letters-find';
 import oddOneOut from './odd-one-out';
+import lettersFindEn from './letters-find-en';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -35,3 +36,4 @@ registerGame(mathCompare);
 registerGame(shapes);
 registerGame(lettersFind);
 registerGame(oddOneOut);
+registerGame(lettersFindEn);

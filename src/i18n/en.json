@@ -139,6 +139,11 @@
       "name": "Odd one out",
       "prompt": "Which is odd?",
       "rules": "Four items will appear on screen.\n\nThree of them belong together (e.g. fruits), but one doesn't fit.\n\nTap the one that doesn't belong!\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+    },
+    "lettersEn": {
+      "name": "Find the letter (EN)",
+      "prompt": "Find the letter {{letter}}",
+      "rules": "A Latin letter will appear with 4 options.\n\nTap the same letter shown at the top.\n\nABC practice — letters A to T.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
     }
   },
   "parent": {

@@ -10,6 +10,7 @@ export type LetterAnswer = string;
 export interface LetterPayload {
   target: string;
   candidates: string[];
+  promptKey?: string;
 }
 
 export function Renderer({ task, onAnswer, disabled }: RendererProps<LetterAnswer>) {
@@ -27,7 +28,7 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<LetterAnswe
   };
 
   const isDisabled = disabled || locked;
-  const prompt = t('game.letters.prompt', { letter: payload.target });
+  const prompt = t(payload.promptKey ?? 'game.letters.prompt', { letter: payload.target });
   const [row1, row2] = [payload.candidates.slice(0, 2), payload.candidates.slice(2, 4)];
 
   return (
