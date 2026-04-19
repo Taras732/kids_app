@@ -163,6 +163,16 @@
       "prompt": "Match the pairs",
       "mistakesLabel": "Mistakes",
       "rules": "The board has 6 cards face down.\n\nTap two cards — if the images match, the pair stays open.\n\nIf not, the cards flip back and a mistake is added.\n\nFind all 3 pairs! 2 or fewer mistakes = success.\n\nThere are 3 boards per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+    },
+    "animals": {
+      "name": "Where do they live?",
+      "prompt": "Where does this animal live?",
+      "rules": "An animal will appear on screen 🐾.\n\nPick where it lives: 🌳 forest, 🏠 home, or 🌊 sea.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
+      "habitat": {
+        "forest": "Forest",
+        "home": "Home",
+        "sea": "Sea"
+      }
     }
   },
   "parent": {
