@@ -11,6 +11,7 @@ import emotionsRecognize from './emotions-recognize';
 import memoryMatch from './memory-match';
 import animalsHabitat from './animals-habitat';
 import colorsFind from './colors-find';
+import sequenceRepeat from './sequence-repeat';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -45,3 +46,4 @@ registerGame(emotionsRecognize);
 registerGame(memoryMatch);
 registerGame(animalsHabitat);
 registerGame(colorsFind);
+registerGame(sequenceRepeat);
