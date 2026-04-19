@@ -105,6 +105,11 @@
     "tapTheDot": {
       "name": "Tap the dot",
       "rules": "A pink dot 🎯 will appear on the screen.\n\nYour task — quickly tap right on it!\n\nIf you hit — great! If you miss — you'll see a thinking face and try again.\n\nThere are 5 dots per level. Fewer misses = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+    },
+    "countObjects": {
+      "name": "Count the apples",
+      "question": "How many apples?",
+      "rules": "Apples 🍎 will appear on the screen.\n\nCount them and enter the number using the keypad.\n\nTap ⌫ to erase, OK to answer.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
     }
   },
   "parent": {
