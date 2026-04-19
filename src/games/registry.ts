@@ -14,6 +14,7 @@ import colorsFind from './colors-find';
 import sequenceRepeat from './sequence-repeat';
 import whatsChanged from './whats-changed';
 import syllableBuild from './syllable-build';
+import patternNext from './pattern-next';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -51,3 +52,4 @@ registerGame(colorsFind);
 registerGame(sequenceRepeat);
 registerGame(whatsChanged);
 registerGame(syllableBuild);
+registerGame(patternNext);

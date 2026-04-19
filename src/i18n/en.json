@@ -160,6 +160,11 @@
       "prompt": "Which is odd?",
       "rules": "Four items will appear on screen.\n\nThree of them belong together (e.g. fruits), but one doesn't fit.\n\nTap the one that doesn't belong!\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
     },
+    "patternNext": {
+      "name": "What's next?",
+      "prompt": "What's next?",
+      "rules": "A repeating color pattern will appear.\n\nLook at the order and pick which color comes next!\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+    },
     "lettersEn": {
       "name": "Find the letter (EN)",
       "prompt": "Find the letter {{letter}}",
