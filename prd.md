@@ -44,7 +44,8 @@
 | EP-03 Onboarding | 1 | US-006..009 | ✅ done (+ US-014 Profile Picker) |
 | EP-04 Hub | 1 | US-010..011 | ✅ done |
 | **EP-05 Game Engine** | 2 | US-012..015 | 🟡 US-012 ✅, US-013 ✅ review, US-015 draft (blocked by US-100) |
-| **EP-06 Математика** | 2 | US-016..020 | 🟡 US-016 ✅ review, US-017 ✅ review, US-018 ✅ review — 3/5 готово |
+| **EP-06 Математика** | 2 | US-016..020 | 🟡 US-016/017/018 ✅ review — 3/5 готово (US-019/020 tangram deferred) |
+| **EP-07 Букви** | 2 | US-021..026 | 🟡 US-021 ✅ review — 1/6 готово |
 | EP-INF Infrastructure | — | US-100 | 🟡 ready (blocked: user needs to install CLI + create Supabase projects) |
 
 Повна декомпозиція: `.bmad/stories/README.md`
@@ -54,9 +55,10 @@
 2. **US-016 Math Expressions** ✅ review (commit `8e9c6d5`) — manual QA pending
 3. **US-017 Number Compare** ✅ review (commit `bc5645d`) — manual QA pending
 4. **US-018 Shapes Recognize** ✅ review (commit `723c99b`) — manual QA pending
-5. **US-100 Supabase DevOps** 🚧 drafted, потребує user-action (install CLI, create 2 projects)
-6. **US-015 Profile Sync** 📝 stub, depends on US-100
-7. **EP-06 next:** US-019 (shapes extended) або US-020 (logic puzzle) — 2/5 ігор залишилось
+5. **US-021 Letters Find** ✅ review (commit `fc90f2a`) — manual QA pending, **перший островів letters**
+6. **US-100 Supabase DevOps** 🚧 drafted, потребує user-action (install CLI, create 2 projects)
+7. **US-015 Profile Sync** 📝 stub, depends on US-100
+8. **MVP set progress:** 5 ігор (math×4 + letters×1), треба ще 3-4 з різних островів (logic, memory, science)
 
 ## Монетизація
 - Ігри — безкоштовно

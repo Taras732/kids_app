@@ -58,6 +58,7 @@
 | US-016 | M15 Math Expressions MVP | review | `8e9c6d5` |
 | US-017 | M16 Number Compare MVP | review | `bc5645d` |
 | US-018 | M17 Shapes Recognize MVP | review | `723c99b` |
+| US-021 | M19 Letters Find MVP | review | `fc90f2a` |
 | US-100 | Supabase DevOps Setup | ready (blocked) | — |
 
 ## Повна декомпозиція
