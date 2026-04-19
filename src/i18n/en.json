@@ -150,6 +150,11 @@
       "prompt": "Find the letter {{letter}}",
       "rules": "A letter will appear with 4 options.\n\nTap the same letter shown at the top.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
     },
+    "syllableBuild": {
+      "name": "Build a syllable",
+      "prompt": "Build the syllable {{syllable}}",
+      "rules": "A consonant is shown with an empty slot.\n\nPick the right vowel to build the syllable.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+    },
     "oddOneOut": {
       "name": "Odd one out",
       "prompt": "Which is odd?",

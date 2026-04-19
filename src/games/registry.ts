@@ -13,6 +13,7 @@ import animalsHabitat from './animals-habitat';
 import colorsFind from './colors-find';
 import sequenceRepeat from './sequence-repeat';
 import whatsChanged from './whats-changed';
+import syllableBuild from './syllable-build';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -49,3 +50,4 @@ registerGame(animalsHabitat);
 registerGame(colorsFind);
 registerGame(sequenceRepeat);
 registerGame(whatsChanged);
+registerGame(syllableBuild);
