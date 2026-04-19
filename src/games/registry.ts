@@ -10,6 +10,7 @@ import lettersFindEn from './letters-find-en';
 import emotionsRecognize from './emotions-recognize';
 import memoryMatch from './memory-match';
 import animalsHabitat from './animals-habitat';
+import colorsFind from './colors-find';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -43,3 +44,4 @@ registerGame(lettersFindEn);
 registerGame(emotionsRecognize);
 registerGame(memoryMatch);
 registerGame(animalsHabitat);
+registerGame(colorsFind);

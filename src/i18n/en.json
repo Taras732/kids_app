@@ -173,6 +173,19 @@
         "home": "Home",
         "sea": "Sea"
       }
+    },
+    "colors": {
+      "name": "Find the color",
+      "prompt": "Find {{color}}",
+      "rules": "A color name will appear on top with 4 colored circles below.\n\nTap the circle of the color named at the top.\n\nColors: red, blue, green, yellow, purple, orange.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
+      "names": {
+        "red": "red",
+        "blue": "blue",
+        "green": "green",
+        "yellow": "yellow",
+        "purple": "purple",
+        "orange": "orange"
+      }
     }
   },
   "parent": {
