@@ -2,6 +2,7 @@ import type { GameDefinition } from './types';
 import tapTheDot from './tap-the-dot';
 import countObjects from './count-objects';
 import mathExpressions from './math-expressions';
+import mathCompare from './math-compare';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -27,3 +28,4 @@ export function listGamesByIsland(islandId: string): GameDefinition<any, any>[] 
 registerGame(tapTheDot);
 registerGame(countObjects);
 registerGame(mathExpressions);
+registerGame(mathCompare);

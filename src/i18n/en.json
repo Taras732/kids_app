@@ -114,6 +114,10 @@
     "mathExpressions": {
       "name": "Math Problems",
       "rules": "An ➕ addition or ➖ subtraction problem will appear.\n\nTap the correct answer from four options.\n\nNumbers up to 10.\n\nThere are 5 problems per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+    },
+    "mathCompare": {
+      "name": "Compare",
+      "rules": "An empty box ⬚ appears between two numbers.\n\nPick the correct sign: > (greater), < (less) or = (equal).\n\nNumbers up to 20.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
     }
   },
   "parent": {
