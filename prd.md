@@ -48,7 +48,7 @@
 | **EP-07 Букви** | 2 | US-021..026 | 🟡 US-021 ✅ review — 1/6 готово |
 | **EP-08 English** | 2 | US-027..029 | 🟡 US-027 ✅ review — 1/3 готово |
 | **EP-09 Логіка** | 2 | US-030..035 | 🟡 US-030 ✅ review — 1/6 готово (tap-the-dot до логіки) |
-| **EP-10 Пам'ять** | 2 | US-036..040 | 🟡 US-036 ✅ review — 1/5 готово |
+| **EP-10 Пам'ять** | 2 | US-036..040 | 🟡 US-036, US-037 ✅ review — 2/5 готово |
 | **EP-11 Наука** | 2.5 | US-041..044 | 🟡 US-041 ✅ review — 1/4 готово |
 | **EP-12 Емоції** | 2.5 | US-045..048 | 🟡 US-045 ✅ review — 1/4 готово |
 | **EP-13 Творчість** | 2.5 | US-049..051 | 🟡 US-049 ✅ review — 1/3 готово |
@@ -70,7 +70,8 @@
 11. **US-036 Memory Match MVP** ✅ review (commit `77ad1cb`) — EP-10 Пам'ять started, перший multi-tap pattern
 12. **US-041 Animals Habitat MVP** ✅ review (commit `21bdd72`) — EP-11 Наука started, 7-й острів
 13. **US-049 Color Find MVP** ✅ review (commit `6cbc762`) — EP-13 Творчість started, **всі 8 островів покриті ≥1 грою**
-14. **MVP set progress:** 11 ігор на 8 островах (math 4 + letters 1 + logic 2 + english 1 + emotions 1 + memory 1 + science 1 + creativity 1). **Full 8-island coverage досягнуто**. Залишається manual QA.
+14. **US-037 Sequence Repeat MVP** ✅ review (commit `88aff2c`) — EP-10 extended, playback→input pattern + array answer
+15. **MVP set progress:** 12 ігор на 8 островах (math 4 + letters 1 + logic 2 + english 1 + emotions 1 + memory 2 + science 1 + creativity 1). Architecture validated on 5 unique patterns. Залишається manual QA.
 
 ## Монетизація
 - Ігри — безкоштовно

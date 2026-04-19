@@ -65,6 +65,7 @@
 | US-036 | M34 Memory Match MVP | review | `77ad1cb` |
 | US-041 | M41 Animals Habitat MVP | review | `21bdd72` |
 | US-049 | M47 Color Find MVP | review | `6cbc762` |
+| US-037 | M37 Sequence Repeat MVP | review | `88aff2c` |
 | US-100 | Supabase DevOps Setup | ready (blocked) | — |
 
 ## Повна декомпозиція
