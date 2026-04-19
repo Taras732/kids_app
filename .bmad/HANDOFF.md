@@ -1,125 +1,151 @@
 ---
 title: Handoff — Школярик Dev Session
-date: 2026-04-16
-next_session: 2026-04-17
+date: 2026-04-19
+next_session: TBD
 ---
 
-# Handoff — Школярик (2026-04-16 → 2026-04-17)
+# Handoff — Школярик (2026-04-19)
 
-## TL;DR для завтра
+## TL;DR
 
-**Стан:** US-014 (Child Profile Picker) + hotfixes (delete account error UX, device-locale auto-detect) закомічені в один коміт. US-013 (Count Objects MVP) на паузі.
+**Стан:** US-013 (Count Objects MVP) реалізовано і закомічено. Tech debt з FormInput і dead route закрито. Створено US-100 (Supabase DevOps Setup) + US-015 stub (Profile Sync).
 
-**Наступна дія:** Manual QA кінцевого flow (видалити акаунт → новий register → одразу onboarding name без language screen) → потім US-013 `/dev`.
+**Наступна дія:**
+1. Manual QA US-013 та US-014 flows на Expo Go
+2. **BLOCKED** — виконати US-100 Step 1-3 (install CLI + 2 Supabase проекти) — потребує рук користувача
+3. Після US-100 → `/dev` US-015 Profile Sync
 
-## Зроблене сьогодні (2026-04-16)
+## Сьогодні закомічено (2026-04-19)
 
-### US-014 — Child Profile Picker (committed)
-- Picker (`profile-picker.tsx`), profile-edit, updateProfile у store
-- Додано gear→pin-gate, auto-switch при removeProfile
-- `mode=add` flow з back-кнопками на всіх 3-х onboarding screens
+```
+bd4bc03 feat(us-013): M14 Count Objects MVP — second game via GameDefinition contract
+f82bd21 docs(us-100): Supabase DevOps setup — story + runbook + config preseed
+d6b04e1 fix(FormInput): Platform-aware web-only outlineStyle + remove dead route
+```
 
-### Hotfix 1 — Silent fail при delete account
-- **SQL міграція `0002_delete_user_account.sql` задеплоєна у Supabase** (manual через SQL Editor)
-- `dashboard.tsx:performDelete` — замість silent close тепер показує `ConfirmModal` з `auth.deleteFailed`
-- Додано `common.ok` ключ у i18n
+### Commit 1 (`d6b04e1`) — Tech debt
+- `src/components/FormInput.tsx` — `outlineStyle: 'none'` spread тільки на web через `Platform.OS === 'web'` check. 3 TS errors → 0.
+- Видалено `app/(main)/onboarding/language.tsx` — dead route після US-014 device-locale auto-detect.
 
-### Hotfix 2 — Device-locale auto-detect (removed language screen)
-- `src/utils/deviceLocale.ts` — визначає локаль через `Intl.DateTimeFormat`
-- `splash.tsx` — при `!hasChosenLanguage` auto-set locale з девайсу + mark chosen
-- `_layout.tsx` — редіректи з `/(main)/onboarding/language` → `/(main)/onboarding/name`
-- Parent dashboard → Settings → 🌐 "Мова застосунку" (route на `/language?from=settings`)
-- `/language.tsx` підтримує `from=settings` → `router.back()`
+### Commit 2 (`f82bd21`) — US-100 + US-015 docs
+- `.bmad/stories/US-100 — Supabase DevOps Setup.md` — 28 AC, 6 кроків, estimate 4h. Блокує US-015/US-017/US-056.
+- `.bmad/stories/US-015 — Supabase Profile Sync.md` — stub з 23 AC, 5 tasks, estimate 12h. Depends on US-100.
+- `supabase/config.toml` preseed: `project_id="shkolyaryk"`, auth `site_url="shkolyaryk://"`, redirect URLs, email templates paths.
+- `docs/supabase-setup.md` — runbook для нових розробників (install → link → daily workflow → troubleshooting).
+- `.env.example` — dev/prod split блоки.
+- `.gitignore` — `.env.production`, `supabase/.temp/`, `supabase/.branches/`.
 
-**Неактивні екрани (залишені у файлах для можливого reuse):**
-- `app/(main)/onboarding/language.tsx` — не редіректить сюди ніхто, dead route
+### Commit 3 (`bd4bc03`) — US-013 M14 Count Objects MVP
+- `src/games/count-objects/index.ts` — `GameDefinition`, `generateLevel` (5 tasks, `correctCount ∈ [1,20]`), rejection sampling для non-overlapping positions + grid fallback.
+- `src/games/count-objects/Renderer.tsx` — apple field + NumberKeypad, max 2 digits, no leading zero, `useEffect` clears input on `task.id` change.
+- `src/components/game/NumberKeypad.tsx` — reusable 3×3 keypad (1-9) + bottom row [⌫, 0, OK]. Варіанти `default/primary/ghost`.
+- `src/games/registry.ts` — registered second game (✅ validates `GameDefinition<TLevelSpec, TAnswer>` plugin contract — витримав без змін).
+- i18n `uk/en.json` — `game.countObjects.{name, question, rules}`.
+
+**Tech validation:** `npx tsc --noEmit` → EXIT=0.
 
 ## Tomorrow's playbook
 
-### Step 1 — Повноцінна QA (~30min)
+### Step 1 — QA (~45min)
 
-Запусти: `cd d:/Dev/shkolyaryk && npx expo start -c` (з `-c` для очистки кешу).
+Запусти: `cd d:/Dev/shkolyaryk && npx expo start -c`
 
-**Критичний сценарій №1 — після delete:**
-1. Parent → Settings → Видалити акаунт → підтвердити 2 рази
-2. Register новий → check-email → "Я підтвердив"
-3. ✅ Очікувано: одразу onboarding `name` (без екрану мови!)
-4. ✅ Мова має бути правильна (uk якщо пристрій Ukrainian, інакше en)
+#### Сценарій 1 — Count Objects gameplay
+1. Hub → Math island → "Порахуй яблука"
+2. ✅ Modal з rules → tap "Зрозуміло"
+3. 5 tasks підряд, у кожному 1-20 яблук, не перекриваються
+4. Введи правильну відповідь → ✅ "Молодець!" → Next
+5. Введи неправильну → ❌ "Спробуй ще!" → Try again
+6. Після 5 tasks → Stars screen (0-3 зірки залежно від помилок) + XP earned
+7. Keypad:
+   - Leading zero НЕ вводиться
+   - Після 2 digits не додається третій
+   - ⌫ стирає останню цифру
+   - OK disabled коли empty
 
-**Критичний сценарій №2 — picker:**
-1. Cold start з 2+ profiles → picker → tap → Hub
-2. Cold start з 1 profile → одразу Hub
-3. Picker → "+Додати" → name (має бути "Назад") → age → avatar → Hub з новою дитиною active
-4. Picker → gear ⚙️ → pin-gate → parent
+#### Сценарій 2 — US-014 regression (після попередньої сесії)
+1. Cold start з 2+ profiles → picker працює
+2. Delete account → новий register → одразу name (без language screen)
+3. Parent → Settings → 🌐 Мова → переключитись без рестарту
 
-**Сценарій №3 — мова:**
-1. Parent → Settings → 🌐 Мова застосунку → змінити → Back
-2. ✅ UI має переключитись без рестарту
+### Step 2 — US-100 (BLOCKED — потрібні дії користувача)
 
-**Сценарій №4 — delete error UX:**
-1. Відключити інтернет → Parent → Delete account
-2. ✅ Має показатись dialog "Не вдалося видалити..." з OK
+Прочитай [.bmad/stories/US-100.md](./stories/US-100%20—%20Supabase%20DevOps%20Setup.md) і [docs/supabase-setup.md](../docs/supabase-setup.md).
 
-### Step 2 — Якщо QA OK → US-013 `/dev`
+Короткий план:
+1. `npm i -g supabase` (або через winget/scoop)
+2. Створити 2 проекти у Supabase Dashboard: `shkolyaryk-dev`, `shkolyaryk-prod`
+3. `supabase login` + `supabase link --project-ref <dev-ref>`
+4. `supabase migration repair` (sync state з існуючими manual-deployed `0001`, `0002`)
+5. `supabase db push` (перевірити що нічого не ламається)
+6. `supabase config push` (email templates + auth config з `config.toml`)
+7. Заповнити `.env.development` + `.env.production` (secrets у EAS, не в git)
+8. Smoke test: створити `0003_test.sql`, push, rollback
 
-Story готова: `.bmad/stories/US-013 — M14 Count Objects MVP.md`.
+### Step 3 — Після US-100 → US-015 Profile Sync (`/dev`)
 
-Scope: 🦊 only, range [1,20], keypad input, apples theme, 5 tasks, difficulty=1.0 static.
+Story drafted: [.bmad/stories/US-015 — Supabase Profile Sync.md](./stories/US-015%20—%20Supabase%20Profile%20Sync.md)
 
-**День 1 (≈4h):** Генератор + Renderer skeleton
-- `src/games/count-objects/index.ts` — `GameDefinition` + `generateLevel` (rejection sampling)
-- `src/games/count-objects/Renderer.tsx` — playfield з pre-computed positions
-- Зареєструвати у `src/games/registry.ts`
+Scope: `child_profiles` + `progress` tables з RLS, sync services, offline queue, merge strategies (XP max, badges union, last-write-wins для profiles).
 
-**День 2 (≈4h):** NumberKeypad + integration
-- `src/components/game/NumberKeypad.tsx` — 3×3 grid + 0/⌫/OK, max 2 digits, clamp
-- Інтегрувати у Renderer + question "Скільки яблук?"
-
-**День 3 (≈2h):** i18n + polish + manual test
-- `game.countObjects.*` ключі
-- 5 tasks manual + `npx tsc --noEmit`
+**Review перед `/dev`:** 4 відкриті Q-питання у story (soft delete GDPR, PIN sync, merge strategy, settings sync).
 
 ## Context pointers
 
-### Критичні файли
-- `CLAUDE.md` — архітектура + патерни (auto-loaded)
+### Критичні файли (auto-loaded)
+- `CLAUDE.md` — архітектура + патерни
 - `prd.md` — цілі + беклог
-- `.bmad/stories/US-012.md` — M10 contract (як писати ігри-плагіни)
-- `.bmad/stories/US-013.md` — Count Objects MVP spec
+- `.bmad/stories/US-012.md` — M10 Generic Game Loop contract
+- `.bmad/stories/US-013.md` — Count Objects (done)
 - `.bmad/stories/US-014.md` — Profile Picker (done)
+- `.bmad/stories/US-100.md` — Supabase DevOps (ready, blocked)
+- `.bmad/stories/US-015.md` — Profile Sync (draft stub)
 
 ### Візуальний референс
-`D:/Obsidian/Obdsidian_2026/10_Projects/Школярик/03_Design/prototype/v4.html` — Cosmic Purple design system
+`D:/Obsidian/Obdsidian_2026/10_Projects/Школярик/03_Design/prototype/v4.html` — Cosmic Purple
 
 ### BPMN
-`D:/Obsidian/Obdsidian_2026/10_Projects/Школярик/02_Product/BPMN_Scenarios/` — M01..M62.
+`D:/Obsidian/Obdsidian_2026/10_Projects/Школярик/02_Product/BPMN_Scenarios/` — M01..M62
 
 Правило: **BPMN = spec, US = execution plan з MVP-scope decomposition.**
 
 ### Tech stack reminders
 - Expo SDK 54 + RN 0.81 + React 19.1 + Expo Router 6
-- TS strict mode, path alias `@/*`
-- Zustand + `mmkvStorage` persist
+- TS strict, path alias `@/*`
+- Zustand + `mmkvStorage` persist (НЕ MMKV безпосередньо)
 - Web quirks: `measureInWindow` + `pageX` замість `locationX`
-- Safe-area fallback: `Math.max(insets.top, 50)`
-- `Alert.alert` з 3+ кнопками НЕ працює на web — ConfirmModal
+- Safe-area: `Math.max(insets.top, 50)`
+- `Alert.alert` з 3+ кнопками НЕ працює на web → `ConfirmModal`
+- Web-only styles: `...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null)`
 
-## Відомі tech debt
+## Відкриті tech debt
 
-1. **FormInput.tsx** — 3 pre-existing TS errors (`outlineStyle: 'none'` web-only).
-2. **`/(main)/onboarding/language.tsx`** — dead route, можна видалити у майбутньому.
-3. **Supabase sync для profiles** — зараз тільки MMKV. US-015 коли буде готова DB schema + RLS.
-4. **Soft-delete для profiles** — hard delete поки все локально.
+1. ~~FormInput `outlineStyle` — 3 TS errors~~ **FIXED (d6b04e1)**
+2. ~~`/(main)/onboarding/language.tsx` dead route~~ **REMOVED (d6b04e1)**
+3. **Supabase sync для profiles/progress** — local-only MMKV. → US-015 після US-100.
+4. **Soft-delete для profiles** — hard delete поки все локально. → US-015.
 5. **Age group refine = direct mascot pick** — birthday-derived відкладено.
 6. **Parent panel `/profiles.tsx`** — без swipe-to-delete.
+7. **Real manual QA US-013** — не виконано в автономній сесії.
 
-## Як відкрити завтра
+## Game roadmap status
+
+| Story | Модуль | Статус | Гра |
+|-------|--------|--------|-----|
+| US-012 | M10 Core Game Loop | ✅ done (`bbac839`) | tap-the-dot (demo) |
+| US-013 | M14 Count Objects | ✅ done (`bd4bc03`) | count-objects (🍎 1-20) |
+| US-018+ | EP-06 Math games | TBD | addition/subtraction/shapes |
+
+**Validation checkpoint:** GameDefinition plugin contract пройшов тест другою грою без модифікацій. Архітектура M10 витримала. Наступні EP-06 ігри можна додавати як файл-плагіни.
+
+## Як відкрити наступну сесію
 
 ```
-У новому чаті з Claude Code в папці d:/Dev/shkolyaryk:
+У новому чаті з Claude Code в d:/Dev/shkolyaryk:
 1. Прочитати .bmad/HANDOFF.md
-2. Запустити QA playbook Step 1
-3. Якщо OK → US-013 `/dev`
+2. Запустити QA playbook Step 1 (Count Objects)
+3. Якщо user готовий до US-100 → його руки виконують Step 2 Steps 1-3
+4. Після US-100 ✅ → /sm оновити US-015 → /dev
 ```
 
-Або: _"Прочитай `.bmad/HANDOFF.md` і продовжимо"_.
+Або просто: _"Прочитай `.bmad/HANDOFF.md` і продовжимо"_.
