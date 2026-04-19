@@ -118,6 +118,17 @@
     "mathCompare": {
       "name": "Compare",
       "rules": "An empty box ⬚ appears between two numbers.\n\nPick the correct sign: > (greater), < (less) or = (equal).\n\nNumbers up to 20.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+    },
+    "shapes": {
+      "name": "Shapes",
+      "prompt": "Find the {{shape}}",
+      "rules": "A shape name will appear with 4 options.\n\nTap the shape whose name is written at the top.\n\nShapes: circle, square, triangle, rectangle.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
+      "names": {
+        "circle": "circle",
+        "square": "square",
+        "triangle": "triangle",
+        "rectangle": "rectangle"
+      }
     }
   },
   "parent": {

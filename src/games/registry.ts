@@ -3,6 +3,7 @@ import tapTheDot from './tap-the-dot';
 import countObjects from './count-objects';
 import mathExpressions from './math-expressions';
 import mathCompare from './math-compare';
+import shapes from './shapes';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -29,3 +30,4 @@ registerGame(tapTheDot);
 registerGame(countObjects);
 registerGame(mathExpressions);
 registerGame(mathCompare);
+registerGame(shapes);
