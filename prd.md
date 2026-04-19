@@ -36,15 +36,27 @@
 7. **P5 Launch** (1 тиждень) — TestFlight, Submit
 8. **P6 Post-Launch** — курси, нові острови, мови
 
-## Epic Map (Phase 1 — active)
-| Epic | Phase | Stories |
-|------|-------|---------|
-| EP-01 Project Setup | 1 | US-001..002 |
-| EP-02 Auth | 1 | US-003..005 |
-| EP-03 Onboarding | 1 | US-006..009 |
-| EP-04 Hub | 1 | US-010..011 |
+## Epic Map (active)
+| Epic | Phase | Stories | Статус |
+|------|-------|---------|--------|
+| EP-01 Project Setup | 1 | US-001..002 | ✅ done |
+| EP-02 Auth | 1 | US-003..005 | ✅ done (auth setup) |
+| EP-03 Onboarding | 1 | US-006..009 | ✅ done (+ US-014 Profile Picker) |
+| EP-04 Hub | 1 | US-010..011 | ✅ done |
+| **EP-05 Game Engine** | 2 | US-012..015 | 🟡 US-012 ✅, US-013 ✅ review, US-015 draft (blocked by US-100) |
+| **EP-06 Математика** | 2 | US-016..020 | 🟡 US-016 ✅ review, US-017 ✅ review, US-018 ✅ review — 3/5 готово |
+| EP-INF Infrastructure | — | US-100 | 🟡 ready (blocked: user needs to install CLI + create Supabase projects) |
 
 Повна декомпозиція: `.bmad/stories/README.md`
+
+## Active milestones (2026-04-19)
+1. **US-013 Count Objects** ✅ review (commit `bd4bc03`) — manual QA pending
+2. **US-016 Math Expressions** ✅ review (commit `8e9c6d5`) — manual QA pending
+3. **US-017 Number Compare** ✅ review (commit `bc5645d`) — manual QA pending
+4. **US-018 Shapes Recognize** ✅ review (commit `723c99b`) — manual QA pending
+5. **US-100 Supabase DevOps** 🚧 drafted, потребує user-action (install CLI, create 2 projects)
+6. **US-015 Profile Sync** 📝 stub, depends on US-100
+7. **EP-06 next:** US-019 (shapes extended) або US-020 (logic puzzle) — 2/5 ігор залишилось
 
 ## Монетизація
 - Ігри — безкоштовно

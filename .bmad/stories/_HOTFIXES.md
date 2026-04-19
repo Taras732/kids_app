@@ -51,6 +51,14 @@
 - **Ризик:** Badges/Avatar tabs disabled — екранів немає, треба US-054..US-057
 - **Related US:** US-010 (Hub), US-052 (XP)
 
+### 2026-04-19 — FormInput TS strict fix + dead route cleanup
+- **Скоп:** `src/components/FormInput.tsx` (outlineStyle web-only via Platform.OS spread), видалено `app/(main)/onboarding/language.tsx`
+- **Причина:** 3 pre-existing TS errors (outlineStyle не в RN types) + dead route після US-014 device-locale auto-detect
+- **BPMN:** cross-cutting
+- **Ризик:** мінімальний — Platform.OS gate не змінює web behavior; dead route не мав зовнішніх посилань
+- **Commit:** `d6b04e1`
+- **Related US:** US-014
+
 ### 2026-04-15 — Safe-area fix v2 (web notch overlap)
 - **Скоп:** `app/(main)/index.tsx` — `useSafeAreaInsets()` + `Math.max(insets.top, 50)` як fallback
 - **Причина:** фідбек "інформація накладається на notch", `initialMetrics` у `SafeAreaProvider` на web перебивається реальним 0-вимірюванням

@@ -2,13 +2,16 @@
 id: US-013
 epic: EP-06
 title: M14 Count Objects MVP
-status: ready
+status: review
 priority: High
 estimate: 10h
+actual: ~8h
 phase: 2
 project: Школярик
 bpmn: M14
 created: 2026-04-15
+implemented: 2026-04-19
+commit: bd4bc03
 ---
 
 # US-013 — M14 Count Objects MVP

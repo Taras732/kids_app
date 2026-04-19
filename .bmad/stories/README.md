@@ -38,7 +38,27 @@
 - `draft` — написана, не перевірена
 - `ready` — готова до розробки
 - `in-progress` — в роботі
+- `review` — код готовий, очікує manual QA перед `done`
 - `done` — реалізована, AC підтверджені
+
+## Поза roadmap (Infrastructure)
+| # | Story | Статус |
+|---|-------|--------|
+| US-100 | Supabase DevOps Setup | `ready` (blocked: user install) |
+
+## Current progress (2026-04-19)
+| Story | Title | Status | Commit |
+|-------|-------|--------|--------|
+| US-001 | Ініціалізація Expo проекту | done | `76b681a` |
+| US-003 | Supabase Auth setup | done | `e42d710` |
+| US-012 | M10 Core Game Loop MVP | done | `bbac839` |
+| US-013 | M14 Count Objects MVP | review | `bd4bc03` |
+| US-014 | Child Profile Picker | done | `591f9e2` |
+| US-015 | Supabase Profile Sync | draft (blocked by US-100) | — |
+| US-016 | M15 Math Expressions MVP | review | `8e9c6d5` |
+| US-017 | M16 Number Compare MVP | review | `bc5645d` |
+| US-018 | M17 Shapes Recognize MVP | review | `723c99b` |
+| US-100 | Supabase DevOps Setup | ready (blocked) | — |
 
 ## Повна декомпозиція
 Див. [[../../02_Estimation/Decomposition|Decomposition]] — оцінки, пріоритети, mapping FR→Epic→Story.
