@@ -15,6 +15,7 @@ import sequenceRepeat from './sequence-repeat';
 import whatsChanged from './whats-changed';
 import syllableBuild from './syllable-build';
 import patternNext from './pattern-next';
+import englishWordPicture from './english-word-picture';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -53,3 +54,4 @@ registerGame(sequenceRepeat);
 registerGame(whatsChanged);
 registerGame(syllableBuild);
 registerGame(patternNext);
+registerGame(englishWordPicture);

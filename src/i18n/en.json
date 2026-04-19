@@ -170,6 +170,11 @@
       "prompt": "Find the letter {{letter}}",
       "rules": "A Latin letter will appear with 4 options.\n\nTap the same letter shown at the top.\n\nABC practice — letters A to T.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
     },
+    "englishWord": {
+      "name": "Words + pictures",
+      "prompt": "What's this in English?",
+      "rules": "A picture and 3 English words will appear.\n\nTap the correct word for the picture.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+    },
     "emotions": {
       "name": "Emotions",
       "prompt": "Which emotion is this?",
