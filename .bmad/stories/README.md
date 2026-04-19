@@ -62,6 +62,7 @@
 | US-027 | M25 ABC Find Letter EN | review | `10c05a9` |
 | US-030 | M28 Odd One Out MVP | review | `634cacd` |
 | US-045 | M43 Emotions Recognize | review | `62d0ce2` |
+| US-036 | M34 Memory Match MVP | review | `77ad1cb` |
 | US-100 | Supabase DevOps Setup | ready (blocked) | — |
 
 ## Повна декомпозиція
