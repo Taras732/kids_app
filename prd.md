@@ -52,6 +52,7 @@
 | **EP-11 Наука** | 2.5 | US-041..044 | 🟡 US-041 ✅ review — 1/4 готово |
 | **EP-12 Емоції** | 2.5 | US-045..048 | 🟡 US-045 ✅ review — 1/4 готово |
 | **EP-13 Творчість** | 2.5 | US-049..051 | 🟡 US-049 ✅ review — 1/3 готово |
+| **EP-14 XP & Рівні** | 3 | US-052..053 | 🟡 US-052 ✅ review — foundation готовий (session + badges + Hub tab) |
 | EP-INF Infrastructure | — | US-100 | 🟡 ready (blocked: user needs to install CLI + create Supabase projects) |
 
 Повна декомпозиція: `.bmad/stories/README.md`
@@ -73,6 +74,7 @@
 14. **US-037 Sequence Repeat MVP** ✅ review (commit `88aff2c`) — EP-10 extended, playback→input pattern + array answer
 15. **US-038 What's Changed MVP** ✅ review (commit `89ea78b`) — EP-10 3rd game, memorize→detect pattern
 16. **MVP set progress:** 13 ігор на 8 островах (math 4 + letters 1 + logic 2 + english 1 + emotions 1 + memory 3 + science 1 + creativity 1). Architecture validated on 6 unique patterns. Memory island — 3 distinct mechanics.
+17. **US-052 Engagement Foundation** ✅ review (commit `16003a8`) — P3 phase started: 12-badge catalog, pure evaluateBadges engine, session tracking wired in game screen, badges Hub tab + screen, i18n uk/en
 
 ## Монетизація
 - Ігри — безкоштовно
