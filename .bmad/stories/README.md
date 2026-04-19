@@ -66,6 +66,7 @@
 | US-041 | M41 Animals Habitat MVP | review | `21bdd72` |
 | US-049 | M47 Color Find MVP | review | `6cbc762` |
 | US-037 | M37 Sequence Repeat MVP | review | `88aff2c` |
+| US-038 | M38 What's Changed MVP | review | `89ea78b` |
 | US-100 | Supabase DevOps Setup | ready (blocked) | — |
 
 ## Повна декомпозиція
