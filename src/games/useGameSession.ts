@@ -46,24 +46,21 @@ function reducer(state: SessionState<any>, action: Action): SessionState<any> {
       };
 
     case 'FEEDBACK_DONE': {
-      if (state.phase === 'feedback-wrong') {
-        return { ...state, phase: 'playing' };
+      if (state.phase !== 'feedback-correct' && state.phase !== 'feedback-wrong') {
+        return state;
       }
-      if (state.phase === 'feedback-correct') {
-        const nextIndex = state.taskIndex + 1;
-        if (nextIndex >= state.levelSpec.tasks.length) {
-          const stars = computeStars(state.mistakes);
-          return {
-            ...state,
-            phase: 'finished',
-            taskIndex: nextIndex,
-            stars,
-            xpEarned: computeXp(stars),
-          };
-        }
-        return { ...state, phase: 'playing', taskIndex: nextIndex };
+      const nextIndex = state.taskIndex + 1;
+      if (nextIndex >= state.levelSpec.tasks.length) {
+        const stars = computeStars(state.mistakes);
+        return {
+          ...state,
+          phase: 'finished',
+          taskIndex: nextIndex,
+          stars,
+          xpEarned: computeXp(stars),
+        };
       }
-      return state;
+      return { ...state, phase: 'playing', taskIndex: nextIndex };
     }
 
     case 'RESET':
