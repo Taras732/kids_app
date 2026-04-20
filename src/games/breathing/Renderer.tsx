@@ -20,21 +20,26 @@ const EXHALE_MS = 3000;
 export function Renderer({ task, onAnswer, disabled }: RendererProps<BreathingAnswer>) {
   const payload = task.payload as BreathingPayload;
   const [phase, setPhase] = useState<BreathPhase>('inhale');
-  const scale = useRef(new Animated.Value(1)).current;
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const answeredRef = useRef(false);
+  const scaleRef = useRef(new Animated.Value(1));
+  const scale = scaleRef.current;
+
+  const onAnswerRef = useRef(onAnswer);
+  const disabledRef = useRef(disabled);
 
   useEffect(() => {
-    answeredRef.current = false;
+    onAnswerRef.current = onAnswer;
+  }, [onAnswer]);
+
+  useEffect(() => {
+    disabledRef.current = disabled;
+  }, [disabled]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
     setPhase('inhale');
     scale.setValue(1);
-
-    const clearAll = () => {
-      timersRef.current.forEach(clearTimeout);
-      timersRef.current = [];
-    };
-
-    clearAll();
 
     Animated.timing(scale, {
       toValue: 1.6,
@@ -43,31 +48,39 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<BreathingAn
       useNativeDriver: true,
     }).start();
 
-    const t1 = setTimeout(() => {
-      setPhase('hold');
-    }, INHALE_MS);
+    timers.push(
+      setTimeout(() => {
+        if (!cancelled) setPhase('hold');
+      }, INHALE_MS),
+    );
 
-    const t2 = setTimeout(() => {
-      setPhase('exhale');
-      Animated.timing(scale, {
-        toValue: 1,
-        duration: EXHALE_MS,
-        easing: Easing.inOut(Easing.ease),
-        useNativeDriver: true,
-      }).start();
-    }, INHALE_MS + HOLD_MS);
+    timers.push(
+      setTimeout(() => {
+        if (cancelled) return;
+        setPhase('exhale');
+        Animated.timing(scale, {
+          toValue: 1,
+          duration: EXHALE_MS,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }).start();
+      }, INHALE_MS + HOLD_MS),
+    );
 
-    const t3 = setTimeout(() => {
-      if (!answeredRef.current && !disabled) {
-        answeredRef.current = true;
-        onAnswer(true);
-      }
-    }, INHALE_MS + HOLD_MS + EXHALE_MS);
+    timers.push(
+      setTimeout(() => {
+        if (cancelled) return;
+        if (!disabledRef.current) {
+          onAnswerRef.current(true);
+        }
+      }, INHALE_MS + HOLD_MS + EXHALE_MS),
+    );
 
-    timersRef.current = [t1, t2, t3];
-
-    return clearAll;
-  }, [task.id, disabled, onAnswer, scale]);
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+  }, [task.id, scale]);
 
   return (
     <View style={styles.wrap}>
