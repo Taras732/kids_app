@@ -8,6 +8,14 @@ import { listGamesByIsland } from '@/src/games/registry';
 import { colors, radius, spacing, shadows } from '@/src/constants/theme';
 import { t } from '@/src/i18n';
 
+function getTagline(nameKey: string): string | null {
+  const match = nameKey.match(/^game\.([^.]+)\.name$/);
+  if (!match) return null;
+  const key = `game.taglines.${match[1]}`;
+  const translated = t(key);
+  return translated === key ? null : translated;
+}
+
 export default function IslandScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -34,25 +42,28 @@ export default function IslandScreen() {
               Ігри скоро з'являться 🎮
             </AppText>
           ) : (
-            games.map((g) => (
-              <Pressable
-                key={g.id}
-                style={styles.gameCard}
-                onPress={() =>
-                  router.push({ pathname: '/(main)/game/[id]', params: { id: g.id } })
-                }
-              >
-                <AppText style={styles.gameIcon}>{g.icon ?? '🎯'}</AppText>
-                <View style={{ flex: 1 }}>
-                  <AppText variant="h2" numberOfLines={1}>
-                    {g.name.startsWith('game.') ? t(g.name) : g.name}
-                  </AppText>
-                  <AppText variant="caption" color={colors.textMuted}>
-                    {t('common.continue')} →
-                  </AppText>
-                </View>
-              </Pressable>
-            ))
+            games.map((g) => {
+              const tagline = getTagline(g.name);
+              return (
+                <Pressable
+                  key={g.id}
+                  style={styles.gameCard}
+                  onPress={() =>
+                    router.push({ pathname: '/(main)/game/[id]', params: { id: g.id } })
+                  }
+                >
+                  <AppText style={styles.gameIcon}>{g.icon ?? '🎯'}</AppText>
+                  <View style={{ flex: 1 }}>
+                    <AppText variant="h2" numberOfLines={1}>
+                      {g.name.startsWith('game.') ? t(g.name) : g.name}
+                    </AppText>
+                    <AppText variant="caption" color={colors.textMuted} numberOfLines={2}>
+                      {tagline ?? `${t('common.continue')} →`}
+                    </AppText>
+                  </View>
+                </Pressable>
+              );
+            })
           )}
         </View>
 

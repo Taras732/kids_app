@@ -115,15 +115,26 @@ function GameScreenInner({ gameId, profileId, addXp, recordGameSession, awardBad
   }, [session.phase, onExit]);
 
   if (session.phase === 'intro') {
+    const gameName = game.name.startsWith('game.') ? t(game.name) : game.name;
+    const taglineMatch = game.name.match(/^game\.([^.]+)\.name$/);
+    const taglineKey = taglineMatch ? `game.taglines.${taglineMatch[1]}` : null;
+    const taglineRaw = taglineKey ? t(taglineKey) : null;
+    const tagline = taglineRaw && taglineRaw !== taglineKey ? taglineRaw : null;
+
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={[styles.intro, { paddingTop: topPad }]}>
-          <AppText variant="display" style={styles.mascot}>🐱</AppText>
+          <AppText variant="display" style={styles.mascot}>{game.icon ?? '🎯'}</AppText>
           <AppText variant="h1" style={styles.introTitle}>
-            {t('game.intro')}
+            {gameName}
           </AppText>
+          {tagline ? (
+            <AppText variant="body" color={colors.textMuted} style={styles.introTagline}>
+              {tagline}
+            </AppText>
+          ) : null}
           <AppText variant="body" color={colors.textMuted} style={styles.introHint}>
-            {game.icon ?? '🎯'}
+            {t('game.intro')}
           </AppText>
           <AppButton title={t('game.letsgo')} tone="primary" size="xl" onPress={session.start} />
           {game.rulesKey ? (
@@ -207,7 +218,8 @@ const styles = StyleSheet.create({
   },
   mascot: { fontSize: 96 },
   introTitle: { textAlign: 'center' },
-  introHint: { textAlign: 'center', fontSize: 48 },
+  introTagline: { textAlign: 'center', fontSize: 18, paddingHorizontal: spacing.md },
+  introHint: { textAlign: 'center' },
   playWrap: {
     flex: 1,
   },

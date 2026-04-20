@@ -301,6 +301,31 @@
         "safe": "Safe",
         "unsafe": "Not safe"
       }
+    },
+    "taglines": {
+      "tapTheDot": "Tap the moving dot",
+      "countObjects": "Count the objects",
+      "mathExpressions": "Solve the math problem",
+      "mathCompare": "Pick >, < or =",
+      "shapes": "Pick the right shape",
+      "letters": "Pick the right letter",
+      "syllableBuild": "Pick the right vowel",
+      "oddOneOut": "Pick what doesn't fit",
+      "patternNext": "Guess the next color",
+      "lettersEn": "Pick the right letter",
+      "englishWord": "Name the picture in English",
+      "emotions": "Name the emotion on the face",
+      "memoryMatch": "Find the matching pairs",
+      "animals": "Where does the animal live?",
+      "whatsChanged": "Find what changed",
+      "sequenceRepeat": "Repeat the sequence",
+      "colors": "Pick the named color",
+      "waterStates": "Solid, liquid or gas?",
+      "plantGrow": "Pick the next growth stage",
+      "sinkFloat": "Will it float or sink?",
+      "heroEmotion": "How does the hero feel?",
+      "breathing": "Breathe with the balloon",
+      "safety": "Safe or not safe?"
     }
   },
   "parent": {
