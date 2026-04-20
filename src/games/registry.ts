@@ -16,6 +16,12 @@ import whatsChanged from './whats-changed';
 import syllableBuild from './syllable-build';
 import patternNext from './pattern-next';
 import englishWordPicture from './english-word-picture';
+import waterStates from './water-states';
+import plantGrow from './plant-grow';
+import sinkFloat from './sink-float';
+import heroEmotion from './hero-emotion';
+import breathing from './breathing';
+import safetyBasic from './safety-basic';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -55,3 +61,9 @@ registerGame(whatsChanged);
 registerGame(syllableBuild);
 registerGame(patternNext);
 registerGame(englishWordPicture);
+registerGame(waterStates);
+registerGame(plantGrow);
+registerGame(sinkFloat);
+registerGame(heroEmotion);
+registerGame(breathing);
+registerGame(safetyBasic);

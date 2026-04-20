@@ -228,6 +228,76 @@
         "purple": "purple",
         "orange": "orange"
       }
+    },
+    "waterStates": {
+      "name": "Water",
+      "prompt": "Which state is this?",
+      "rules": "An item related to water will appear.\n\nChoose its state: 🧊 solid, 💧 liquid, or 💨 gas.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
+      "states": {
+        "solid": "solid",
+        "liquid": "liquid",
+        "gas": "gas"
+      }
+    },
+    "plantGrow": {
+      "name": "How plants grow",
+      "prompt": "What's next?",
+      "rules": "A plant at a certain growth stage will appear.\n\nPick the correct next stage from three options.\n\nStages: 🌰 seed → 🌱 sprout → 🌿 leaves → 🌷 bloom → 🍎 fruit.\n\nThere are 4 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
+      "stages": {
+        "seed": "seed",
+        "sprout": "sprout",
+        "leafy": "leaves",
+        "bloom": "bloom",
+        "fruit": "fruit"
+      }
+    },
+    "sinkFloat": {
+      "name": "Sink or float?",
+      "prompt": "What happens in water?",
+      "rules": "An item will appear on screen.\n\nPick what happens in water: ☁️ floats or ⬇️ sinks.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
+      "options": {
+        "float": "floats",
+        "sink": "sinks"
+      }
+    },
+    "heroEmotion": {
+      "name": "How does hero feel?",
+      "rules": "A situation and a picture will appear.\n\nPick the emotion the hero might feel: happy, sad, angry, scared, surprised, or sleepy.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
+      "situations": {
+        "birthday": "It's your birthday!",
+        "gift": "A gift for you!",
+        "friendHug": "A friend hugs you",
+        "brokenToy": "Toy is broken",
+        "rainyDay": "Rainy sad day",
+        "lostBalloon": "Balloon flew away",
+        "takenToy": "Toy was taken",
+        "noise": "Very loud noise!",
+        "darkRoom": "Dark room",
+        "bigDog": "Big dog",
+        "unexpectedGift": "Surprise!",
+        "rainbow": "Rainbow in the sky!",
+        "longDay": "Long day",
+        "warmBed": "Warm cozy bed"
+      }
+    },
+    "breathing": {
+      "name": "Breathing",
+      "rules": "Watch the balloon 🎈.\n\nWhen it grows — breathe in. When it shrinks — breathe out.\n\nRepeat 5 times to calm down.\n\nThis is a relaxation exercise — no mistakes here!",
+      "phases": {
+        "inhale": "Breathe in...",
+        "hold": "Hold",
+        "exhale": "Breathe out..."
+      },
+      "progress": "Breath {{current}} of {{total}}"
+    },
+    "safety": {
+      "name": "Safety",
+      "prompt": "Can you touch it?",
+      "rules": "An item from around the house will appear.\n\nDecide: ✓ safe to play with, or ✗ not without a grown-up.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
+      "options": {
+        "safe": "Safe",
+        "unsafe": "Not safe"
+      }
     }
   },
   "parent": {
