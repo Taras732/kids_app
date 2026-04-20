@@ -1,6 +1,8 @@
 import { ScrollViewStyleReset } from 'expo-router/html';
 import { type PropsWithChildren } from 'react';
 
+const base = process.env.EXPO_BASE_URL ?? '';
+
 export default function Root({ children }: PropsWithChildren) {
   return (
     <html lang="uk">
@@ -12,15 +14,15 @@ export default function Root({ children }: PropsWithChildren) {
         <title>Школярик</title>
         <meta name="description" content="Навчальні ігри для дітей 6-10 років" />
 
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href={`${base}/manifest.json`} />
         <meta name="theme-color" content="#6C5CE7" />
 
-        <link rel="apple-touch-icon" href="/assets/images/icon.png" />
+        <link rel="apple-touch-icon" href={`${base}/icon.png`} />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Школярик" />
 
-        <link rel="icon" type="image/png" href="/assets/images/favicon.png" />
+        <link rel="icon" type="image/png" href={`${base}/favicon.png`} />
 
         <ScrollViewStyleReset />
       </head>
