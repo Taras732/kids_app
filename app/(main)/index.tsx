@@ -68,7 +68,12 @@ export default function HubScreen() {
           </Pressable>
         </View>
 
-        <View style={styles.xpCard}>
+        <Pressable
+          style={({ pressed }) => [styles.xpCard, pressed && styles.xpCardPressed]}
+          onPress={() => router.push('/(parent)/dashboard')}
+          accessibilityRole="button"
+          accessibilityLabel={t('hub.level', { level })}
+        >
           <View style={styles.xpRow}>
             <View>
               <AppText variant="caption" color="rgba(255,255,255,0.85)">
@@ -85,7 +90,7 @@ export default function HubScreen() {
           <View style={styles.xpBar}>
             <View style={[styles.xpBarFill, { width: `${(xpInLevel / xpForLevel) * 100}%` }]} />
           </View>
-        </View>
+        </Pressable>
 
         <AppText variant="h2" style={styles.sectionTitle}>
           {t('hub.islands')}
@@ -169,6 +174,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
     ...shadows.cardRaised,
+  },
+  xpCardPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
   },
   xpRow: {
     flexDirection: 'row',
