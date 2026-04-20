@@ -56,7 +56,14 @@ export default function IslandScreen() {
           )}
         </View>
 
-        <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
+        <AppButton
+          title={t('common.back')}
+          tone="ghost"
+          onPress={() => {
+            if (router.canGoBack()) router.back();
+            else router.replace('/(main)');
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );
