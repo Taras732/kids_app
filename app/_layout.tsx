@@ -2,6 +2,8 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 
+const MOBILE_VIEWPORT_MAX = 500;
+
 function hasOAuthCallbackInUrl(): boolean {
   if (Platform.OS !== 'web' || typeof window === 'undefined') return false;
   const { search, hash } = window.location;
@@ -48,7 +50,22 @@ export default function RootLayout() {
 
   const router = useRouter();
   const segments = useSegments();
+  const { width } = useWindowDimensions();
+  const [isStandalone, setIsStandalone] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    const mql = window.matchMedia?.('(display-mode: standalone)');
+    if (!mql) return;
+    setIsStandalone(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setIsStandalone(e.matches);
+    mql.addEventListener?.('change', handler);
+    return () => mql.removeEventListener?.('change', handler);
+  }, []);
+
+  const useMobileViewport =
+    Platform.OS === 'web' && (isStandalone || width <= MOBILE_VIEWPORT_MAX);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isLoading = useAuthStore((s) => s.isLoading);
   const hasProfiles = useChildProfilesStore((s) => s.profiles.length > 0);
@@ -107,9 +124,11 @@ export default function RootLayout() {
 
   if (!fontsLoaded) return null;
 
+  const useDesktopFrame = Platform.OS === 'web' && !useMobileViewport;
+
   const content = (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider initialMetrics={Platform.OS === 'web' ? webMockPhoneInsets : undefined}>
+      <SafeAreaProvider initialMetrics={useDesktopFrame ? webMockPhoneInsets : undefined}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="splash" />
           <Stack.Screen name="language" />
@@ -124,7 +143,7 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 
-  if (Platform.OS === 'web') {
+  if (useDesktopFrame) {
     return (
       <View style={styles.webStage}>
         <View style={styles.phoneFrame}>
