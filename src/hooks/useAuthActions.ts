@@ -123,8 +123,9 @@ export async function signInWithGoogle(): Promise<AuthResult> {
 
   try {
     if (Platform.OS === 'web') {
+      const base = process.env.EXPO_BASE_URL ?? '';
       const redirectTo =
-        typeof window !== 'undefined' ? window.location.origin : undefined;
+        typeof window !== 'undefined' ? `${window.location.origin}${base}/` : undefined;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo },
