@@ -70,7 +70,7 @@ export default function HubScreen() {
 
         <Pressable
           style={({ pressed }) => [styles.xpCard, pressed && styles.xpCardPressed]}
-          onPress={() => router.push('/(parent)/dashboard')}
+          onPress={() => router.push('/(main)/progress')}
           accessibilityRole="button"
           accessibilityLabel={t('hub.level', { level })}
         >
