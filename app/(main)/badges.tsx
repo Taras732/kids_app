@@ -78,7 +78,7 @@ export default function BadgesScreen() {
           })}
         </View>
 
-        <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
+        <AppButton title={t('common.back')} tone="ghost" onPress={() => router.replace('/(main)')} />
       </ScrollView>
     </SafeAreaView>
   );

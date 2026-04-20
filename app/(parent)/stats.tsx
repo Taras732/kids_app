@@ -13,7 +13,7 @@ export default function StatsScreen() {
       <View style={styles.content}>
         <AppText variant="title">{t('parent.stats')}</AppText>
         <AppText variant="caption" color={colors.textMuted}>Phase 3 — US-058..060</AppText>
-        <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
+        <AppButton title={t('common.back')} tone="ghost" onPress={() => router.replace('/(parent)/dashboard')} />
       </View>
     </SafeAreaView>
   );

@@ -26,7 +26,7 @@ export default function SettingsScreen() {
           <Switch value={musicEnabled} onValueChange={setMusicEnabled} />
         </View>
         <AppButton title="Вийти" tone="secondary" onPress={clearSession} />
-        <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
+        <AppButton title={t('common.back')} tone="ghost" onPress={() => router.replace('/(parent)/dashboard')} />
       </View>
     </SafeAreaView>
   );

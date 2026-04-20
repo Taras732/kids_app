@@ -86,7 +86,7 @@ export default function PinForgotScreen() {
         <AppButton
           title={t('common.back')}
           tone="ghost"
-          onPress={() => router.back()}
+          onPress={() => router.replace('/(parent)/pin-gate')}
         />
       </View>
     </SafeAreaView>

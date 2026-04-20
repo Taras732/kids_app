@@ -31,7 +31,7 @@ export default function ProfileEditScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.centered}>
           <AppText variant="h2">Профіль не знайдено</AppText>
-          <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
+          <AppButton title={t('common.back')} tone="ghost" onPress={() => router.replace('/(parent)/profiles')} />
         </View>
       </SafeAreaView>
     );
@@ -42,13 +42,13 @@ export default function ProfileEditScreen() {
   const save = () => {
     if (!canSave || !ageGroupId || !avatarId) return;
     updateProfile(profile.id, { name: name.trim(), ageGroupId, avatarId });
-    router.back();
+    router.replace('/(parent)/profiles');
   };
 
   const doDelete = () => {
     removeProfile(profile.id);
     setConfirmDelete(false);
-    router.back();
+    router.replace('/(parent)/profiles');
   };
 
   return (
@@ -108,7 +108,7 @@ export default function ProfileEditScreen() {
 
         <AppButton title={t('profiles.save')} tone="primary" size="lg" disabled={!canSave} onPress={save} />
         <AppButton title={t('profiles.delete')} tone="danger" size="md" onPress={() => setConfirmDelete(true)} />
-        <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
+        <AppButton title={t('common.back')} tone="ghost" onPress={() => router.replace('/(parent)/profiles')} />
       </ScrollView>
 
       <ConfirmModal

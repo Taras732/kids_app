@@ -64,8 +64,8 @@ export default function LanguageScreen() {
   const handleContinue = () => {
     setLocale(selected);
     markLanguageChosen();
-    if (from === 'settings' && router.canGoBack()) {
-      router.back();
+    if (from === 'settings') {
+      router.replace('/(parent)/settings');
     } else {
       router.replace('/welcome');
     }

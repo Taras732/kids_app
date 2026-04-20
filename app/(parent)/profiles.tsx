@@ -72,7 +72,7 @@ export default function ProfilesScreen() {
           }
         />
 
-        <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
+        <AppButton title={t('common.back')} tone="ghost" onPress={() => router.replace('/(parent)/dashboard')} />
       </ScrollView>
     </SafeAreaView>
   );

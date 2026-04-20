@@ -31,9 +31,16 @@ export default function AgeGroupScreen() {
             </View>
           </Pressable>
         ))}
-        {router.canGoBack() ? (
-          <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
-        ) : null}
+        <AppButton
+          title={t('common.back')}
+          tone="ghost"
+          onPress={() =>
+            router.replace({
+              pathname: '/(main)/onboarding/name',
+              params: mode ? { mode } : {},
+            })
+          }
+        />
       </View>
     </SafeAreaView>
   );

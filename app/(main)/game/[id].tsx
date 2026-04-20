@@ -35,7 +35,7 @@ export default function GameScreen() {
         <View style={[styles.centered, { paddingTop: topPad }]}>
           <AppText variant="h2">Гру не знайдено</AppText>
           <AppText variant="caption" color={colors.textMuted}>{gameId}</AppText>
-          <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
+          <AppButton title={t('common.back')} tone="ghost" onPress={() => router.replace('/(main)')} />
         </View>
       </SafeAreaView>
     );

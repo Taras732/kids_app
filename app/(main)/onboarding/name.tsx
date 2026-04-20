@@ -29,9 +29,13 @@ export default function NameScreen() {
           disabled={name.trim().length < 2}
           onPress={() => router.push({ pathname: '/(main)/onboarding/age-group', params: { name: name.trim(), ...(mode ? { mode } : {}) } })}
         />
-        {router.canGoBack() ? (
-          <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
-        ) : null}
+        <AppButton
+          title={t('common.back')}
+          tone="ghost"
+          onPress={() =>
+            router.replace(mode === 'add' ? '/(parent)/profiles' : '/welcome')
+          }
+        />
       </View>
     </SafeAreaView>
   );

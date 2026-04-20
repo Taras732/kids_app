@@ -63,7 +63,7 @@ export default function PinSetupScreen() {
         <AppButton
           title={t('common.cancel')}
           tone="ghost"
-          onPress={() => router.back()}
+          onPress={() => router.replace('/(main)')}
         />
       </View>
     </SafeAreaView>

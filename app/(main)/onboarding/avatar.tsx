@@ -44,9 +44,16 @@ export default function AvatarScreen() {
           ))}
         </View>
         <AppButton title={t('common.continue')} size="lg" disabled={!avatarId} onPress={confirm} />
-        {router.canGoBack() ? (
-          <AppButton title={t('common.back')} tone="ghost" onPress={() => router.back()} />
-        ) : null}
+        <AppButton
+          title={t('common.back')}
+          tone="ghost"
+          onPress={() =>
+            router.replace({
+              pathname: '/(main)/onboarding/age-group',
+              params: { name, ...(mode ? { mode } : {}) },
+            })
+          }
+        />
       </View>
     </SafeAreaView>
   );
