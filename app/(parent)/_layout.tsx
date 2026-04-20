@@ -1,14 +1,17 @@
 import { useEffect } from 'react';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import { usePinStore } from '@/src/stores/pinStore';
 
 export default function ParentLayout() {
   const router = useRouter();
   const segments = useSegments();
+  const rootNavState = useRootNavigationState();
   const hasPin = usePinStore((s) => !!s.pinHash);
   const unlocked = usePinStore((s) => s.unlocked);
 
   useEffect(() => {
+    if (!rootNavState?.key) return;
+
     const leaf = segments[segments.length - 1];
     if (leaf === 'pin-setup' || leaf === 'pin-gate') return;
 
@@ -19,7 +22,7 @@ export default function ParentLayout() {
     if (!unlocked) {
       router.replace('/(parent)/pin-gate' as never);
     }
-  }, [segments, hasPin, unlocked, router]);
+  }, [rootNavState?.key, segments, hasPin, unlocked, router]);
 
   return <Stack screenOptions={{ headerShown: false }} />;
 }
