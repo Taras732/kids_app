@@ -192,7 +192,10 @@
       "name": "Find the pair",
       "prompt": "Match the pairs",
       "mistakesLabel": "Mistakes",
-      "rules": "The board has 6 cards face down.\n\nTap two cards — if the images match, the pair stays open.\n\nIf not, the cards flip back and a mistake is added.\n\nFind all 3 pairs! 2 or fewer mistakes = success.\n\nThere are 3 boards per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+      "movesLabel": "Moves",
+      "foundLabel": "Found",
+      "timeLabel": "Time",
+      "rules": "The board has 16 cards face down — 8 pairs.\n\nTap two cards. If the images match, the pair stays open.\n\nIf not, the cards flip back.\n\nFind all 8 pairs to win!"
     },
     "animals": {
       "name": "Where do they live?",

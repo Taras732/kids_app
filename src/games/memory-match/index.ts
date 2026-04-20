@@ -1,20 +1,10 @@
 import type { GameDefinition, LevelSpec, Task } from '../types';
 import { Renderer, type MemoryAnswer, type MemoryCard, type MemoryPayload } from './Renderer';
 
-const TASKS_PER_LEVEL = 3;
-const PAIRS_PER_BOARD = 3;
-const MISTAKES_THRESHOLD = 2;
+const TASKS_PER_LEVEL = 1;
+const PAIRS_PER_BOARD = 8;
 
-const EMOJI_POOL = [
-  '🍎', '🍌', '🍐', '🍊', '🍇', '🍓',
-  '🐶', '🐱', '🐰', '🐻', '🦁', '🐸',
-  '🚗', '🚌', '🚲', '🚀', '🚂',
-  '⭐', '🔺', '⚪', '🔶', '🔷',
-];
-
-function randInt(min: number, max: number) {
-  return min + Math.floor(Math.random() * (max - min + 1));
-}
+const EMOJI_POOL = ['🦁', '🐸', '🐵', '🦊', '🐼', '🐨', '🦉', '🐯'];
 
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice();
@@ -34,7 +24,7 @@ function generateBoard(taskIndex: number): Task<MemoryAnswer> {
     cards.push({ id: `t${taskIndex}-${pairKey}-b`, emoji, pairKey });
   });
   const shuffled = shuffle(cards);
-  const payload: MemoryPayload = { cards: shuffled };
+  const payload: MemoryPayload = { cards: shuffled, totalPairs: PAIRS_PER_BOARD };
   return { id: `t${taskIndex}`, payload };
 }
 
@@ -57,8 +47,8 @@ const memoryMatch: GameDefinition<LevelSpec<MemoryAnswer>, MemoryAnswer> = {
   icon: '🧠',
   rulesKey: 'game.memoryMatch.rules',
   generateLevel,
-  validateAnswer(_task, answer) {
-    return { correct: answer <= MISTAKES_THRESHOLD };
+  validateAnswer() {
+    return { correct: true };
   },
   Renderer,
 };

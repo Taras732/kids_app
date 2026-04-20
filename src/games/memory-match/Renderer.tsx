@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AppText } from '../../components/AppText';
-import { colors, radius, spacing, fontFamily } from '../../constants/theme';
+import { colors, radius, spacing, fontFamily, shadows } from '../../constants/theme';
 import { t } from '../../i18n';
 import type { RendererProps } from '../types';
 
@@ -15,32 +16,55 @@ export interface MemoryCard {
 
 export interface MemoryPayload {
   cards: MemoryCard[];
+  totalPairs: number;
 }
 
-const FLIP_BACK_DELAY_MS = 900;
+const FLIP_BACK_DELAY_MS = 700;
+
+const GRADIENT_BACK: readonly [string, string] = ['#6C5CE7', '#8B7CF6'];
+const GRADIENT_MATCHED: readonly [string, string] = ['#22C55E', '#16A34A'];
 
 export function Renderer({ task, onAnswer, disabled }: RendererProps<MemoryAnswer>) {
   const payload = task.payload as MemoryPayload;
+  const totalPairs = payload.totalPairs;
+
   const [revealed, setRevealed] = useState<number[]>([]);
   const [matched, setMatched] = useState<Set<number>>(new Set());
+  const [moves, setMoves] = useState(0);
   const [mistakes, setMistakes] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
   const [evaluating, setEvaluating] = useState(false);
   const submittedRef = useRef(false);
+  const onAnswerRef = useRef(onAnswer);
+
+  useEffect(() => {
+    onAnswerRef.current = onAnswer;
+  }, [onAnswer]);
 
   useEffect(() => {
     setRevealed([]);
     setMatched(new Set());
+    setMoves(0);
     setMistakes(0);
+    setElapsed(0);
     setEvaluating(false);
     submittedRef.current = false;
+  }, [task.id]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (submittedRef.current) return;
+      setElapsed((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(interval);
   }, [task.id]);
 
   useEffect(() => {
     if (matched.size !== payload.cards.length) return;
     if (submittedRef.current) return;
     submittedRef.current = true;
-    onAnswer(mistakes);
-  }, [matched, mistakes, payload.cards.length, onAnswer]);
+    onAnswerRef.current(mistakes);
+  }, [matched, mistakes, payload.cards.length]);
 
   const handlePress = (index: number) => {
     if (disabled || evaluating) return;
@@ -50,9 +74,9 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<MemoryAnswe
 
     const next = [...revealed, index];
     setRevealed(next);
-
     if (next.length !== 2) return;
 
+    setMoves((m) => m + 1);
     const [a, b] = next;
     const cardA = payload.cards[a];
     const cardB = payload.cards[b];
@@ -76,48 +100,48 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<MemoryAnswe
     }, FLIP_BACK_DELAY_MS);
   };
 
-  const prompt = t('game.memoryMatch.prompt');
-  const row1 = payload.cards.slice(0, 3);
-  const row2 = payload.cards.slice(3, 6);
+  const foundPairs = matched.size / 2;
+  const timeLabel = formatTime(elapsed);
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.promptBox}>
-        <AppText style={styles.prompt}>{prompt}</AppText>
-        <AppText style={styles.counter}>
-          {t('game.memoryMatch.mistakesLabel')}: {mistakes}
-        </AppText>
+      <View style={styles.infoBar}>
+        <StatCell label={t('game.memoryMatch.movesLabel')} value={String(moves)} />
+        <StatCell label={t('game.memoryMatch.foundLabel')} value={`${foundPairs}/${totalPairs}`} />
+        <StatCell label={t('game.memoryMatch.timeLabel')} value={timeLabel} />
       </View>
 
       <View style={styles.grid}>
-        <View style={styles.row}>
-          {row1.map((card, idx) => (
-            <MemoryCardView
-              key={card.id}
-              card={card}
-              index={idx}
-              state={cardState(idx, revealed, matched)}
-              onPress={() => handlePress(idx)}
-              disabled={disabled || evaluating}
-            />
-          ))}
-        </View>
-        <View style={styles.row}>
-          {row2.map((card, i) => {
-            const idx = i + 3;
-            return (
-              <MemoryCardView
-                key={card.id}
-                card={card}
-                index={idx}
-                state={cardState(idx, revealed, matched)}
-                onPress={() => handlePress(idx)}
-                disabled={disabled || evaluating}
-              />
-            );
-          })}
-        </View>
+        {payload.cards.map((card, idx) => (
+          <MemoryCardView
+            key={card.id}
+            card={card}
+            state={cardState(idx, revealed, matched)}
+            onPress={() => handlePress(idx)}
+            disabled={disabled || evaluating}
+          />
+        ))}
       </View>
+    </View>
+  );
+}
+
+function formatTime(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+interface StatCellProps {
+  label: string;
+  value: string;
+}
+
+function StatCell({ label, value }: StatCellProps) {
+  return (
+    <View style={styles.statCell}>
+      <AppText style={styles.statLabel}>{label}</AppText>
+      <AppText style={styles.statValue}>{value}</AppText>
     </View>
   );
 }
@@ -132,7 +156,6 @@ function cardState(index: number, revealed: number[], matched: Set<number>): Car
 
 interface MemoryCardViewProps {
   card: MemoryCard;
-  index: number;
   state: CardState;
   onPress: () => void;
   disabled: boolean;
@@ -146,8 +169,6 @@ function MemoryCardView({ card, state, onPress, disabled }: MemoryCardViewProps)
     <Pressable
       style={({ pressed }) => [
         styles.card,
-        showFace && styles.cardFace,
-        isMatched && styles.cardMatched,
         pressed && !disabled && !showFace && styles.cardPressed,
       ]}
       onPress={onPress}
@@ -156,9 +177,29 @@ function MemoryCardView({ card, state, onPress, disabled }: MemoryCardViewProps)
       accessibilityLabel={showFace ? card.emoji : 'hidden card'}
       hitSlop={4}
     >
-      <AppText style={showFace ? styles.emojiFace : styles.emojiBack}>
-        {showFace ? card.emoji : '?'}
-      </AppText>
+      {isMatched ? (
+        <LinearGradient
+          colors={GRADIENT_MATCHED}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.cardFill, styles.cardMatched]}
+        >
+          <AppText style={styles.emojiMatched}>{card.emoji}</AppText>
+        </LinearGradient>
+      ) : showFace ? (
+        <View style={[styles.cardFill, styles.cardFace]}>
+          <AppText style={styles.emojiFace}>{card.emoji}</AppText>
+        </View>
+      ) : (
+        <LinearGradient
+          colors={GRADIENT_BACK}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.cardFill}
+        >
+          <AppText style={styles.emojiBack}>?</AppText>
+        </LinearGradient>
+      )}
     </Pressable>
   );
 }
@@ -168,71 +209,75 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
-    gap: spacing.lg,
+    gap: spacing.md,
   },
-  promptBox: {
-    backgroundColor: colors.surfaceSoft,
-    borderRadius: radius.xl,
-    paddingVertical: spacing.md,
+  infoBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
+    ...shadows.card,
+  },
+  statCell: {
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    minHeight: 72,
+    gap: 2,
   },
-  prompt: {
-    fontSize: 22,
-    lineHeight: 28,
-    fontFamily: fontFamily.extraBold,
-    color: colors.text,
-    textAlign: 'center',
-  },
-  counter: {
-    fontSize: 14,
-    lineHeight: 18,
+  statLabel: {
+    fontSize: 12,
+    lineHeight: 16,
     fontFamily: fontFamily.bold,
     color: colors.textMuted,
   },
+  statValue: {
+    fontSize: 16,
+    lineHeight: 20,
+    fontFamily: fontFamily.extraBold,
+    color: colors.primary,
+  },
   grid: {
     flex: 1,
-    gap: spacing.md,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
     paddingBottom: spacing.md,
   },
-  row: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    flex: 1,
-  },
   card: {
+    width: '23%',
+    aspectRatio: 1,
+  },
+  cardFill: {
     flex: 1,
-    minHeight: 100,
-    borderRadius: radius.lg,
-    backgroundColor: colors.primaryLight,
-    borderWidth: 2,
-    borderColor: colors.primary,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.btn,
   },
   cardFace: {
     backgroundColor: colors.surface,
+    borderWidth: 2,
     borderColor: colors.border,
   },
   cardMatched: {
-    borderColor: colors.success,
-    borderWidth: 3,
+    opacity: 0.75,
   },
   cardPressed: {
-    transform: [{ scale: 0.97 }],
-    backgroundColor: colors.primary,
+    transform: [{ scale: 0.95 }],
   },
   emojiFace: {
-    fontSize: 52,
-    lineHeight: 62,
+    fontSize: 32,
+    lineHeight: 38,
+  },
+  emojiMatched: {
+    fontSize: 32,
+    lineHeight: 38,
   },
   emojiBack: {
-    fontSize: 40,
-    lineHeight: 48,
+    fontSize: 24,
+    lineHeight: 28,
     fontFamily: fontFamily.extraBold,
-    color: colors.primary,
+    color: '#FFFFFF',
   },
 });
