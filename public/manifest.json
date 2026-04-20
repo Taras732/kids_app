@@ -1,0 +1,19 @@
+{
+  "name": "Школярик",
+  "short_name": "Школярик",
+  "description": "Навчальні ігри для дітей 6-10 років",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF8E7",
+  "theme_color": "#6C5CE7",
+  "lang": "uk",
+  "icons": [
+    {
+      "src": "/assets/images/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
