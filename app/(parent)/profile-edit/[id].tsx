@@ -53,7 +53,8 @@ export default function ProfileEditScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: topPad }]}>
+      <View style={{ flex: 1, paddingTop: topPad }}>
+      <ScrollView contentContainerStyle={styles.content}>
         <AppText variant="h1" style={styles.title}>
           {t('profiles.editTitle')}
         </AppText>
@@ -110,6 +111,7 @@ export default function ProfileEditScreen() {
         <AppButton title={t('profiles.delete')} tone="danger" size="md" onPress={() => setConfirmDelete(true)} />
         <AppButton title={t('common.back')} tone="ghost" onPress={() => router.replace('/(parent)/profiles')} />
       </ScrollView>
+      </View>
 
       <ConfirmModal
         visible={confirmDelete}

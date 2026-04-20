@@ -34,7 +34,8 @@ export default function ProfilePickerScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: topPad }]}>
+      <View style={{ flex: 1, paddingTop: topPad }}>
+      <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
             <AppText variant="h1" style={styles.title}>
@@ -95,6 +96,7 @@ export default function ProfilePickerScreen() {
           onPress={addChild}
         />
       </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { View, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable, Platform, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/src/components/AppText';
 import { ConfirmModal } from '@/src/components/ConfirmModal';
 import { colors, radius, spacing, shadows } from '@/src/constants/theme';
@@ -10,6 +10,7 @@ import { signOut, deleteAccount } from '@/src/hooks/useAuthActions';
 import { useChildProfilesStore } from '@/src/stores/childProfilesStore';
 import { useProgressStore } from '@/src/stores/progressStore';
 import { usePinStore } from '@/src/stores/pinStore';
+import { useSettingsStore } from '@/src/stores/settingsStore';
 import { mmkvStorage } from '@/src/utils/mmkv';
 
 type Tab = 'progress' | 'time' | 'settings';
@@ -23,6 +24,8 @@ const TABS: { id: Tab; icon: string; labelKey: string }[] = [
 
 export default function ParentDashboardScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const topPad = Math.max(insets.top, 50);
   const hasProfiles = useChildProfilesStore((s) => s.profiles.length > 0);
   const setUnlocked = usePinStore((s) => s.setUnlocked);
   const [tab, setTab] = useState<Tab>('progress');
@@ -67,7 +70,7 @@ export default function ParentDashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: topPad }]}>
         {hasProfiles ? (
           <Pressable onPress={exitParent} hitSlop={12} style={styles.backBtn}>
             <AppText variant="h2" color={colors.primary}>‹</AppText>
@@ -242,6 +245,10 @@ function SettingsTab({
   onLogout: () => void;
   onDelete: () => void;
 }) {
+  const soundEnabled = useSettingsStore((s) => s.soundEnabled);
+  const musicEnabled = useSettingsStore((s) => s.musicEnabled);
+  const setSoundEnabled = useSettingsStore((s) => s.setSoundEnabled);
+  const setMusicEnabled = useSettingsStore((s) => s.setMusicEnabled);
   return (
     <View style={{ gap: spacing.md }}>
       <View style={styles.panel}>
@@ -250,9 +257,37 @@ function SettingsTab({
         <SettingsRow icon="🌐" label={t('parent.changeLanguage')} onPress={onChangeLanguage} />
       </View>
       <View style={styles.panel}>
+        <SettingsToggleRow icon="🔊" label={t('parent.sound')} value={soundEnabled} onChange={setSoundEnabled} />
+        <SettingsToggleRow icon="🎵" label={t('parent.music')} value={musicEnabled} onChange={setMusicEnabled} last />
+      </View>
+      <View style={styles.panel}>
         <SettingsRow icon="🚪" label={t('auth.signOut')} onPress={onLogout} />
         <SettingsRow icon="🗑️" label={t('auth.deleteAccount')} onPress={onDelete} tone="danger" />
       </View>
+    </View>
+  );
+}
+
+function SettingsToggleRow({
+  icon,
+  label,
+  value,
+  onChange,
+  last = false,
+}: {
+  icon: string;
+  label: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+  last?: boolean;
+}) {
+  return (
+    <View style={[styles.settingsRow, last && { borderBottomWidth: 0 }]}>
+      <AppText style={styles.settingsIcon}>{icon}</AppText>
+      <AppText variant="body" color={colors.text} style={{ flex: 1, fontWeight: '600' }}>
+        {label}
+      </AppText>
+      <Switch value={value} onValueChange={onChange} />
     </View>
   );
 }

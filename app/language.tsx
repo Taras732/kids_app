@@ -65,7 +65,7 @@ export default function LanguageScreen() {
     setLocale(selected);
     markLanguageChosen();
     if (from === 'settings') {
-      router.replace('/(parent)/settings');
+      router.replace('/(parent)/dashboard');
     } else {
       router.replace('/welcome');
     }

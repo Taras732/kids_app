@@ -17,7 +17,8 @@ export default function ProfilesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: topPad }]}>
+      <View style={{ flex: 1, paddingTop: topPad }}>
+      <ScrollView contentContainerStyle={styles.content}>
         <AppText variant="h1" style={styles.title}>
           {t('parent.profiles')}
         </AppText>
@@ -74,6 +75,7 @@ export default function ProfilesScreen() {
 
         <AppButton title={t('common.back')} tone="ghost" onPress={() => router.replace('/(parent)/dashboard')} />
       </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

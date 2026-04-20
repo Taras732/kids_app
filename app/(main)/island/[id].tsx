@@ -27,7 +27,8 @@ export default function IslandScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: topPad }]}>
+      <View style={{ flex: 1, paddingTop: topPad }}>
+      <ScrollView contentContainerStyle={styles.content}>
         <AppText variant="display">{island?.icon ?? '❓'}</AppText>
         <AppText variant="title">{island?.name ?? 'Острів'}</AppText>
         {island?.description ? (
@@ -73,6 +74,7 @@ export default function IslandScreen() {
           onPress={() => router.replace('/(main)')}
         />
       </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

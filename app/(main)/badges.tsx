@@ -23,8 +23,9 @@ export default function BadgesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <View style={{ flex: 1, paddingTop: topPad }}>
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: topPad, paddingBottom: spacing.xxl }]}
+        contentContainerStyle={[styles.content, { paddingBottom: spacing.xxl }]}
         showsVerticalScrollIndicator={false}
       >
         <AppText variant="display" style={styles.titleIcon}>🏆</AppText>
@@ -80,6 +81,7 @@ export default function BadgesScreen() {
 
         <AppButton title={t('common.back')} tone="ghost" onPress={() => router.replace('/(main)')} />
       </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

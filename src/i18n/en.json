@@ -352,6 +352,8 @@
     "activityEmpty": "Stats will appear after the first game.",
     "changePin": "Change PIN",
     "changeLanguage": "App language",
+    "sound": "Sounds",
+    "music": "Music",
     "pinSetupTitle": "Create parent PIN",
     "pinChangeTitle": "Change PIN",
     "pinEnterNew": "Enter 4 digits",

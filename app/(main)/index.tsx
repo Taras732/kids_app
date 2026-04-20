@@ -39,8 +39,9 @@ export default function HubScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={{ flex: 1, paddingTop: topPad }}>
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: topPad }]}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
@@ -111,6 +112,7 @@ export default function HubScreen() {
           ))}
         </View>
       </ScrollView>
+      </View>
 
       <BottomTabBar
         activeKey="islands"
