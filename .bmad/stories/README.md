@@ -46,7 +46,7 @@
 |---|-------|--------|
 | US-100 | Supabase DevOps Setup | `ready` (blocked: user install) |
 
-## Current progress (2026-04-19)
+## Current progress (2026-04-20)
 | Story | Title | Status | Commit |
 |-------|-------|--------|--------|
 | US-001 | Ініціалізація Expo проекту | done | `76b681a` |
@@ -71,6 +71,12 @@
 | US-031 | M29 Pattern Continuation MVP | review | `c33135d` |
 | US-028 | M26 English Word Picture MVP | review | `96f132e` |
 | US-052 | Engagement Foundation (session + badges + Hub) | review | `16003a8` |
+| US-042 | M39 Water States MVP | review | `7bbf86a` |
+| US-043 | M40 Plant Grow MVP | review | `7bbf86a` |
+| US-044 | M42 Sink Float MVP | review | `7bbf86a` |
+| US-046 | M44 Hero Emotion MVP | review | `7bbf86a` |
+| US-047 | M45 Breathing MVP | review | `7bbf86a` |
+| US-048 | M46 Safety MVP | review | `7bbf86a` |
 | US-100 | Supabase DevOps Setup | ready (blocked) | — |
 
 ## Повна декомпозиція
