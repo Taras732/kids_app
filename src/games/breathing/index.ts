@@ -29,6 +29,7 @@ const breathing: GameDefinition<LevelSpec<BreathingAnswer>, BreathingAnswer> = {
   name: 'game.breathing.name',
   icon: '🎈',
   rulesKey: 'game.breathing.rules',
+  hasDifficulty: false,
   generateLevel,
   validateAnswer() {
     return { correct: true };

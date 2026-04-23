@@ -117,6 +117,12 @@
     "rules": "Rules",
     "rulesTitle": "How to play",
     "rulesOk": "Got it!",
+    "level": {
+      "pickTitle": "Pick level",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
     "tapTheDot": {
       "name": "Tap the dot",
       "rules": "A pink dot 🎯 will appear on the screen.\n\nYour task — quickly tap right on it!\n\nIf you hit — great! If you miss — you'll see a thinking face and try again.\n\nThere are 5 dots per level. Fewer misses = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"

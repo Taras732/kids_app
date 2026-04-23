@@ -35,6 +35,7 @@ export interface GameDefinition<TLevelSpec extends LevelSpec<any> = LevelSpec<an
   name: string;
   icon?: string;
   rulesKey?: string;
+  hasDifficulty?: boolean;
   generateLevel: (difficulty: number) => TLevelSpec;
   validateAnswer: (task: Task<TAnswer>, answer: TAnswer) => ValidationResult;
   Renderer: ComponentType<RendererProps<TAnswer>>;

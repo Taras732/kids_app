@@ -10,13 +10,18 @@ export interface GameProgress {
   lastPlayedAt: number;
 }
 
+export type DifficultyLevel = 1 | 2 | 3;
+
 interface ProgressState {
   xpByProfile: Record<string, number>;
   badgesByProfile: Record<string, string[]>;
   gameProgressByProfile: Record<string, Record<string, GameProgress>>;
+  unlockedLevelByProfile: Record<string, Record<string, DifficultyLevel>>;
   addXp: (profileId: string, amount: number) => void;
   awardBadge: (profileId: string, badgeId: string) => void;
   recordGameSession: (profileId: string, gameId: string, score: number, difficulty: number) => void;
+  getUnlockedLevel: (profileId: string, gameId: string) => DifficultyLevel;
+  unlockNextLevel: (profileId: string, gameId: string, currentLevel: DifficultyLevel) => void;
   getXp: (profileId: string) => number;
   getLevel: (profileId: string) => number;
 }
@@ -29,6 +34,7 @@ export const useProgressStore = create<ProgressState>()(
       xpByProfile: {},
       badgesByProfile: {},
       gameProgressByProfile: {},
+      unlockedLevelByProfile: {},
       addXp: (profileId, amount) =>
         set((state) => ({
           xpByProfile: {
@@ -59,6 +65,22 @@ export const useProgressStore = create<ProgressState>()(
             gameProgressByProfile: {
               ...state.gameProgressByProfile,
               [profileId]: { ...profileGames, [gameId]: updated },
+            },
+          };
+        }),
+      getUnlockedLevel: (profileId, gameId) =>
+        (get().unlockedLevelByProfile[profileId]?.[gameId] ?? 1) as DifficultyLevel,
+      unlockNextLevel: (profileId, gameId, currentLevel) =>
+        set((state) => {
+          if (currentLevel >= 3) return state;
+          const next = (currentLevel + 1) as DifficultyLevel;
+          const profileLevels = state.unlockedLevelByProfile[profileId] ?? {};
+          const existing = profileLevels[gameId] ?? 1;
+          if (existing >= next) return state;
+          return {
+            unlockedLevelByProfile: {
+              ...state.unlockedLevelByProfile,
+              [profileId]: { ...profileLevels, [gameId]: next },
             },
           };
         }),
