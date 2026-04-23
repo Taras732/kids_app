@@ -11,6 +11,8 @@ import { useChildProfilesStore } from '@/src/stores/childProfilesStore';
 import { useProgressStore } from '@/src/stores/progressStore';
 import { usePinStore } from '@/src/stores/pinStore';
 import { useSettingsStore } from '@/src/stores/settingsStore';
+import { useOnboardingStore } from '@/src/stores/onboardingStore';
+import { useAnalyticsStore } from '@/src/stores/analyticsStore';
 import { mmkvStorage } from '@/src/utils/mmkv';
 
 type Tab = 'progress' | 'time' | 'settings';
@@ -56,9 +58,21 @@ export default function ParentDashboardScreen() {
       setDialog('deleteError');
       return;
     }
+    const locale = useSettingsStore.getState().locale;
+    const hasChosenLanguage = useOnboardingStore.getState().hasChosenLanguage;
+    const hasSeenWelcome = useOnboardingStore.getState().hasSeenWelcome;
     mmkvStorage.clearAll();
     useChildProfilesStore.setState({ profiles: [], activeProfileId: null });
-    setUnlocked(false);
+    useProgressStore.setState({
+      xpByProfile: {},
+      badgesByProfile: {},
+      gameProgressByProfile: {},
+      unlockedLevelByProfile: {},
+    });
+    useOnboardingStore.setState({ hasChosenLanguage, hasSeenWelcome });
+    usePinStore.setState({ pinHash: null, failedAttempts: 0, lockedUntil: null, unlocked: false });
+    useSettingsStore.setState({ locale, parentPin: null, dailyTimeLimitMinutes: null });
+    useAnalyticsStore.setState({ events: [] });
     setDeleting(false);
     setDialog(null);
     if (Platform.OS === 'web') {
