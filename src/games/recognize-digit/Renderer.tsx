@@ -15,9 +15,36 @@ export type RecognizeDigitAnswer = number;
 
 const APPLE = '🍎';
 
-function renderApples(n: number) {
-  return APPLE.repeat(n);
+interface AppleGridProps {
+  count: number;
+  size: number;
+  columns: number;
 }
+
+function AppleGrid({ count, size, columns }: AppleGridProps) {
+  const maxWidth = columns * (size + 4);
+  return (
+    <View style={[gridStyles.wrap, { maxWidth }]}>
+      {Array.from({ length: count }).map((_, i) => (
+        <AppText
+          key={i}
+          style={{ fontSize: size, lineHeight: size + 4, width: size, textAlign: 'center' }}
+        >
+          {APPLE}
+        </AppText>
+      ))}
+    </View>
+  );
+}
+
+const gridStyles = StyleSheet.create({
+  wrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export function Renderer({ task, onAnswer, disabled }: RendererProps<RecognizeDigitAnswer>) {
   const p = task.payload as RecognizeDigitPayload;
@@ -28,9 +55,7 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<RecognizeDi
         {p.mode === 'digit-to-qty' ? (
           <AppText style={styles.bigDigit}>{p.correctNumber}</AppText>
         ) : (
-          <AppText style={styles.bigApples} numberOfLines={3}>
-            {renderApples(p.correctNumber)}
-          </AppText>
+          <AppGridPrompt count={p.correctNumber} />
         )}
       </View>
 
@@ -43,9 +68,7 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<RecognizeDi
             onPress={() => onAnswer(n)}
           >
             {p.mode === 'digit-to-qty' ? (
-              <AppText style={styles.optionApples} numberOfLines={2}>
-                {renderApples(n)}
-              </AppText>
+              <AppleGrid count={n} size={18} columns={5} />
             ) : (
               <AppText style={styles.optionDigit}>{n}</AppText>
             )}
@@ -54,6 +77,12 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<RecognizeDi
       </View>
     </View>
   );
+}
+
+function AppGridPrompt({ count }: { count: number }) {
+  const size = count <= 4 ? 56 : count <= 6 ? 48 : count <= 9 ? 44 : 40;
+  const columns = count <= 4 ? count : count <= 6 ? 3 : count <= 9 ? 3 : 5;
+  return <AppleGrid count={count} size={size} columns={columns} />;
 }
 
 const styles = StyleSheet.create({
@@ -79,11 +108,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
     lineHeight: 200,
   },
-  bigApples: {
-    fontSize: 44,
-    textAlign: 'center',
-    lineHeight: 56,
-  },
   optionsRow: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -91,7 +115,7 @@ const styles = StyleSheet.create({
   },
   option: {
     flex: 1,
-    minHeight: 110,
+    minHeight: 130,
     borderRadius: radius.lg,
     backgroundColor: colors.surface,
     alignItems: 'center',
@@ -106,10 +130,5 @@ const styles = StyleSheet.create({
     fontSize: 72,
     fontWeight: '800',
     color: colors.text,
-  },
-  optionApples: {
-    fontSize: 22,
-    textAlign: 'center',
-    lineHeight: 30,
   },
 });
