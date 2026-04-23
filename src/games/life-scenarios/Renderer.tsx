@@ -23,24 +23,24 @@ export interface LifeScenarioAnswer {
   actionKey: string;
 }
 
-type Phase = 'situation' | 'feel' | 'act' | 'result';
+type Phase = 'main' | 'result';
 
 export function Renderer({ task, onAnswer, disabled }: RendererProps<LifeScenarioAnswer>) {
   const payload = task.payload as LifeScenarioPayload;
-  const [phase, setPhase] = useState<Phase>('situation');
+  const [phase, setPhase] = useState<Phase>('main');
   const [selectedEmotions, setSelectedEmotions] = useState<EmotionTag[]>([]);
   const [chosenAction, setChosenAction] = useState<ScenarioAction | null>(null);
   const submittedRef = useRef(false);
 
   useEffect(() => {
-    setPhase('situation');
+    setPhase('main');
     setSelectedEmotions([]);
     setChosenAction(null);
     submittedRef.current = false;
   }, [task.id]);
 
   useEffect(() => {
-    if (phase !== 'act' || !payload.inputTimeLimitSec) return;
+    if (phase !== 'main' || !payload.inputTimeLimitSec) return;
     const timer = setTimeout(() => {
       if (submittedRef.current || chosenAction) return;
       submittedRef.current = true;
@@ -48,18 +48,6 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<LifeScenari
     }, payload.inputTimeLimitSec * 1000);
     return () => clearTimeout(timer);
   }, [phase, payload.inputTimeLimitSec, onAnswer, chosenAction, selectedEmotions]);
-
-  const goToActions = () => {
-    if (payload.showEmotions && phase === 'situation') {
-      setPhase('feel');
-      return;
-    }
-    setPhase('act');
-  };
-
-  const goFromFeelings = () => {
-    setPhase('act');
-  };
 
   const onPickAction = (action: ScenarioAction) => {
     if (submittedRef.current || disabled) return;
@@ -84,64 +72,52 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<LifeScenari
     );
   };
 
-  if (phase === 'situation') {
+  if (phase === 'main') {
     return (
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.scenarioHero}>
-          <AppText style={styles.hugeIcon}>{payload.icon}</AppText>
+          <AppText style={styles.icon}>{payload.icon}</AppText>
           <AppText style={styles.situationText}>{payload.situation}</AppText>
         </View>
-        <AppButton title={t('game.lifeScenarios.next')} size="lg" tone="primary" onPress={goToActions} />
-      </ScrollView>
-    );
-  }
 
-  if (phase === 'feel') {
-    return (
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <AppText style={styles.phaseTitle}>{t('game.lifeScenarios.phaseFeel')}</AppText>
-        <AppText style={styles.phaseHint}>{t('game.lifeScenarios.feelHint')}</AppText>
-        <View style={styles.emotionsGrid}>
-          {payload.availableEmotions.map((tag) => {
-            const active = selectedEmotions.includes(tag);
-            const meta = EMOTION_LABELS[tag];
-            return (
+        {payload.showEmotions ? (
+          <View style={styles.emotionsSection}>
+            <AppText style={styles.emotionsLabel}>{t('game.lifeScenarios.phaseFeel')}</AppText>
+            <View style={styles.emotionsChips}>
+              {payload.availableEmotions.map((tag) => {
+                const active = selectedEmotions.includes(tag);
+                const meta = EMOTION_LABELS[tag];
+                return (
+                  <Pressable
+                    key={tag}
+                    style={[styles.chip, active && styles.chipActive]}
+                    onPress={() => toggleEmotion(tag)}
+                  >
+                    <AppText style={styles.chipEmoji}>{meta.emoji}</AppText>
+                    <AppText style={[styles.chipLabel, active && styles.chipLabelActive]}>
+                      {meta.label}
+                    </AppText>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
+
+        <View style={styles.actionsSection}>
+          <AppText style={styles.actionsLabel}>{t('game.lifeScenarios.phaseAct')}</AppText>
+          <View style={styles.actionsList}>
+            {payload.actions.map((action) => (
               <Pressable
-                key={tag}
-                style={[styles.emotionCard, active && styles.emotionCardActive]}
-                onPress={() => toggleEmotion(tag)}
+                key={action.key}
+                style={styles.actionCard}
+                onPress={() => onPickAction(action)}
+                disabled={!!disabled || submittedRef.current}
               >
-                <AppText style={styles.emotionEmoji}>{meta.emoji}</AppText>
-                <AppText style={styles.emotionLabel}>{meta.label}</AppText>
+                <AppText style={styles.actionLabel}>{action.label}</AppText>
               </Pressable>
-            );
-          })}
-        </View>
-        <AppButton title={t('game.lifeScenarios.next')} size="lg" tone="primary" onPress={goFromFeelings} />
-        <AppButton title={t('game.lifeScenarios.skip')} tone="ghost" onPress={goFromFeelings} />
-      </ScrollView>
-    );
-  }
-
-  if (phase === 'act') {
-    return (
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <AppText style={styles.phaseTitle}>{t('game.lifeScenarios.phaseAct')}</AppText>
-        <View style={styles.situationRecap}>
-          <AppText style={styles.recapIcon}>{payload.icon}</AppText>
-          <AppText style={styles.recapText}>{payload.situation}</AppText>
-        </View>
-        <View style={styles.actionsList}>
-          {payload.actions.map((action) => (
-            <Pressable
-              key={action.key}
-              style={styles.actionCard}
-              onPress={() => onPickAction(action)}
-              disabled={!!disabled || submittedRef.current}
-            >
-              <AppText style={styles.actionLabel}>{action.label}</AppText>
-            </Pressable>
-          ))}
+            ))}
+          </View>
         </View>
       </ScrollView>
     );
@@ -167,83 +143,72 @@ const styles = StyleSheet.create({
   },
   scenarioHero: {
     alignItems: 'center',
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     backgroundColor: colors.surfaceSoft,
     borderRadius: radius.xl,
-    gap: spacing.md,
+    gap: spacing.sm,
     ...shadows.card,
   },
-  hugeIcon: {
-    fontSize: 96,
-    lineHeight: 110,
+  icon: {
+    fontSize: 64,
+    lineHeight: 72,
   },
   situationText: {
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: 17,
+    lineHeight: 24,
     fontFamily: fontFamily.extraBold,
     color: colors.text,
     textAlign: 'center',
   },
-  phaseTitle: {
-    fontSize: 22,
-    fontFamily: fontFamily.extraBold,
-    color: colors.text,
-    textAlign: 'center',
+  emotionsSection: {
+    gap: spacing.xs,
   },
-  phaseHint: {
+  emotionsLabel: {
     fontSize: 14,
+    fontFamily: fontFamily.bold,
     color: colors.textMuted,
-    textAlign: 'center',
+    paddingHorizontal: spacing.xs,
   },
-  emotionsGrid: {
+  emotionsChips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
-    justifyContent: 'center',
-  },
-  emotionCard: {
-    width: '30%',
-    minHeight: 90,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
-    borderWidth: 2,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.sm,
     gap: spacing.xs,
-    ...shadows.card,
   },
-  emotionCardActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
-  },
-  emotionEmoji: {
-    fontSize: 32,
-  },
-  emotionLabel: {
-    fontSize: 12,
-    fontFamily: fontFamily.bold,
-    color: colors.text,
-    textAlign: 'center',
-  },
-  situationRecap: {
+  chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.md,
-    backgroundColor: colors.surfaceSoft,
-    borderRadius: radius.lg,
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: radius.full,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.border,
   },
-  recapIcon: {
-    fontSize: 36,
+  chipActive: {
+    backgroundColor: colors.primaryLight,
+    borderColor: colors.primary,
   },
-  recapText: {
-    flex: 1,
-    fontSize: 15,
+  chipEmoji: {
+    fontSize: 18,
+  },
+  chipLabel: {
+    fontSize: 13,
+    fontFamily: fontFamily.bold,
     color: colors.text,
-    lineHeight: 22,
+  },
+  chipLabelActive: {
+    color: colors.primary,
+  },
+  actionsSection: {
+    gap: spacing.xs,
+  },
+  actionsLabel: {
+    fontSize: 14,
+    fontFamily: fontFamily.bold,
+    color: colors.textMuted,
+    paddingHorizontal: spacing.xs,
   },
   actionsList: {
     gap: spacing.sm,
@@ -261,6 +226,12 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontFamily: fontFamily.bold,
     color: colors.text,
+  },
+  phaseTitle: {
+    fontSize: 22,
+    fontFamily: fontFamily.extraBold,
+    color: colors.text,
+    textAlign: 'center',
   },
   consequenceBox: {
     padding: spacing.lg,
