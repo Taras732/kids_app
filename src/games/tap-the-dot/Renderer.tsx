@@ -1,19 +1,22 @@
-import { useRef, useState } from 'react';
-import { View, Pressable, StyleSheet, type LayoutChangeEvent } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { View, Pressable, StyleSheet, Animated, type LayoutChangeEvent } from 'react-native';
 import { colors, radius } from '../../constants/theme';
 import type { RendererProps } from '../types';
 
 export interface DotPayload {
-  xFrac: number;
-  yFrac: number;
+  startXFrac: number;
+  startYFrac: number;
+  angleRad: number;
   radius: number;
+  speed: number;
 }
 
 export interface DotAnswer {
-  x: number;
-  y: number;
-  fieldW: number;
-  fieldH: number;
+  tapX: number;
+  tapY: number;
+  dotX: number;
+  dotY: number;
+  radius: number;
 }
 
 export function Renderer({ task, onAnswer, disabled }: RendererProps<DotAnswer>) {
@@ -21,6 +24,16 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<DotAnswer>)
   const offsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const fieldRef = useRef<View | null>(null);
   const payload = task.payload as DotPayload;
+
+  const posX = useRef(new Animated.Value(0)).current;
+  const posY = useRef(new Animated.Value(0)).current;
+
+  const motionRef = useRef({
+    x: 0,
+    y: 0,
+    vx: 0,
+    vy: 0,
+  });
 
   const onLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -32,10 +45,68 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<DotAnswer>)
     });
   };
 
-  const dotCenterX = payload.xFrac * size.w;
-  const dotCenterY = payload.yFrac * size.h;
-  const dotLeft = dotCenterX - payload.radius;
-  const dotTop = dotCenterY - payload.radius;
+  useEffect(() => {
+    if (size.w === 0 || size.h === 0) return;
+
+    const r = payload.radius;
+    const cx = payload.startXFrac * size.w;
+    const cy = payload.startYFrac * size.h;
+    const vx = Math.cos(payload.angleRad) * payload.speed;
+    const vy = Math.sin(payload.angleRad) * payload.speed;
+
+    motionRef.current = { x: cx, y: cy, vx, vy };
+    posX.setValue(cx - r);
+    posY.setValue(cy - r);
+
+    if (payload.speed === 0) return;
+
+    let rafId = 0;
+    let last = performance.now();
+    let cancelled = false;
+
+    const tick = (now: number) => {
+      if (cancelled) return;
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+
+      const m = motionRef.current;
+      let { x, y, vx: cvx, vy: cvy } = m;
+      x += cvx * dt;
+      y += cvy * dt;
+
+      const minX = r;
+      const maxX = size.w - r;
+      const minY = r;
+      const maxY = size.h - r;
+
+      if (x < minX) {
+        x = minX + (minX - x);
+        cvx = Math.abs(cvx);
+      } else if (x > maxX) {
+        x = maxX - (x - maxX);
+        cvx = -Math.abs(cvx);
+      }
+      if (y < minY) {
+        y = minY + (minY - y);
+        cvy = Math.abs(cvy);
+      } else if (y > maxY) {
+        y = maxY - (y - maxY);
+        cvy = -Math.abs(cvy);
+      }
+
+      motionRef.current = { x, y, vx: cvx, vy: cvy };
+      posX.setValue(x - r);
+      posY.setValue(y - r);
+
+      rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+    };
+  }, [size.w, size.h, payload.startXFrac, payload.startYFrac, payload.angleRad, payload.radius, payload.speed, posX, posY]);
 
   return (
     <Pressable
@@ -50,20 +121,26 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<DotAnswer>)
         const off = offsetRef.current;
         const localX = pageX - off.x;
         const localY = pageY - off.y;
-        onAnswer({ x: localX, y: localY, fieldW: size.w, fieldH: size.h });
+        const m = motionRef.current;
+        onAnswer({
+          tapX: localX,
+          tapY: localY,
+          dotX: m.x,
+          dotY: m.y,
+          radius: payload.radius,
+        });
       }}
     >
       {size.w > 0 ? (
-        <View
+        <Animated.View
           pointerEvents="none"
           style={[
             styles.dot,
             {
-              left: dotLeft,
-              top: dotTop,
               width: payload.radius * 2,
               height: payload.radius * 2,
               borderRadius: payload.radius,
+              transform: [{ translateX: posX }, { translateY: posY }],
             },
           ]}
         />
@@ -82,6 +159,8 @@ const styles = StyleSheet.create({
   },
   dot: {
     position: 'absolute',
+    left: 0,
+    top: 0,
     backgroundColor: colors.secondary,
     shadowColor: colors.secondary,
     shadowOpacity: 0.45,
