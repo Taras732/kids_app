@@ -1,4 +1,5 @@
 import type { GameDefinition, LevelSpec, Task } from '../types';
+import type { AgeGroupId } from '../../constants/ageGroups';
 import {
   Renderer,
   type StateId,
@@ -12,20 +13,21 @@ interface ItemEntry {
   key: string;
   emoji: string;
   state: StateId;
+  basic: boolean;
 }
 
 const ITEM_POOL: ItemEntry[] = [
-  { key: 'ice', emoji: '🧊', state: 'solid' },
-  { key: 'snow', emoji: '❄️', state: 'solid' },
-  { key: 'iceberg', emoji: '🏔️', state: 'solid' },
+  { key: 'ice', emoji: '🧊', state: 'solid', basic: true },
+  { key: 'snow', emoji: '❄️', state: 'solid', basic: true },
+  { key: 'iceberg', emoji: '🏔️', state: 'solid', basic: false },
 
-  { key: 'water', emoji: '💧', state: 'liquid' },
-  { key: 'sea', emoji: '🌊', state: 'liquid' },
-  { key: 'rain', emoji: '☔', state: 'liquid' },
+  { key: 'water', emoji: '💧', state: 'liquid', basic: true },
+  { key: 'sea', emoji: '🌊', state: 'liquid', basic: true },
+  { key: 'rain', emoji: '☔', state: 'liquid', basic: false },
 
-  { key: 'cloud', emoji: '☁️', state: 'gas' },
-  { key: 'steam', emoji: '💨', state: 'gas' },
-  { key: 'fog', emoji: '🌫️', state: 'gas' },
+  { key: 'cloud', emoji: '☁️', state: 'gas', basic: true },
+  { key: 'steam', emoji: '💨', state: 'gas', basic: true },
+  { key: 'fog', emoji: '🌫️', state: 'gas', basic: false },
 ];
 
 function shuffle<T>(arr: T[]): T[] {
@@ -37,15 +39,52 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function generateLevel(difficulty: number): LevelSpec<WaterStateAnswer> {
-  const picked = shuffle(ITEM_POOL).slice(0, TASKS_PER_LEVEL);
+interface LevelConfig {
+  useFullPool: boolean;
+  timeLimitSec?: number;
+}
+
+function timerFor(group: AgeGroupId): number {
+  switch (group) {
+    case 'preschool':
+      return 12;
+    case 'grade1':
+      return 10;
+    case 'grade2':
+      return 10;
+    case 'grade3':
+      return 8;
+    case 'grade4':
+      return 6;
+    default:
+      return 10;
+  }
+}
+
+function paramsFor(difficulty: number, ageGroupId: AgeGroupId | undefined): LevelConfig {
+  const group = ageGroupId ?? 'grade1';
+  const startsWithFullPool = group === 'grade3' || group === 'grade4';
+
+  if (difficulty <= 1) {
+    return { useFullPool: startsWithFullPool };
+  }
+  if (difficulty === 2) {
+    return { useFullPool: true };
+  }
+  return { useFullPool: true, timeLimitSec: timerFor(group) };
+}
+
+function generateLevel(difficulty: number, ageGroupId?: AgeGroupId): LevelSpec<WaterStateAnswer> {
+  const cfg = paramsFor(difficulty, ageGroupId);
+  const pool = cfg.useFullPool ? ITEM_POOL : ITEM_POOL.filter((e) => e.basic);
+  const picked = shuffle(pool).slice(0, TASKS_PER_LEVEL);
   const tasks: Task<WaterStateAnswer>[] = picked.map((entry, index) => {
     const payload: WaterStatePayload = {
       target: entry.state,
       emoji: entry.emoji,
       itemKey: entry.key,
     };
-    return { id: `t${index}`, payload };
+    return { id: `t${index}`, payload, timeLimitSec: cfg.timeLimitSec };
   });
   return {
     seed: `water-states-${Date.now()}`,

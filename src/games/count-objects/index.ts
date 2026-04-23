@@ -1,9 +1,8 @@
 import type { GameDefinition, LevelSpec, Task } from '../types';
+import type { AgeGroupId } from '../../constants/ageGroups';
 import { Renderer, type CountAnswer, type CountPayload } from './Renderer';
 
 const TASKS_PER_LEVEL = 5;
-const RANGE_MIN = 1;
-const RANGE_MAX = 20;
 const MIN_DIST_FRAC = 0.14;
 const SPRITE_MARGIN = 0.08;
 
@@ -49,16 +48,40 @@ function generatePositions(count: number): { xFrac: number; yFrac: number }[] {
   return positions;
 }
 
-function generateLevel(difficulty: number): LevelSpec<CountAnswer> {
+interface LevelParams {
+  maxCount: number;
+  timeLimitSec?: number;
+}
+
+function paramsFor(difficulty: number, ageGroupId: AgeGroupId | undefined): LevelParams {
+  const group = ageGroupId ?? 'grade1';
+  if (group === 'preschool') {
+    if (difficulty <= 1) return { maxCount: 5 };
+    if (difficulty === 2) return { maxCount: 10 };
+    return { maxCount: 10, timeLimitSec: 15 };
+  }
+  if (group === 'grade1') {
+    if (difficulty <= 1) return { maxCount: 10 };
+    if (difficulty === 2) return { maxCount: 15 };
+    return { maxCount: 15, timeLimitSec: 12 };
+  }
+  // grade2 (mirror of grade1 but with tighter timer on L3)
+  if (difficulty <= 1) return { maxCount: 10 };
+  if (difficulty === 2) return { maxCount: 15 };
+  return { maxCount: 15, timeLimitSec: 10 };
+}
+
+function generateLevel(difficulty: number, ageGroupId?: AgeGroupId): LevelSpec<CountAnswer> {
+  const { maxCount, timeLimitSec } = paramsFor(difficulty, ageGroupId);
   const tasks: Task<CountAnswer>[] = [];
   for (let i = 0; i < TASKS_PER_LEVEL; i++) {
-    const correctCount = randInt(RANGE_MIN, RANGE_MAX);
+    const correctCount = randInt(1, maxCount);
     const payload: CountPayload = {
       itemKey: 'apple',
       correctCount,
       positions: generatePositions(correctCount),
     };
-    tasks.push({ id: `t${i}`, payload });
+    tasks.push({ id: `t${i}`, payload, timeLimitSec });
   }
   return {
     seed: `count-objects-${Date.now()}`,
@@ -73,6 +96,7 @@ const countObjects: GameDefinition<LevelSpec<CountAnswer>, CountAnswer> = {
   name: 'game.countObjects.name',
   icon: '🍎',
   rulesKey: 'game.countObjects.rules',
+  availableFor: ['preschool', 'grade1', 'grade2'],
   generateLevel,
   validateAnswer(task, answer) {
     const p = task.payload as CountPayload;

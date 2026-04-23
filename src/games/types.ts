@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import type { AgeGroupId } from '../constants/ageGroups';
 
 export type Phase =
   | 'intro'
@@ -11,6 +12,7 @@ export interface Task<TAnswer = unknown> {
   id: string;
   payload: unknown;
   expected?: TAnswer;
+  timeLimitSec?: number;
 }
 
 export interface LevelSpec<TAnswer = unknown> {
@@ -29,6 +31,11 @@ export interface RendererProps<TAnswer = unknown> {
   disabled?: boolean;
 }
 
+export interface LevelLabel {
+  emoji: string;
+  labelKey: string;
+}
+
 export interface GameDefinition<TLevelSpec extends LevelSpec<any> = LevelSpec<any>, TAnswer = any> {
   id: string;
   islandId: string;
@@ -36,7 +43,9 @@ export interface GameDefinition<TLevelSpec extends LevelSpec<any> = LevelSpec<an
   icon?: string;
   rulesKey?: string;
   hasDifficulty?: boolean;
-  generateLevel: (difficulty: number) => TLevelSpec;
+  availableFor?: AgeGroupId[];
+  levelLabels?: Record<1 | 2 | 3, LevelLabel>;
+  generateLevel: (difficulty: number, ageGroupId?: AgeGroupId) => TLevelSpec;
   validateAnswer: (task: Task<TAnswer>, answer: TAnswer) => ValidationResult;
   Renderer: ComponentType<RendererProps<TAnswer>>;
 }

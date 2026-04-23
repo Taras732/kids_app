@@ -5,7 +5,22 @@ import { colors as theme, radius, spacing, fontFamily } from '../../constants/th
 import { t } from '../../i18n';
 import type { RendererProps } from '../types';
 
-export type ColorId = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange';
+export type ColorId =
+  | 'red'
+  | 'blue'
+  | 'green'
+  | 'yellow'
+  | 'purple'
+  | 'orange'
+  | 'pink'
+  | 'brown'
+  | 'black'
+  | 'white'
+  | 'gray'
+  | 'cyan'
+  | 'lime'
+  | 'navy';
+
 export type ColorAnswer = ColorId;
 
 export interface ColorPayload {
@@ -20,6 +35,14 @@ export const COLOR_HEX: Record<ColorId, string> = {
   yellow: '#FACC15',
   purple: '#A855F7',
   orange: '#F97316',
+  pink: '#EC4899',
+  brown: '#8B4513',
+  black: '#111827',
+  white: '#F9FAFB',
+  gray: '#6B7280',
+  cyan: '#06B6D4',
+  lime: '#84CC16',
+  navy: '#1E3A8A',
 };
 
 export function Renderer({ task, onAnswer, disabled }: RendererProps<ColorAnswer>) {
@@ -40,9 +63,6 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<ColorAnswer
   const prompt = t('game.colors.prompt', { color: targetName });
   const isDisabled = disabled || locked;
 
-  const row1 = payload.candidates.slice(0, 2);
-  const row2 = payload.candidates.slice(2, 4);
-
   return (
     <View style={styles.wrap}>
       <View style={styles.promptBox}>
@@ -50,26 +70,14 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<ColorAnswer
       </View>
 
       <View style={styles.grid}>
-        <View style={styles.row}>
-          {row1.map((id) => (
-            <ColorSwatch
-              key={id}
-              id={id}
-              onPress={() => handlePress(id)}
-              disabled={isDisabled}
-            />
-          ))}
-        </View>
-        <View style={styles.row}>
-          {row2.map((id) => (
-            <ColorSwatch
-              key={id}
-              id={id}
-              onPress={() => handlePress(id)}
-              disabled={isDisabled}
-            />
-          ))}
-        </View>
+        {payload.candidates.map((id) => (
+          <ColorSwatch
+            key={id}
+            id={id}
+            onPress={() => handlePress(id)}
+            disabled={isDisabled}
+          />
+        ))}
       </View>
     </View>
   );
@@ -82,6 +90,7 @@ interface ColorSwatchProps {
 }
 
 function ColorSwatch({ id, onPress, disabled }: ColorSwatchProps) {
+  const isWhite = id === 'white';
   return (
     <Pressable
       style={({ pressed }) => [
@@ -94,7 +103,13 @@ function ColorSwatch({ id, onPress, disabled }: ColorSwatchProps) {
       accessibilityLabel={id}
       hitSlop={4}
     >
-      <View style={[styles.circle, { backgroundColor: COLOR_HEX[id] }]} />
+      <View
+        style={[
+          styles.circle,
+          { backgroundColor: COLOR_HEX[id] },
+          isWhite && styles.circleWhite,
+        ]}
+      />
     </Pressable>
   );
 }
@@ -124,16 +139,15 @@ const styles = StyleSheet.create({
   },
   grid: {
     flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.md,
     paddingBottom: spacing.md,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    flex: 1,
+    justifyContent: 'center',
   },
   swatchCell: {
-    flex: 1,
+    width: '47%',
+    minHeight: 120,
     borderRadius: radius.lg,
     backgroundColor: theme.surface,
     borderWidth: 2,
@@ -149,5 +163,9 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
+  },
+  circleWhite: {
+    borderWidth: 2,
+    borderColor: theme.border,
   },
 });

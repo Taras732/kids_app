@@ -4,7 +4,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
 import { getIslandById } from '@/src/constants/islands';
-import { listGamesByIsland } from '@/src/games/registry';
+import { listGamesByIsland, listGamesByIslandForGroup } from '@/src/games/registry';
+import { useChildProfilesStore } from '@/src/stores/childProfilesStore';
 import { colors, radius, spacing, shadows } from '@/src/constants/theme';
 import { t } from '@/src/i18n';
 
@@ -23,7 +24,10 @@ export default function IslandScreen() {
   const topPad = Math.max(insets.top, 50);
   const islandId = id ?? '';
   const island = getIslandById(islandId);
-  const games = listGamesByIsland(islandId);
+  const activeProfile = useChildProfilesStore((s) => s.getActiveProfile());
+  const games = activeProfile
+    ? listGamesByIslandForGroup(islandId, activeProfile.ageGroupId)
+    : listGamesByIsland(islandId);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>

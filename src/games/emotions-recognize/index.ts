@@ -66,6 +66,7 @@ const emotionsRecognize: GameDefinition<LevelSpec<EmotionAnswer>, EmotionAnswer>
   icon: '💚',
   rulesKey: 'game.emotions.rules',
   hasDifficulty: false,
+  availableFor: ['preschool', 'grade1', 'grade2', 'grade3', 'grade4'],
   generateLevel,
   validateAnswer(task, answer) {
     const p = task.payload as EmotionPayload;

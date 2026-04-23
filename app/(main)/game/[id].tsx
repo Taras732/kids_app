@@ -7,6 +7,8 @@ import { AppButton } from '@/src/components/AppButton';
 import { ConfirmModal } from '@/src/components/ConfirmModal';
 import { GameHeader } from '@/src/components/game/GameHeader';
 import { FeedbackOverlay } from '@/src/components/game/FeedbackOverlay';
+import { TimerBar } from '@/src/components/game/TimerBar';
+import type { AgeGroupId } from '@/src/constants/ageGroups';
 import { getGame } from '@/src/games/registry';
 import { useGameSession } from '@/src/games/useGameSession';
 import { useChildProfilesStore } from '@/src/stores/childProfilesStore';
@@ -17,10 +19,10 @@ import { t } from '@/src/i18n';
 
 type Screen = 'intro' | 'level-picker' | 'playing';
 
-const LEVEL_META: Record<DifficultyLevel, { emoji: string; color: string; labelKey: string }> = {
-  1: { emoji: '🟢', color: '#4CAF50', labelKey: 'game.level.easy' },
-  2: { emoji: '🟡', color: '#FFC107', labelKey: 'game.level.medium' },
-  3: { emoji: '🔴', color: '#F44336', labelKey: 'game.level.hard' },
+const DEFAULT_LEVEL_META: Record<DifficultyLevel, { emoji: string; labelKey: string }> = {
+  1: { emoji: '🟢', labelKey: 'game.level.easy' },
+  2: { emoji: '🟡', labelKey: 'game.level.medium' },
+  3: { emoji: '🔴', labelKey: 'game.level.hard' },
 };
 
 export default function GameScreen() {
@@ -119,7 +121,7 @@ export default function GameScreen() {
             {([1, 2, 3] as DifficultyLevel[]).map((lvl) => {
               const unlocked = lvl <= unlockedLevel;
               const passed = lvl < unlockedLevel;
-              const meta = LEVEL_META[lvl];
+              const meta = game.levelLabels?.[lvl] ?? DEFAULT_LEVEL_META[lvl];
               return (
                 <Pressable
                   key={lvl}
@@ -156,6 +158,7 @@ export default function GameScreen() {
       key={`${gameId}-${difficulty}`}
       gameId={gameId}
       difficulty={difficulty}
+      ageGroupId={activeProfile?.ageGroupId}
       profileId={activeProfile?.id ?? null}
       addXp={addXp}
       recordGameSession={recordGameSession}
@@ -177,6 +180,7 @@ export default function GameScreen() {
 interface GameplayProps {
   gameId: string;
   difficulty: DifficultyLevel;
+  ageGroupId?: AgeGroupId;
   profileId: string | null;
   addXp: (profileId: string, amount: number) => void;
   recordGameSession: (profileId: string, gameId: string, score: number, difficulty: number) => void;
@@ -191,6 +195,7 @@ interface GameplayProps {
 function GameplayContainer({
   gameId,
   difficulty,
+  ageGroupId,
   profileId,
   addXp,
   recordGameSession,
@@ -201,7 +206,7 @@ function GameplayContainer({
   onExit,
   onFinished,
 }: GameplayProps) {
-  const session = useGameSession(gameId, difficulty);
+  const session = useGameSession(gameId, difficulty, ageGroupId);
   const game = getGame(gameId)!;
   const Renderer = game.Renderer;
 
@@ -261,6 +266,13 @@ function GameplayContainer({
           totalTasks={session.totalTasks}
           onBack={handleBack}
         />
+        {session.currentTask?.timeLimitSec && session.taskStartedAt ? (
+          <TimerBar
+            startedAt={session.taskStartedAt}
+            durationSec={session.currentTask.timeLimitSec}
+            active={session.phase === 'playing'}
+          />
+        ) : null}
 
         <View style={styles.playfield}>
           {session.currentTask ? (

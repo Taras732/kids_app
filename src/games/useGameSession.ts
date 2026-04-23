@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { getGame } from './registry';
+import type { AgeGroupId } from '../constants/ageGroups';
 import {
   computeStars,
   computeXp,
@@ -89,6 +90,7 @@ export interface UseGameSessionResult<TAnswer = unknown> {
   mistakes: number;
   stars: 0 | 1 | 2 | 3;
   xpEarned: number;
+  taskStartedAt: number | null;
   start: () => void;
   submit: (answer: TAnswer) => void;
   reset: () => void;
@@ -96,7 +98,8 @@ export interface UseGameSessionResult<TAnswer = unknown> {
 
 export function useGameSession<TAnswer = unknown>(
   gameId: string,
-  difficulty: number = 1.0
+  difficulty: number = 1.0,
+  ageGroupId?: AgeGroupId,
 ): UseGameSessionResult<TAnswer> {
   const game = getGame(gameId);
   if (!game) {
@@ -104,7 +107,7 @@ export function useGameSession<TAnswer = unknown>(
   }
 
   const initial = useMemo<SessionState<TAnswer>>(() => {
-    const levelSpec = game.generateLevel(difficulty) as LevelSpec<TAnswer>;
+    const levelSpec = game.generateLevel(difficulty, ageGroupId) as LevelSpec<TAnswer>;
     return {
       sessionId: makeSessionId(),
       gameId,
@@ -120,6 +123,8 @@ export function useGameSession<TAnswer = unknown>(
 
   const [state, dispatch] = useReducer(reducer, initial);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const taskTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [taskStartedAt, setTaskStartedAt] = useState<number | null>(null);
 
   useEffect(() => {
     if (timerRef.current) {
@@ -145,6 +150,33 @@ export function useGameSession<TAnswer = unknown>(
     };
   }, [state.phase]);
 
+  useEffect(() => {
+    if (taskTimerRef.current) {
+      clearTimeout(taskTimerRef.current);
+      taskTimerRef.current = null;
+    }
+    if (state.phase !== 'playing') {
+      setTaskStartedAt(null);
+      return;
+    }
+    const task = state.levelSpec.tasks[state.taskIndex] as Task<TAnswer> | undefined;
+    const limit = task?.timeLimitSec;
+    if (!task || !limit || limit <= 0) {
+      setTaskStartedAt(null);
+      return;
+    }
+    setTaskStartedAt(Date.now());
+    taskTimerRef.current = setTimeout(() => {
+      dispatch({ type: 'SUBMIT_WRONG' });
+    }, limit * 1000);
+    return () => {
+      if (taskTimerRef.current) {
+        clearTimeout(taskTimerRef.current);
+        taskTimerRef.current = null;
+      }
+    };
+  }, [state.phase, state.taskIndex, state.levelSpec, setTaskStartedAt]);
+
   const start = useCallback(() => dispatch({ type: 'START' }), []);
 
   const submit = useCallback(
@@ -159,13 +191,13 @@ export function useGameSession<TAnswer = unknown>(
   );
 
   const reset = useCallback(() => {
-    const levelSpec = game.generateLevel(difficulty) as LevelSpec<TAnswer>;
+    const levelSpec = game.generateLevel(difficulty, ageGroupId) as LevelSpec<TAnswer>;
     dispatch({
       type: 'RESET',
       levelSpec,
       sessionId: makeSessionId(),
     });
-  }, [game, difficulty]);
+  }, [game, difficulty, ageGroupId]);
 
   const currentTask =
     state.phase === 'finished'
@@ -181,6 +213,7 @@ export function useGameSession<TAnswer = unknown>(
     mistakes: state.mistakes,
     stars: state.stars,
     xpEarned: state.xpEarned,
+    taskStartedAt,
     start,
     submit,
     reset,

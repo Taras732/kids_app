@@ -7,12 +7,13 @@ import type { RendererProps } from '../types';
 export type CompareAnswer = '>' | '<' | '=';
 
 export interface ComparePayload {
-  a: number;
-  b: number;
+  leftDisplay: string;
+  leftValue: number;
+  rightDisplay: string;
+  rightValue: number;
   correct: CompareAnswer;
+  allowEquals: boolean;
 }
-
-const SYMBOLS: CompareAnswer[] = ['<', '=', '>'];
 
 export function Renderer({ task, onAnswer, disabled }: RendererProps<CompareAnswer>) {
   const payload = task.payload as ComparePayload;
@@ -29,19 +30,25 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<CompareAnsw
   };
 
   const isDisabled = disabled || locked;
+  const symbols: CompareAnswer[] = payload.allowEquals ? ['<', '=', '>'] : ['<', '>'];
+  const sideFontSize = expressionFontSize(payload.leftDisplay, payload.rightDisplay);
 
   return (
     <View style={styles.wrap}>
       <View style={styles.expressionBox}>
-        <AppText style={styles.number}>{payload.a}</AppText>
+        <AppText style={[styles.side, { fontSize: sideFontSize, lineHeight: sideFontSize + 14 }]} numberOfLines={1}>
+          {payload.leftDisplay}
+        </AppText>
         <View style={styles.slot}>
           <AppText style={styles.slotDash}>?</AppText>
         </View>
-        <AppText style={styles.number}>{payload.b}</AppText>
+        <AppText style={[styles.side, { fontSize: sideFontSize, lineHeight: sideFontSize + 14 }]} numberOfLines={1}>
+          {payload.rightDisplay}
+        </AppText>
       </View>
 
       <View style={styles.buttonsRow}>
-        {SYMBOLS.map((symbol) => (
+        {symbols.map((symbol) => (
           <SymbolButton
             key={symbol}
             symbol={symbol}
@@ -52,6 +59,14 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<CompareAnsw
       </View>
     </View>
   );
+}
+
+function expressionFontSize(left: string, right: string): number {
+  const maxLen = Math.max(left.length, right.length);
+  if (maxLen <= 2) return 72;
+  if (maxLen <= 4) return 52;
+  if (maxLen <= 6) return 40;
+  return 32;
 }
 
 interface SymbolButtonProps {
@@ -96,16 +111,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.lg,
+    gap: spacing.md,
     minHeight: 160,
   },
-  number: {
-    fontSize: 72,
-    lineHeight: 84,
+  side: {
     fontFamily: fontFamily.extraBold,
     color: colors.text,
-    minWidth: 80,
     textAlign: 'center',
+    flex: 1,
   },
   slot: {
     width: 72,

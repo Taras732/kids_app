@@ -132,23 +132,39 @@
       "question": "How many apples?",
       "rules": "Apples 🍎 will appear on the screen.\n\nCount them and enter the number using the keypad.\n\nTap ⌫ to erase, OK to answer.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
     },
+    "recognizeDigit": {
+      "name": "Recognize the digit",
+      "rules": "A large digit or a group of apples 🍎 appears on the screen.\n\nPick the correct option from three choices.\n\n🔢 Digit → quantity: we show a digit, find that many apples.\n🍎 Quantity → digit: we show apples, pick the correct digit.\n🔀 Mixed: both modes interleaved.\n\nNumbers 1-10. Five tasks per level.",
+      "mode": {
+        "digitToQty": "Digit → quantity",
+        "qtyToDigit": "Quantity → digit",
+        "mixed": "Mixed"
+      }
+    },
     "mathExpressions": {
       "name": "Math Problems",
-      "rules": "An ➕ addition or ➖ subtraction problem will appear.\n\nTap the correct answer from four options.\n\nNumbers up to 10.\n\nThere are 5 problems per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+      "rules": "An ➕ addition or ➖ subtraction problem will appear.\n\nTap the correct answer from four options.\n\n🟢 Easy: addition only\n🟡 Medium: addition and subtraction\n🔴 Hard: addition and subtraction with a timer\n\nNumeric range depends on your class (10 / 20 / 100 / 1000).\n\nFive problems per level."
     },
     "mathCompare": {
       "name": "Compare",
-      "rules": "An empty box ⬚ appears between two numbers.\n\nPick the correct sign: > (greater), < (less) or = (equal).\n\nNumbers up to 20.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+      "rules": "An empty box ⬚ appears between two expressions.\n\nCompare and pick: > (greater), < (less) or = (equal).\n\n🟢 Easy: number vs number (only > or <)\n🟡 Medium: expression vs number\n🔴 Hard: expression vs expression + timer\n\nOperations and range depend on your class:\n• Grade 1 — only +, up to 10\n• Grade 2 — +, −, ×, ÷, up to 10\n• Grade 3 — all signs, tens\n• Grade 4 — all signs, hundreds, operator precedence\n\nFive tasks per level."
     },
     "shapes": {
       "name": "Shapes",
       "prompt": "Find the {{shape}}",
-      "rules": "A shape name will appear with 4 options.\n\nTap the shape whose name is written at the top.\n\nShapes: circle, square, triangle, rectangle.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
+      "rules": "A shape name will appear with a few options.\n\nTap the shape whose name is shown at the top.\n\n🟢 Easy: basic shapes\n🟡 Medium: more shapes\n🔴 Hard: all shapes + timer\n\nGrade 1 also learns: oval, rhombus, pentagon, hexagon, cube, cone, cylinder.\n\nFive tasks per level.",
       "names": {
         "circle": "circle",
         "square": "square",
         "triangle": "triangle",
-        "rectangle": "rectangle"
+        "rectangle": "rectangle",
+        "oval": "oval",
+        "rhombus": "rhombus",
+        "pentagon": "pentagon",
+        "hexagon": "hexagon",
+        "cube": "cube",
+        "cone": "cone",
+        "cylinder": "cylinder"
       }
     },
     "letters": {
@@ -161,15 +177,10 @@
       "prompt": "Build the syllable {{syllable}}",
       "rules": "A consonant is shown with an empty slot.\n\nPick the right vowel to build the syllable.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
     },
-    "oddOneOut": {
-      "name": "Odd one out",
-      "prompt": "Which is odd?",
-      "rules": "Four items will appear on screen.\n\nThree of them belong together (e.g. fruits), but one doesn't fit.\n\nTap the one that doesn't belong!\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
-    },
-    "patternNext": {
-      "name": "What's next?",
-      "prompt": "What's next?",
-      "rules": "A repeating color pattern will appear.\n\nLook at the order and pick which color comes next!\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+    "numberPatterns": {
+      "name": "Continue the sequence",
+      "prompt": "What number comes next?",
+      "rules": "A number sequence with a step is shown. E.g. 2, 4, 6, 8, ?\n\nSpot the pattern and pick the correct next number from four options.\n\n🟢 Easy: constant step, ascending\n🟡 Medium: bigger step or descending\n🔴 Hard: mixed step or non-linear patterns + timer\n\nFive tasks per level."
     },
     "lettersEn": {
       "name": "Find the letter (EN)",
@@ -201,7 +212,11 @@
       "movesLabel": "Moves",
       "foundLabel": "Found",
       "timeLabel": "Time",
-      "rules": "The board has 16 cards face down — 8 pairs.\n\nTap two cards. If the images match, the pair stays open.\n\nIf not, the cards flip back.\n\nFind all 8 pairs to win!"
+      "rules": "The board has cards face down.\n\nTap two cards. If the images match, the pair stays open.\n\nIf not, the cards flip back.\n\nFind all pairs to win!\n\nPair count grows with level and class (4-12 pairs)."
+    },
+    "memoryAssociations": {
+      "name": "Find the associated pair",
+      "rules": "The board has cards face down.\n\nTap two cards. If they are **associated** (cow → milk, bee → honey) the pair stays open.\n\nIf not, they flip back.\n\nTrains memory and logical connections."
     },
     "animals": {
       "name": "Where do they live?",
@@ -217,77 +232,75 @@
       "name": "What's changed?",
       "memorize": "Remember!",
       "detect": "What's changed?",
-      "rules": "Watch carefully — 4 items will appear. Remember them.\n\nThen one item will change. Find and tap the one that became different!\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+      "rules": "Watch carefully — items will appear. Remember them.\n\nThen one item will change. Find and tap the one that became different!\n\nItem count and memorize time depend on your class.\n\nHard level uses same-category replacement (🍎 → 🍐) + a timer."
     },
-    "sequenceRepeat": {
-      "name": "Repeat",
-      "watch": "Watch...",
-      "yourTurn": "Your turn!",
-      "rules": "Watch carefully — the colored buttons will light up one by one.\n\nWhen the sequence ends, repeat it in the same order!\n\nThere are 3 tasks per level. Exact match = ⭐⭐⭐:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more"
+    "digitSpan": {
+      "name": "Memorize the digits",
+      "memorize": "Memorize",
+      "repeat": "Repeat in the same order",
+      "rules": "Digits will appear on screen one by one.\n\nMemorize them in the correct order!\n\nWhen the screen clears, enter the digits on the keypad in the same order and tap OK.\n\nSequence length grows with level and class (2-7 digits).\n\nHard level includes an input timer."
+    },
+    "reverseSequence": {
+      "name": "Repeat backwards",
+      "memorize": "Watch and remember",
+      "reverse": "Repeat in reverse order",
+      "rules": "Colored buttons light up one by one.\n\nRemember the sequence and repeat it in **reverse** order — last → first.\n\nLength grows with level and class (2-6 colors).\n\nHard level includes an input timer."
+    },
+    "sortingGame": {
+      "name": "Sort in order",
+      "prompt": "Tap in order",
+      "rules": "Objects appear on screen in random order.\n\nTap them in the correct sequence — first → last.\n\nFor example: 🌱 → 🌿 → 🌸 → 🍎 (plant growth stages).\n\nItem count grows with level.\nHard level adds a timer.",
+      "attr": {
+        "plant": "Plant growth stages",
+        "butterfly": "Egg to butterfly",
+        "chicken": "Egg to chicken",
+        "age": "Baby to elder",
+        "day": "Day cycle: morning → day → evening → night",
+        "seasons": "Seasons: spring → summer → autumn → winter",
+        "moon": "Moon phases: new → full",
+        "numbersAsc": "Numbers: ascending"
+      }
     },
     "colors": {
       "name": "Find the color",
       "prompt": "Find {{color}}",
-      "rules": "A color name will appear on top with 4 colored circles below.\n\nTap the circle of the color named at the top.\n\nColors: red, blue, green, yellow, purple, orange.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
+      "rules": "A color name appears on top with circles of different colors below.\n\nTap the correct color.\n\n🟢 Easy: 6 basic colors\n🟡 Medium: 10 colors (+pink, brown, black, white)\n🔴 Hard: + timer\n\nGrade 1 also learns gray, cyan, lime, navy (14 total).\n\nFive tasks per level.",
       "names": {
         "red": "red",
         "blue": "blue",
         "green": "green",
         "yellow": "yellow",
         "purple": "purple",
-        "orange": "orange"
+        "orange": "orange",
+        "pink": "pink",
+        "brown": "brown",
+        "black": "black",
+        "white": "white",
+        "gray": "gray",
+        "cyan": "cyan",
+        "lime": "lime",
+        "navy": "navy"
       }
     },
     "waterStates": {
       "name": "Water",
       "prompt": "Which state is this?",
-      "rules": "An item related to water will appear.\n\nChoose its state: 🧊 solid, 💧 liquid, or 💨 gas.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
+      "rules": "An item related to water will appear.\n\nChoose its state: 🧊 solid, 💧 liquid, or 💨 gas.\n\n🟢 Easy: basic items (ice, snow, water, sea, cloud, steam)\n🟡 Medium: full pool + less obvious ones (iceberg, rain, fog)\n🔴 Hard: full pool + timer (faster for older grades)",
       "states": {
         "solid": "solid",
         "liquid": "liquid",
         "gas": "gas"
       }
     },
-    "plantGrow": {
-      "name": "How plants grow",
-      "prompt": "What's next?",
-      "rules": "A plant at a certain growth stage will appear.\n\nPick the correct next stage from three options.\n\nStages: 🌰 seed → 🌱 sprout → 🌿 leaves → 🌷 bloom → 🍎 fruit.\n\nThere are 4 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
-      "stages": {
-        "seed": "seed",
-        "sprout": "sprout",
-        "leafy": "leaves",
-        "bloom": "bloom",
-        "fruit": "fruit"
-      }
-    },
-    "sinkFloat": {
-      "name": "Sink or float?",
-      "prompt": "What happens in water?",
-      "rules": "An item will appear on screen.\n\nPick what happens in water: ☁️ floats or ⬇️ sinks.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
-      "options": {
-        "float": "floats",
-        "sink": "sinks"
-      }
-    },
-    "heroEmotion": {
-      "name": "How does hero feel?",
-      "rules": "A situation and a picture will appear.\n\nPick the emotion the hero might feel: happy, sad, angry, scared, surprised, or sleepy.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
-      "situations": {
-        "birthday": "It's your birthday!",
-        "gift": "A gift for you!",
-        "friendHug": "A friend hugs you",
-        "brokenToy": "Toy is broken",
-        "rainyDay": "Rainy sad day",
-        "lostBalloon": "Balloon flew away",
-        "takenToy": "Toy was taken",
-        "noise": "Very loud noise!",
-        "darkRoom": "Dark room",
-        "bigDog": "Big dog",
-        "unexpectedGift": "Surprise!",
-        "rainbow": "Rainbow in the sky!",
-        "longDay": "Long day",
-        "warmBed": "Warm cozy bed"
-      }
+    "lifeScenarios": {
+      "name": "What would you do?",
+      "phaseFeel": "How do you feel?",
+      "phaseAct": "What will you do?",
+      "phaseResult": "What happens next",
+      "feelHint": "Pick more than one if you like",
+      "next": "Next",
+      "skip": "Skip",
+      "rules": "We'll show you a situation.\n\n🎭 First — how do you feel? (medium/hard levels)\n🙋 Then — what will you do? Pick an option.\n💭 See what happens next.\n\nOne action is the kindest. Others are possible but less good.\n\nThere's no right or wrong about feelings — all yours matter."
     },
     "breathing": {
       "name": "Breathing",
@@ -299,39 +312,30 @@
       },
       "progress": "Breath {{current}} of {{total}}"
     },
-    "safety": {
-      "name": "Safety",
-      "prompt": "Can you touch it?",
-      "rules": "An item from around the house will appear.\n\nDecide: ✓ safe to play with, or ✗ not without a grown-up.\n\nThere are 5 tasks per level. Fewer mistakes = more stars:\n⭐⭐⭐ no mistakes\n⭐⭐ 1-2 mistakes\n⭐ more",
-      "options": {
-        "safe": "Safe",
-        "unsafe": "Not safe"
-      }
-    },
     "taglines": {
       "tapTheDot": "Tap the moving dot",
       "countObjects": "Count the objects",
+      "recognizeDigit": "Learn digits and quantity",
       "mathExpressions": "Solve the math problem",
       "mathCompare": "Pick >, < or =",
       "shapes": "Pick the right shape",
       "letters": "Pick the right letter",
       "syllableBuild": "Pick the right vowel",
-      "oddOneOut": "Pick what doesn't fit",
-      "patternNext": "Guess the next color",
+      "numberPatterns": "Continue the number sequence",
       "lettersEn": "Pick the right letter",
       "englishWord": "Name the picture in English",
       "emotions": "Name the emotion on the face",
       "memoryMatch": "Find the matching pairs",
+      "memoryAssociations": "Find associated pairs",
       "animals": "Where does the animal live?",
       "whatsChanged": "Find what changed",
-      "sequenceRepeat": "Repeat the sequence",
+      "digitSpan": "Memorize and repeat digits",
+      "reverseSequence": "Repeat colors backwards",
+      "sortingGame": "Sort items in correct order",
       "colors": "Pick the named color",
       "waterStates": "Solid, liquid or gas?",
-      "plantGrow": "Pick the next growth stage",
-      "sinkFloat": "Will it float or sink?",
-      "heroEmotion": "How does the hero feel?",
+      "lifeScenarios": "How would you act in different situations",
       "breathing": "Breathe with the balloon",
-      "safety": "Safe or not safe?"
     }
   },
   "parent": {

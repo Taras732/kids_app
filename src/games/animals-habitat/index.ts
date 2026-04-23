@@ -69,6 +69,7 @@ const animalsHabitat: GameDefinition<LevelSpec<AnimalAnswer>, AnimalAnswer> = {
   name: 'game.animals.name',
   icon: '🔬',
   rulesKey: 'game.animals.rules',
+  availableFor: ['preschool'],
   generateLevel,
   validateAnswer(task, answer) {
     const p = task.payload as AnimalPayload;

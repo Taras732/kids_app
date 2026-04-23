@@ -1,16 +1,27 @@
 import type { GameDefinition, LevelSpec, Task } from '../types';
+import type { AgeGroupId } from '../../constants/ageGroups';
 import { Renderer, type ChangedAnswer, type ChangedPayload } from './Renderer';
 
 const TASKS_PER_LEVEL = 5;
-const GRID_SIZE = 4;
 
-const EMOJI_POOL = [
-  '🍎', '🍌', '🍐', '🍊', '🍇', '🍓',
-  '🐶', '🐱', '🐰', '🐻', '🦁', '🐸',
-  '🚗', '🚌', '🚲', '🚀', '🚂',
-  '⭐', '🔺', '⚪', '🔶', '🔷',
-  '🌳', '🌸', '🌞', '🌙',
-];
+const CATEGORIES: Record<string, string[]> = {
+  fruits: ['🍎', '🍌', '🍐', '🍊', '🍇', '🍓', '🍒', '🍑'],
+  animals: ['🐶', '🐱', '🐰', '🐻', '🦁', '🐸', '🦊', '🐼'],
+  vehicles: ['🚗', '🚌', '🚲', '🚀', '🚂', '🚓', '🚑'],
+  shapes: ['⭐', '🔺', '⚪', '🔶', '🔷', '🔸', '🟢'],
+  nature: ['🌳', '🌸', '🌞', '🌙', '🌈', '❄️', '🌊'],
+};
+
+function emojiCategory(emoji: string): string | null {
+  for (const [cat, items] of Object.entries(CATEGORIES)) {
+    if (items.includes(emoji)) return cat;
+  }
+  return null;
+}
+
+function flatPool(): string[] {
+  return Object.values(CATEGORIES).flat();
+}
 
 function randInt(min: number, max: number) {
   return min + Math.floor(Math.random() * (max - min + 1));
@@ -25,22 +36,71 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function generateTask(index: number): Task<ChangedAnswer> {
-  const picked = shuffle(EMOJI_POOL).slice(0, GRID_SIZE);
+interface LevelConfig {
+  itemCount: number;
+  memorizeMs: number;
+  subtleReplace: boolean;
+  inputTimeLimitSec?: number;
+}
+
+function paramsFor(difficulty: number, ageGroupId: AgeGroupId | undefined): LevelConfig {
+  const group = ageGroupId ?? 'preschool';
+  if (group === 'preschool') {
+    if (difficulty <= 1) return { itemCount: 3, memorizeMs: 3000, subtleReplace: false };
+    if (difficulty === 2) return { itemCount: 4, memorizeMs: 3000, subtleReplace: false };
+    return { itemCount: 4, memorizeMs: 2000, subtleReplace: false, inputTimeLimitSec: 8 };
+  }
+  if (group === 'grade1') {
+    if (difficulty <= 1) return { itemCount: 4, memorizeMs: 3000, subtleReplace: false };
+    if (difficulty === 2) return { itemCount: 5, memorizeMs: 2500, subtleReplace: false };
+    return { itemCount: 5, memorizeMs: 2000, subtleReplace: false, inputTimeLimitSec: 8 };
+  }
+  if (group === 'grade2') {
+    if (difficulty <= 1) return { itemCount: 5, memorizeMs: 2500, subtleReplace: false };
+    if (difficulty === 2) return { itemCount: 6, memorizeMs: 2000, subtleReplace: false };
+    return { itemCount: 6, memorizeMs: 2000, subtleReplace: true, inputTimeLimitSec: 6 };
+  }
+  // grade3
+  if (difficulty <= 1) return { itemCount: 6, memorizeMs: 2000, subtleReplace: false };
+  if (difficulty === 2) return { itemCount: 8, memorizeMs: 2000, subtleReplace: true };
+  return { itemCount: 8, memorizeMs: 1500, subtleReplace: true, inputTimeLimitSec: 6 };
+}
+
+function pickReplacement(original: string, used: string[], subtle: boolean): string {
+  const pool = subtle
+    ? CATEGORIES[emojiCategory(original) ?? 'fruits']
+    : flatPool();
+  const candidates = pool.filter((e) => e !== original && !used.includes(e));
+  if (candidates.length === 0) {
+    const fallback = flatPool().filter((e) => e !== original && !used.includes(e));
+    return fallback[randInt(0, fallback.length - 1)] ?? original;
+  }
+  return candidates[randInt(0, candidates.length - 1)];
+}
+
+function generateTask(index: number, cfg: LevelConfig): Task<ChangedAnswer> {
+  const picked = shuffle(flatPool()).slice(0, cfg.itemCount);
   const before = picked.slice();
   const after = picked.slice();
-  const changedIndex = randInt(0, GRID_SIZE - 1);
-  const leftovers = EMOJI_POOL.filter((e) => !picked.includes(e));
-  const replacement = leftovers[randInt(0, leftovers.length - 1)];
+  const changedIndex = randInt(0, cfg.itemCount - 1);
+  const replacement = pickReplacement(before[changedIndex], picked, cfg.subtleReplace);
   after[changedIndex] = replacement;
-  const payload: ChangedPayload = { before, after, changedIndex };
+
+  const payload: ChangedPayload = {
+    before,
+    after,
+    changedIndex,
+    memorizeMs: cfg.memorizeMs,
+    inputTimeLimitSec: cfg.inputTimeLimitSec,
+  };
   return { id: `t${index}`, payload };
 }
 
-function generateLevel(difficulty: number): LevelSpec<ChangedAnswer> {
+function generateLevel(difficulty: number, ageGroupId?: AgeGroupId): LevelSpec<ChangedAnswer> {
+  const cfg = paramsFor(difficulty, ageGroupId);
   const tasks: Task<ChangedAnswer>[] = [];
   for (let i = 0; i < TASKS_PER_LEVEL; i++) {
-    tasks.push(generateTask(i));
+    tasks.push(generateTask(i, cfg));
   }
   return {
     seed: `whats-changed-${Date.now()}`,
@@ -55,6 +115,7 @@ const whatsChanged: GameDefinition<LevelSpec<ChangedAnswer>, ChangedAnswer> = {
   name: 'game.whatsChanged.name',
   icon: '👁️',
   rulesKey: 'game.whatsChanged.rules',
+  availableFor: ['preschool', 'grade1', 'grade2', 'grade3'],
   generateLevel,
   validateAnswer(task, answer) {
     const p = task.payload as ChangedPayload;

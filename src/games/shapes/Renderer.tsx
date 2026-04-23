@@ -37,7 +37,6 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<ShapeAnswer
   const isDisabled = disabled || locked;
   const targetName = t(`game.shapes.names.${payload.target}`);
   const prompt = t('game.shapes.prompt', { shape: targetName });
-  const [row1, row2] = [payload.candidates.slice(0, 2), payload.candidates.slice(2, 4)];
 
   return (
     <View style={styles.wrap}>
@@ -46,26 +45,14 @@ export function Renderer({ task, onAnswer, disabled }: RendererProps<ShapeAnswer
       </View>
 
       <View style={styles.grid}>
-        <View style={styles.row}>
-          {row1.map((candidate, idx) => (
-            <ShapeTapZone
-              key={`r1-${idx}`}
-              candidate={candidate}
-              onPress={() => handlePress(candidate.id)}
-              disabled={isDisabled}
-            />
-          ))}
-        </View>
-        <View style={styles.row}>
-          {row2.map((candidate, idx) => (
-            <ShapeTapZone
-              key={`r2-${idx}`}
-              candidate={candidate}
-              onPress={() => handlePress(candidate.id)}
-              disabled={isDisabled}
-            />
-          ))}
-        </View>
+        {payload.candidates.map((candidate, idx) => (
+          <ShapeTapZone
+            key={`c-${idx}`}
+            candidate={candidate}
+            onPress={() => handlePress(candidate.id)}
+            disabled={isDisabled}
+          />
+        ))}
       </View>
     </View>
   );
@@ -121,17 +108,15 @@ const styles = StyleSheet.create({
   },
   grid: {
     flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.md,
     paddingBottom: spacing.md,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    flex: 1,
+    justifyContent: 'center',
   },
   tapZone: {
-    flex: 1,
-    minHeight: 140,
+    width: '47%',
+    minHeight: 120,
     borderRadius: radius.lg,
     backgroundColor: colors.surface,
     borderWidth: 2,
