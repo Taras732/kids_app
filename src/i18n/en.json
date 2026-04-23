@@ -215,7 +215,7 @@
       "rules": "The board has cards face down.\n\nTap two cards. If the images match, the pair stays open.\n\nIf not, the cards flip back.\n\nFind all pairs to win!\n\nPair count grows with level and class (4-12 pairs)."
     },
     "memoryAssociations": {
-      "name": "Find the associated pair",
+      "name": "What goes with what?",
       "rules": "The board has cards face down.\n\nTap two cards. If they are **associated** (cow → milk, bee → honey) the pair stays open.\n\nIf not, they flip back.\n\nTrains memory and logical connections."
     },
     "animals": {
