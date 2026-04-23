@@ -60,6 +60,8 @@ export const useChildProfilesStore = create<ChildProfilesState>()(
     {
       name: 'child-profiles',
       storage: createJSONStorage(() => mmkvStorage),
+      version: 2,
+      migrate: () => ({ profiles: [], activeProfileId: null }),
     },
   ),
 );

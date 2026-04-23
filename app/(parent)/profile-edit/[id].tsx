@@ -81,11 +81,7 @@ export default function ProfileEditScreen() {
               style={[styles.ageCard, ageGroupId === g.id && styles.ageCardSelected]}
               onPress={() => setAgeGroupId(g.id)}
             >
-              <AppText style={{ fontSize: 32 }}>{g.mascot}</AppText>
-              <View style={{ flex: 1 }}>
-                <AppText variant="body" style={{ fontWeight: '700' }}>{g.name}</AppText>
-                <AppText variant="caption" color={colors.textMuted}>{g.ageRange} · {g.focus}</AppText>
-              </View>
+              <AppText variant="body" style={{ fontWeight: '700' }}>{g.name}</AppText>
             </Pressable>
           ))}
         </View>

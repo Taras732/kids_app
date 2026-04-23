@@ -39,7 +39,7 @@ export default function ProfilesScreen() {
                 accessibilityRole="button"
               >
                 <View style={styles.avatarCircle}>
-                  <AppText style={styles.avatar}>{p.avatarId || group?.mascot || '🐱'}</AppText>
+                  <AppText style={styles.avatar}>{p.avatarId || '🐱'}</AppText>
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={styles.nameRow}>
@@ -55,7 +55,7 @@ export default function ProfilesScreen() {
                     ) : null}
                   </View>
                   <AppText variant="caption" color={colors.textMuted} numberOfLines={1}>
-                    {group?.mascot} {group?.name} · {group?.ageRange}
+                    {group?.name ?? ''}
                   </AppText>
                 </View>
                 <AppText style={styles.chev}>›</AppText>

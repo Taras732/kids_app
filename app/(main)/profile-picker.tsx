@@ -62,20 +62,18 @@ export default function ProfilePickerScreen() {
                 style={[styles.card, isActive && styles.cardActive]}
                 onPress={() => choose(p.id)}
                 accessibilityRole="button"
-                accessibilityLabel={`${p.name}, ${group?.ageRange ?? ''}`}
+                accessibilityLabel={`${p.name}, ${group?.name ?? ''}`}
               >
                 <View style={styles.avatarCircle}>
-                  <AppText style={styles.avatar}>{p.avatarId || group?.mascot || '🐱'}</AppText>
+                  <AppText style={styles.avatar}>{p.avatarId || '🐱'}</AppText>
                 </View>
                 <AppText variant="h2" style={styles.name} numberOfLines={1}>
                   {p.name}
                 </AppText>
                 {group ? (
-                  <>
-                    <AppText variant="caption" color={colors.textMuted} numberOfLines={1}>
-                      {group.mascot} {group.ageRange}
-                    </AppText>
-                  </>
+                  <AppText variant="caption" color={colors.textMuted} numberOfLines={1}>
+                    {group.name}
+                  </AppText>
                 ) : null}
                 {isActive ? (
                   <View style={styles.activeBadge}>

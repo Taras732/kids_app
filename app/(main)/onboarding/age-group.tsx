@@ -24,11 +24,7 @@ export default function AgeGroupScreen() {
         <AppText variant="title">{t('onboarding.chooseAgeGroup')}</AppText>
         {AGE_GROUPS.map((group) => (
           <Pressable key={group.id} style={styles.card} onPress={() => choose(group.id)}>
-            <AppText variant="display">{group.mascot}</AppText>
-            <View style={{ flex: 1 }}>
-              <AppText variant="body" style={{ fontWeight: '700' }}>{group.name}</AppText>
-              <AppText variant="caption" color={colors.textMuted}>{group.ageRange}</AppText>
-            </View>
+            <AppText variant="h2" style={{ fontWeight: '700' }}>{group.name}</AppText>
           </Pressable>
         ))}
         <AppButton
