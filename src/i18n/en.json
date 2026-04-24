@@ -292,6 +292,18 @@
         "gas": "gas"
       }
     },
+    "measures": {
+      "name": "Measures",
+      "unitPrompt": "Which unit?",
+      "convertPrompt": "Convert to the right units",
+      "comparePrompt": "Which is bigger?",
+      "rules": "Three modes for learning units:\n\n🏷 Which unit — pick the right unit for the object (cm/m/kg/l...)\n🔁 Convert — convert value between units (1 m = 100 cm)\n⚖ Compare — which is bigger: 3 m or 250 cm?\n\nUnits available by grade:\n• Grade 1 — cm, m, kg\n• Grade 2 — + dm, g, l\n• Grade 3 — + mm, km, ml\n• Grade 4 — + t, all units",
+      "mode": {
+        "unit": "Which unit",
+        "convert": "Convert",
+        "compare": "Compare"
+      }
+    },
     "sudoku": {
       "name": "Sudoku",
       "check": "Check",
@@ -383,6 +395,7 @@
       "clockTime": "Read the clock",
       "moneyBasics": "Count money and change",
       "sudoku": "Classic 9×9 sudoku",
+      "measures": "Units of measurement",
       "breathing": "Breathe with the balloon",
     }
   },
