@@ -23,6 +23,7 @@ import reverseSequence from './reverse-sequence';
 import sortingGame from './sorting-game';
 import numberPatterns from './number-patterns';
 import lifeScenarios from './life-scenarios';
+import timesTables from './times-tables';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -76,3 +77,4 @@ registerGame(reverseSequence);
 registerGame(sortingGame);
 registerGame(numberPatterns);
 registerGame(lifeScenarios);
+registerGame(timesTables);

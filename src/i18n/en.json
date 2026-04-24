@@ -292,6 +292,10 @@
         "gas": "gas"
       }
     },
+    "timesTables": {
+      "name": "Times tables",
+      "rules": "A **×** or **÷** problem will appear.\n\nPick the correct answer from four options.\n\nStuck? Tap 💡 for the multiplication row of the relevant number.\n\n🟢 Easy: multiplication only\n🟡 Medium: multiplication and division\n🔴 Hard: + timer (grades 3-4)\n\nTable range depends on grade:\n• Grade 2 — ×2, ×3, ×5, ×10\n• Grade 3 — full table 2-9\n• Grade 4 — extended up to ×12"
+    },
     "lifeScenarios": {
       "name": "What would you do?",
       "phaseFeel": "How do you feel?",
@@ -335,6 +339,7 @@
       "colors": "Pick the named color",
       "waterStates": "Solid, liquid or gas?",
       "lifeScenarios": "How would you act in different situations",
+      "timesTables": "Multiplication and division with hint",
       "breathing": "Breathe with the balloon",
     }
   },
