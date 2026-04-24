@@ -28,6 +28,7 @@ import columnArithmetic from './column-arithmetic';
 import fractionsCompare from './fractions-compare';
 import clockTime from './clock-time';
 import moneyBasics from './money-basics';
+import sudoku from './sudoku';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -86,3 +87,4 @@ registerGame(columnArithmetic);
 registerGame(fractionsCompare);
 registerGame(clockTime);
 registerGame(moneyBasics);
+registerGame(sudoku);

@@ -292,6 +292,13 @@
         "gas": "gas"
       }
     },
+    "sudoku": {
+      "name": "Sudoku",
+      "check": "Check",
+      "erase": "Erase",
+      "giveUp": "Give up",
+      "rules": "Classic 9×9 sudoku.\n\nEvery row, column, and 3×3 box must contain digits 1-9 without repeats.\n\nTap an empty cell, then tap a digit below.\n\n🟢 Easy — many clues, comfortable for grades 1-2\n🟡 Medium — fewer clues\n🔴 Hard — few clues, challenge for grades 3-4\n\nTap «Check» to highlight errors in red. «Give up» ends early."
+    },
     "moneyBasics": {
       "name": "Money",
       "rules": "Three modes: count, pay exact, give change.\n\n🪙 Count — how much money is on the table\n💳 Pay exact — pick coins to make the required sum\n💵 Change — how much change you get back\n\nRange by grade:\n• Grade 1 — up to 50 UAH\n• Grade 2 — up to 100 UAH\n• Grade 3 — up to 1000 UAH (with kopecks)\n• Grade 4 — up to 10000 UAH (with kopecks)",
@@ -375,6 +382,7 @@
       "fractionsCompare": "Which fraction is bigger",
       "clockTime": "Read the clock",
       "moneyBasics": "Count money and change",
+      "sudoku": "Classic 9×9 sudoku",
       "breathing": "Breathe with the balloon",
     }
   },
