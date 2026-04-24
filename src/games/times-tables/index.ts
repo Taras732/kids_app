@@ -21,10 +21,11 @@ function paramsFor(difficulty: number, ageGroupId: AgeGroupId | undefined): Leve
   const group = ageGroupId ?? 'grade2';
 
   if (group === 'grade2') {
-    if (difficulty <= 1) return { tables: [2, 3], maxMultiplicand: 9, allowDivision: false };
+    if (difficulty <= 1)
+      return { tables: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], maxMultiplicand: 10, allowDivision: false };
     if (difficulty === 2)
-      return { tables: [2, 3, 5, 10], maxMultiplicand: 9, allowDivision: false };
-    return { tables: [2, 3, 5, 10], maxMultiplicand: 9, allowDivision: true };
+      return { tables: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], maxMultiplicand: 10, allowDivision: true };
+    return { tables: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], maxMultiplicand: 10, allowDivision: true };
   }
 
   if (group === 'grade3') {
@@ -97,7 +98,8 @@ function generateMultiplication(cfg: LevelConfig): Generated {
 }
 
 function generateDivision(cfg: LevelConfig): Generated {
-  const divisor = pick(cfg.tables);
+  const validDivisors = cfg.tables.filter((t) => t !== 0);
+  const divisor = pick(validDivisors.length > 0 ? validDivisors : [2]);
   const quotient = randInt(1, cfg.maxMultiplicand);
   const dividend = divisor * quotient;
   return {

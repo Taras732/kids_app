@@ -292,9 +292,13 @@
         "gas": "gas"
       }
     },
+    "columnArithmetic": {
+      "name": "Column arithmetic",
+      "rules": "Column addition and subtraction.\n\nNumbers are stacked vertically. Tap the answer digits **right to left** — ones first, then tens, then hundreds.\n\nFor addition, a small «1» appears above the next column — that's the carry.\n\nTap OK when all digits are entered.\n\nRange by grade:\n• Grade 1 — up to 50\n• Grade 2 — up to 100\n• Grade 3 — up to 1000 (3 digits)\n• Grade 4 — up to 10000 (4 digits)"
+    },
     "timesTables": {
       "name": "Times tables",
-      "rules": "A **×** or **÷** problem will appear.\n\nPick the correct answer from four options.\n\nStuck? Tap 💡 for the multiplication row of the relevant number.\n\n🟢 Easy: multiplication only\n🟡 Medium: multiplication and division\n🔴 Hard: + timer (grades 3-4)\n\nTable range depends on grade:\n• Grade 2 — ×2, ×3, ×5, ×10\n• Grade 3 — full table 2-9\n• Grade 4 — extended up to ×12"
+      "rules": "A **×** or **÷** problem will appear.\n\nPick the correct answer from four options.\n\nStuck? Tap 💡 for the multiplication row of the relevant number.\n\n🟢 Easy: multiplication only\n🟡 Medium: multiplication and division\n🔴 Hard: + timer (grades 3-4)\n\nTable range depends on grade:\n• Grade 2 — full table 0-10\n• Grade 3 — full table 2-9\n• Grade 4 — extended up to ×12"
     },
     "lifeScenarios": {
       "name": "What would you do?",
@@ -340,6 +344,7 @@
       "waterStates": "Solid, liquid or gas?",
       "lifeScenarios": "How would you act in different situations",
       "timesTables": "Multiplication and division with hint",
+      "columnArithmetic": "Column addition and subtraction",
       "breathing": "Breathe with the balloon",
     }
   },
