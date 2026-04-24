@@ -20,6 +20,7 @@ export const ISLANDS: Island[] = [
   { id: 'science', name: 'Наука', icon: '🔬', color: colors.islandScience, category: 'mental', description: 'Природа, фізика' },
   { id: 'emotions', name: 'Емоції', icon: '💚', color: colors.islandEmotions, category: 'mental', description: 'Почуття, дихання' },
   { id: 'creativity', name: 'Творчість', icon: '🎨', color: colors.islandCreativity, category: 'mental', description: 'Малювання, пазли' },
+  { id: 'geography', name: 'Географія', icon: '🌍', color: colors.islandGeography, category: 'intellect', description: 'Україна, континенти, океани' },
 ];
 
 export const getIslandById = (id: string): Island | undefined =>

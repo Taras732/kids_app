@@ -32,6 +32,9 @@ import sudoku from './sudoku';
 import measures from './measures';
 import magicSquare from './magic-square';
 import timesFlashcards from './times-flashcards';
+import uaSymbols from './ua-symbols';
+import worldFlags from './world-flags';
+import continentsOceans from './continents-oceans';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -94,3 +97,6 @@ registerGame(sudoku);
 registerGame(measures);
 registerGame(magicSquare);
 registerGame(timesFlashcards);
+registerGame(uaSymbols);
+registerGame(worldFlags);
+registerGame(continentsOceans);

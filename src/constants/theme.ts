@@ -26,6 +26,7 @@ export const colors = {
   islandScience: '#43AA8B',
   islandEmotions: '#FF6F91',
   islandCreativity: '#4CC9F0',
+  islandGeography: '#3B82F6',
   mascotKokoBg: '#FFF4C2',
   mascotKokoAccent: '#F4A300',
   mascotBambiBg: '#D6F5D6',
