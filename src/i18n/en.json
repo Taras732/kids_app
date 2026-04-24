@@ -292,6 +292,10 @@
         "gas": "gas"
       }
     },
+    "clockTime": {
+      "name": "What time is it?",
+      "rules": "A clock with hands or a digital time appears.\n\nIf an analog clock is shown — pick the matching digital time from 4 options.\nIf a digital time is shown — find the matching clock face among 4 options.\n\nBoth directions are mixed randomly.\n\nBy grade:\n• Preschool — hours only (7:00) and half (7:30)\n• Grade 1 — + quarters (7:15, 7:45)\n• Grade 2 — 5-minute steps\n• Grade 3 — any minute + 24-hour format\n• Grade 4 — full range + timer"
+    },
     "fractionsCompare": {
       "name": "Fractions: which is bigger?",
       "rules": "Two fractions on screen as colored pie charts and numbers.\n\nPick the sign between them: > (greater), < (less) or = (equal).\n\n🟢 Easy: unit fractions (1/2, 1/3, 1/4) with visuals\n🟡 Medium: proper fractions m/n with visuals\n🔴 Hard: without visuals + timer (grade 4 includes improper fractions like 5/3)\n\nAvailable from grade 2."
@@ -350,6 +354,7 @@
       "timesTables": "Multiplication and division with hint",
       "columnArithmetic": "Column addition and subtraction",
       "fractionsCompare": "Which fraction is bigger",
+      "clockTime": "Read the clock",
       "breathing": "Breathe with the balloon",
     }
   },
