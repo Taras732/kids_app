@@ -292,6 +292,14 @@
         "gas": "gas"
       }
     },
+    "magicSquare": {
+      "name": "Magic square",
+      "check": "Check",
+      "erase": "Erase",
+      "giveUp": "Give up",
+      "rulesHint": "Row/column/diagonal sum = {{sum}}",
+      "rules": "3×3 grid with digits 1-9.\n\nEach digit appears exactly ONCE.\nRow/column/diagonal sums = 15.\n\nFill the empty cells.\n\n🟢 Easy: 2-4 empty\n🟡 Medium: 4-6 empty\n🔴 Hard: 6-8 empty\n\n3 puzzles per level."
+    },
     "measures": {
       "name": "Measures",
       "unitPrompt": "Which unit?",
@@ -396,6 +404,7 @@
       "moneyBasics": "Count money and change",
       "sudoku": "Classic 9×9 sudoku",
       "measures": "Units of measurement",
+      "magicSquare": "3×3 magic square",
       "breathing": "Breathe with the balloon",
     }
   },

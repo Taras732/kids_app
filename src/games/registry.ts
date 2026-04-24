@@ -30,6 +30,7 @@ import clockTime from './clock-time';
 import moneyBasics from './money-basics';
 import sudoku from './sudoku';
 import measures from './measures';
+import magicSquare from './magic-square';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -90,3 +91,4 @@ registerGame(clockTime);
 registerGame(moneyBasics);
 registerGame(sudoku);
 registerGame(measures);
+registerGame(magicSquare);
