@@ -3,7 +3,6 @@ import { View, ScrollView, StyleSheet, Pressable, BackHandler } from 'react-nati
 import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/src/components/AppText';
-import { AppButton } from '@/src/components/AppButton';
 import { useChildProfilesStore } from '@/src/stores/childProfilesStore';
 import { getAgeGroupById } from '@/src/constants/ageGroups';
 import { colors, spacing, radius, shadows } from '@/src/constants/theme';
@@ -35,65 +34,48 @@ export default function ProfilePickerScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={{ flex: 1, paddingTop: topPad }}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.headerRow}>
-          <View style={{ flex: 1 }}>
-            <AppText variant="h1" style={styles.title}>
-              {t('picker.title')}
-            </AppText>
-          </View>
-          <Pressable
-            style={styles.gear}
-            onPress={() => router.push('/(parent)/pin-gate')}
-            accessibilityRole="button"
-            accessibilityLabel={t('picker.settings')}
-          >
-            <AppText style={{ fontSize: 22 }}>⚙️</AppText>
-          </Pressable>
-        </View>
+        <ScrollView contentContainerStyle={styles.content}>
+          <AppText variant="h1" style={styles.title}>
+            {t('picker.title')}
+          </AppText>
 
-        <View style={styles.grid}>
-          {profiles.map((p) => {
-            const group = getAgeGroupById(p.ageGroupId);
-            const isActive = p.id === activeProfileId;
-            return (
-              <Pressable
-                key={p.id}
-                style={[styles.card, isActive && styles.cardActive]}
-                onPress={() => choose(p.id)}
-                accessibilityRole="button"
-                accessibilityLabel={`${p.name}, ${group?.name ?? ''}`}
-              >
-                <View style={styles.avatarCircle}>
-                  <AppText style={styles.avatar}>{p.avatarId || '🐱'}</AppText>
-                </View>
-                <AppText variant="h2" style={styles.name} numberOfLines={1}>
-                  {p.name}
-                </AppText>
-                {group ? (
-                  <AppText variant="caption" color={colors.textMuted} numberOfLines={1}>
-                    {group.name}
+          <View style={styles.grid}>
+            {profiles.map((p) => {
+              const group = getAgeGroupById(p.ageGroupId);
+              const isActive = p.id === activeProfileId;
+              return (
+                <Pressable
+                  key={p.id}
+                  style={[styles.card, isActive && styles.cardActive]}
+                  onPress={() => choose(p.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${p.name}, ${group?.name ?? ''}`}
+                >
+                  <View style={styles.avatarCircle}>
+                    <AppText style={styles.avatar}>{p.avatarId || '🐱'}</AppText>
+                  </View>
+                  <AppText variant="h2" style={styles.name} numberOfLines={1}>
+                    {p.name}
                   </AppText>
-                ) : null}
-                {isActive ? (
-                  <View style={styles.activeBadge}>
-                    <AppText variant="caption" color="#fff" style={{ fontWeight: '700' }}>
-                      {t('profiles.active')}
+                  {group ? (
+                    <AppText variant="caption" color={colors.textMuted} numberOfLines={1}>
+                      {group.name}
+                    </AppText>
+                  ) : null}
+                  <View style={[styles.playHint, isActive && styles.playHintActive]}>
+                    <AppText style={[styles.playHintText, isActive && styles.playHintTextActive]}>
+                      {t('picker.play')} ▶
                     </AppText>
                   </View>
-                ) : null}
-              </Pressable>
-            );
-          })}
-        </View>
+                </Pressable>
+              );
+            })}
+          </View>
 
-        <AppButton
-          title={t('picker.addChild')}
-          tone="outline"
-          size="lg"
-          onPress={addChild}
-        />
-      </ScrollView>
+          <Pressable style={styles.addLink} onPress={addChild} accessibilityRole="button">
+            <AppText style={styles.addLinkText}>+ {t('picker.addChild')}</AppText>
+          </Pressable>
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
@@ -106,21 +88,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     gap: spacing.lg,
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
   title: { fontWeight: '800' },
-  gear: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadows.card,
-  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -129,13 +97,13 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '47%',
-    aspectRatio: 0.9,
     borderRadius: radius.xl,
     backgroundColor: colors.surface,
     alignItems: 'center',
-    justifyContent: 'center',
     gap: spacing.xs,
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
     ...shadows.card,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -155,11 +123,32 @@ const styles = StyleSheet.create({
   },
   avatar: { fontSize: 48 },
   name: { fontWeight: '800', textAlign: 'center' },
-  activeBadge: {
-    marginTop: spacing.xs,
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+  playHint: {
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
     borderRadius: radius.full,
+    backgroundColor: colors.surfaceSoft,
+  },
+  playHintActive: {
+    backgroundColor: colors.primary,
+  },
+  playHintText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textMuted,
+  },
+  playHintTextActive: {
+    color: '#fff',
+  },
+  addLink: {
+    alignSelf: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  addLinkText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.primary,
   },
 });

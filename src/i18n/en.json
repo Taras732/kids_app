@@ -390,7 +390,8 @@
   },
   "picker": {
     "title": "Who's playing?",
-    "addChild": "+ Add child",
+    "addChild": "Add child",
+    "play": "Play",
     "settings": "Settings"
   },
   "profiles": {

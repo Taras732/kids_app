@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/src/components/AppText';
 import { ConfirmModal } from '@/src/components/ConfirmModal';
-import { colors, radius, spacing, shadows } from '@/src/constants/theme';
+import { colors, radius, spacing, shadows, fontFamily } from '@/src/constants/theme';
 import { t } from '@/src/i18n';
 import { signOut, deleteAccount } from '@/src/hooks/useAuthActions';
 import { useChildProfilesStore } from '@/src/stores/childProfilesStore';
@@ -86,12 +86,19 @@ export default function ParentDashboardScreen() {
     <SafeAreaView style={styles.container}>
       <View style={[styles.header, { paddingTop: topPad }]}>
         {hasProfiles ? (
-          <Pressable onPress={exitParent} hitSlop={12} style={styles.backBtn}>
-            <AppText variant="h2" color={colors.primary}>‹</AppText>
+          <Pressable
+            onPress={exitParent}
+            hitSlop={12}
+            style={styles.backBtn}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+          >
+            <AppText style={styles.backArrow}>‹</AppText>
+            <AppText style={styles.backLabel}>{t('common.back')}</AppText>
           </Pressable>
-        ) : <View style={{ width: 32 }} />}
+        ) : <View style={{ width: 80 }} />}
         <AppText variant="title">{t('parent.dashboard')}</AppText>
-        <View style={{ width: 32 }} />
+        <View style={{ width: 80 }} />
       </View>
 
       <View style={styles.tabs}>
@@ -346,7 +353,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
   },
-  backBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
+    backgroundColor: colors.surface,
+    minWidth: 80,
+    ...shadows.card,
+  },
+  backArrow: {
+    fontSize: 24,
+    lineHeight: 28,
+    fontFamily: fontFamily.extraBold,
+    color: colors.primary,
+  },
+  backLabel: {
+    fontSize: 14,
+    fontFamily: fontFamily.bold,
+    color: colors.primary,
+  },
   tabs: {
     flexDirection: 'row',
     gap: spacing.xs,
