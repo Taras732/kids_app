@@ -31,6 +31,7 @@ import moneyBasics from './money-basics';
 import sudoku from './sudoku';
 import measures from './measures';
 import magicSquare from './magic-square';
+import timesFlashcards from './times-flashcards';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -92,3 +93,4 @@ registerGame(moneyBasics);
 registerGame(sudoku);
 registerGame(measures);
 registerGame(magicSquare);
+registerGame(timesFlashcards);

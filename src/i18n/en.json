@@ -292,6 +292,14 @@
         "gas": "gas"
       }
     },
+    "timesFlashcards": {
+      "name": "Times flashcards",
+      "show": "Show answer",
+      "selfRate": "Did you know it?",
+      "known": "Knew it",
+      "unknown": "Didn't know",
+      "rules": "Flashcard training for multiplication tables.\n\nCard shows a problem: 7 × 8 = ?\nThink it through, tap **Show answer**.\nThen honestly rate yourself: ✓ knew it or ✗ didn't.\n\n🟢 Easy: 5 cards, multiplication only\n🟡 Medium: 10 cards, + division\n🔴 Hard: 15 cards, + division\n\nFlashcards are a memory trainer. No wrong answers here — just honest \"knew it\" vs \"need more practice\"."
+    },
     "magicSquare": {
       "name": "Magic square",
       "check": "Check",
@@ -405,6 +413,7 @@
       "sudoku": "Classic 9×9 sudoku",
       "measures": "Units of measurement",
       "magicSquare": "3×3 magic square",
+      "timesFlashcards": "Multiplication flashcards",
       "breathing": "Breathe with the balloon",
     }
   },
