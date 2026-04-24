@@ -292,6 +292,25 @@
         "gas": "gas"
       }
     },
+    "moneyBasics": {
+      "name": "Money",
+      "rules": "Three modes: count, pay exact, give change.\n\n🪙 Count — how much money is on the table\n💳 Pay exact — pick coins to make the required sum\n💵 Change — how much change you get back\n\nRange by grade:\n• Grade 1 — up to 50 UAH\n• Grade 2 — up to 100 UAH\n• Grade 3 — up to 1000 UAH (with kopecks)\n• Grade 4 — up to 10000 UAH (with kopecks)",
+      "countPrompt": "How much money is here?",
+      "payPrompt": "Pay {{amount}}",
+      "changePrompt": "Give the correct change",
+      "changeAsk": "How much change?",
+      "price": "Price",
+      "paid": "Paid",
+      "total": "Total",
+      "trayEmpty": "Tap coins below",
+      "chooseDenominations": "Pick coins and bills:",
+      "clear": "Clear",
+      "mode": {
+        "count": "Count",
+        "pay": "Pay exact",
+        "change": "Give change"
+      }
+    },
     "clockTime": {
       "name": "What time is it?",
       "rules": "A clock with hands or a digital time appears.\n\nIf an analog clock is shown — pick the matching digital time from 4 options.\nIf a digital time is shown — find the matching clock face among 4 options.\n\nBoth directions are mixed randomly.\n\nBy grade:\n• Preschool — hours only (7:00) and half (7:30)\n• Grade 1 — + quarters (7:15, 7:45)\n• Grade 2 — 5-minute steps\n• Grade 3 — any minute + 24-hour format\n• Grade 4 — full range + timer"
@@ -355,6 +374,7 @@
       "columnArithmetic": "Column addition and subtraction",
       "fractionsCompare": "Which fraction is bigger",
       "clockTime": "Read the clock",
+      "moneyBasics": "Count money and change",
       "breathing": "Breathe with the balloon",
     }
   },

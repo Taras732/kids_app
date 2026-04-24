@@ -27,6 +27,7 @@ import timesTables from './times-tables';
 import columnArithmetic from './column-arithmetic';
 import fractionsCompare from './fractions-compare';
 import clockTime from './clock-time';
+import moneyBasics from './money-basics';
 
 const registry = new Map<string, GameDefinition<any, any>>();
 
@@ -84,3 +85,4 @@ registerGame(timesTables);
 registerGame(columnArithmetic);
 registerGame(fractionsCompare);
 registerGame(clockTime);
+registerGame(moneyBasics);
