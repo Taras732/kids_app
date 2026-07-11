@@ -15,7 +15,6 @@ interface EmojiItem {
 }
 
 const EMOJI_ITEMS: EmojiItem[] = [
-  { key: 'flag', emoji: '🇺🇦', name: 'Прапор України', tier: 1 },
   { key: 'sunflower', emoji: '🌻', name: 'Соняшник', tier: 1 },
   { key: 'pysanka', emoji: '🥚', name: 'Писанка', tier: 1 },
   { key: 'vyshyvanka', emoji: '👕', name: 'Вишиванка', tier: 1 },
@@ -145,7 +144,7 @@ const uaSymbols: GameDefinition<Payload, string> = {
   title: 'Символи України',
   subject: 'world',
   levels: ['L0', 'L3'],
-  icon: '🇺🇦',
+  icon: '🌻',
   description: 'Символи України.',
   accent: '#FEF9C3',
   generate,

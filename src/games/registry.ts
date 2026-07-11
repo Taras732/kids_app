@@ -90,7 +90,7 @@ export function gamesForLevel(level: ProfileLevel): GameDefinition[] {
 export const SUBJECT_META: Record<Subject, { title: string; emoji: string }> = {
   math: { title: 'Математика', emoji: '🔢' },
   language: { title: 'Мова', emoji: '📖' },
-  english: { title: 'Англійська', emoji: '🇬🇧' },
+  english: { title: 'Англійська', emoji: '📗' },
   science: { title: 'Наука', emoji: '🔬' },
   logic: { title: 'Логіка', emoji: '🧩' },
   memory: { title: "Пам'ять", emoji: '🧠' },

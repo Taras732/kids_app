@@ -1,31 +1,32 @@
 import type { GameDefinition, GameComponentProps, Difficulty, LevelData, Round, ProfileLevel } from '../types';
 import { PromptCard, ChoiceGrid, shuffle } from '../shared/ui';
+import { Flag } from './flags';
 
 interface Payload {
-  flag: string;
+  code: string;
   options: string[];
 }
 
 interface Country {
-  flag: string;
+  code: string;
   name: string;
   /** 1 = найвідоміші, 3 = менш відомі. */
   tier: 1 | 2 | 3;
 }
 
 const COUNTRIES: Country[] = [
-  { flag: '🇺🇦', name: 'Україна', tier: 1 },
-  { flag: '🇵🇱', name: 'Польща', tier: 1 },
-  { flag: '🇩🇪', name: 'Німеччина', tier: 1 },
-  { flag: '🇫🇷', name: 'Франція', tier: 1 },
-  { flag: '🇮🇹', name: 'Італія', tier: 1 },
-  { flag: '🇬🇧', name: 'Британія', tier: 1 },
-  { flag: '🇪🇸', name: 'Іспанія', tier: 2 },
-  { flag: '🇺🇸', name: 'США', tier: 2 },
-  { flag: '🇯🇵', name: 'Японія', tier: 2 },
-  { flag: '🇨🇦', name: 'Канада', tier: 3 },
-  { flag: '🇧🇷', name: 'Бразилія', tier: 3 },
-  { flag: '🇸🇪', name: 'Швеція', tier: 3 },
+  { code: 'UA', name: 'Україна', tier: 1 },
+  { code: 'PL', name: 'Польща', tier: 1 },
+  { code: 'DE', name: 'Німеччина', tier: 1 },
+  { code: 'FR', name: 'Франція', tier: 1 },
+  { code: 'IT', name: 'Італія', tier: 1 },
+  { code: 'GB', name: 'Британія', tier: 1 },
+  { code: 'ES', name: 'Іспанія', tier: 2 },
+  { code: 'US', name: 'США', tier: 2 },
+  { code: 'JP', name: 'Японія', tier: 2 },
+  { code: 'CA', name: 'Канада', tier: 3 },
+  { code: 'BR', name: 'Бразилія', tier: 3 },
+  { code: 'SE', name: 'Швеція', tier: 3 },
 ];
 
 function configFor(difficulty: Difficulty, level: ProfileLevel): { maxTier: 1 | 2 | 3; optionsCount: number } {
@@ -43,18 +44,20 @@ function generate(difficulty: Difficulty, level: ProfileLevel): LevelData<Payloa
       .slice(0, optionsCount - 1)
       .map((c) => c.name);
     const options = shuffle([target.name, ...distractors]);
-    return { id: `r${i}`, payload: { flag: target.flag, options }, answer: target.name };
+    return { id: `r${i}`, payload: { code: target.code, options }, answer: target.name };
   });
   return { difficulty, rounds };
 }
 
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, string>) {
-  const { flag, options } = round.payload;
+  const { code, options } = round.payload;
   const choices = options.map((name) => ({ value: name }));
   return (
     <>
       <PromptCard question="Прапор якої країни?" answerState={answerState}>
-        <div style={{ fontSize: 96, textAlign: 'center', margin: '8px auto', lineHeight: 1 }}>{flag}</div>
+        <div style={{ width: 168, height: 112, margin: '8px auto', filter: 'drop-shadow(0 4px 10px rgba(31,33,56,.12))' }}>
+          <Flag code={code} />
+        </div>
       </PromptCard>
       <ChoiceGrid
         options={choices}

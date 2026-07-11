@@ -23,7 +23,7 @@ const FACTS: Fact[] = [
   { question: 'На якому материку живуть кенгуру?', emoji: '🦘', answer: 'Австралія', pool: CONTINENTS, tier: 1 },
   { question: 'На якому материку пустеля Сахара?', emoji: '🏜️', answer: 'Африка', pool: CONTINENTS, tier: 1 },
   { question: 'На якому материку живуть пінгвіни?', emoji: '🐧', answer: 'Антарктида', pool: CONTINENTS, tier: 1 },
-  { question: 'На якому материку розташована Україна?', emoji: '🇺🇦', answer: 'Євразія', pool: CONTINENTS, tier: 1 },
+  { question: 'На якому материку розташована Україна?', emoji: '🗺️', answer: 'Євразія', pool: CONTINENTS, tier: 1 },
   {
     question: 'На якому материку розташовані США і Канада?',
     emoji: '🗽',
