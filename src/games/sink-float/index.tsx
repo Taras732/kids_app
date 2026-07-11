@@ -1,0 +1,83 @@
+import type { GameDefinition, GameComponentProps, Difficulty, LevelData, Round } from '../types';
+import { PromptCard, ChoiceGrid, shuffle } from '../shared/ui';
+
+type Behavior = 'sink' | 'float';
+
+interface Payload {
+  emoji: string;
+  behavior: Behavior;
+}
+
+const BEHAVIOR_LABEL: Record<Behavior, string> = {
+  sink: 'Тоне',
+  float: 'Плаває',
+};
+
+interface ItemEntry {
+  emoji: string;
+  behavior: Behavior;
+  basic: boolean;
+}
+
+const ITEMS: ItemEntry[] = [
+  { emoji: '🪨', behavior: 'sink', basic: true },
+  { emoji: '⚓', behavior: 'sink', basic: true },
+  { emoji: '🔑', behavior: 'sink', basic: false },
+  { emoji: '🍃', behavior: 'float', basic: true },
+  { emoji: '🦆', behavior: 'float', basic: true },
+  { emoji: '🍎', behavior: 'float', basic: false },
+  { emoji: '🪵', behavior: 'float', basic: false },
+  { emoji: '🧽', behavior: 'float', basic: false },
+];
+
+function poolFor(difficulty: Difficulty): ItemEntry[] {
+  return difficulty === 1 ? ITEMS.filter((i) => i.basic) : ITEMS;
+}
+
+function generate(difficulty: Difficulty): LevelData<Payload, string> {
+  const pool = shuffle(poolFor(difficulty));
+  const rounds: Round<Payload, string>[] = [];
+  for (let i = 0; i < 5; i++) {
+    const item = pool[i % pool.length];
+    rounds.push({
+      id: `r${i}`,
+      payload: { emoji: item.emoji, behavior: item.behavior },
+      answer: BEHAVIOR_LABEL[item.behavior],
+    });
+  }
+  return { difficulty, rounds };
+}
+
+function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, string>) {
+  const { emoji, behavior } = round.payload;
+  const options = shuffle((['sink', 'float'] as Behavior[]).map((b) => ({ value: BEHAVIOR_LABEL[b] })));
+  return (
+    <>
+      <PromptCard question="Тоне чи плаває?" answerState={answerState}>
+        <div style={{ fontSize: 96, textAlign: 'center', margin: '8px auto' }}>{emoji}</div>
+      </PromptCard>
+      <ChoiceGrid
+        options={options}
+        correct={BEHAVIOR_LABEL[behavior]}
+        disabled={disabled}
+        answerState={answerState}
+        onPick={onAnswer}
+        columns={2}
+      />
+    </>
+  );
+}
+
+const sinkFloat: GameDefinition<Payload, string> = {
+  id: 'sink-float',
+  title: 'Тоне чи плаває',
+  subject: 'science',
+  levels: ['L0'],
+  icon: '🛟',
+  description: 'Тоне чи плаває?',
+  accent: '#CFFAFE',
+  generate,
+  Component,
+};
+
+export default sinkFloat;

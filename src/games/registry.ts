@@ -1,7 +1,7 @@
 import type { GameDefinition, ProfileLevel, Subject } from './types';
 import type { ChildProfile } from '@/stores/useProfileStore';
 
-// --- Ігри (кожна нова гра = 1 import + 1 рядок у GAMES) ---
+// --- Математика ---
 import counting from './counting';
 import addition from './addition';
 import compare from './compare';
@@ -11,42 +11,64 @@ import mathCompare from './math-compare';
 import columnArithmetic from './column-arithmetic';
 import fractionsCompare from './fractions-compare';
 import clockTime from './clock-time';
-import memoryPairs from './memory-pairs';
-import whatsChanged from './whats-changed';
-import digitSpan from './digit-span';
+import moneyBasics from './money-basics';
+import recognizeDigit from './recognize-digit';
+import measures from './measures';
+// --- Мова ---
+import lettersFind from './letters-find';
+import syllableBuild from './syllable-build';
+// --- Англійська ---
+import lettersFindEn from './letters-find-en';
+import englishWordPicture from './english-word-picture';
+// --- Наука ---
+import colorsFind from './colors-find';
+import shapes from './shapes';
+import waterStates from './water-states';
+import sinkFloat from './sink-float';
+import animalsHabitat from './animals-habitat';
+import plantGrow from './plant-grow';
+// --- Логіка ---
 import logicSequences from './logic-sequences';
 import sortingGame from './sorting-game';
 import sudoku from './sudoku';
-import lettersFind from './letters-find';
-import syllableBuild from './syllable-build';
-import colorsFind from './colors-find';
-import shapes from './shapes';
+import magicSquare from './magic-square';
+// --- Пам'ять ---
+import memoryPairs from './memory-pairs';
+import whatsChanged from './whats-changed';
+import digitSpan from './digit-span';
+import reverseSequence from './reverse-sequence';
+import memoryAssociations from './memory-associations';
+// --- Світ ---
+import worldFlags from './world-flags';
+import continentsOceans from './continents-oceans';
+import uaSymbols from './ua-symbols';
+// --- Життя ---
+import emotionsRecognize from './emotions-recognize';
+import lifeScenarios from './life-scenarios';
+import breathing from './breathing';
+// --- Увага ---
+import tapTheDot from './tap-the-dot';
 
 export const GAMES: GameDefinition[] = [
   // Математика
-  counting,
-  addition,
-  compare,
-  mathExamples,
-  timesTables,
-  mathCompare,
-  columnArithmetic,
-  fractionsCompare,
-  clockTime,
-  // Пам'ять
-  memoryPairs,
-  whatsChanged,
-  digitSpan,
-  // Логіка
-  logicSequences,
-  sortingGame,
-  sudoku,
+  counting, addition, compare, mathExamples, timesTables, mathCompare,
+  columnArithmetic, fractionsCompare, clockTime, moneyBasics, recognizeDigit, measures,
   // Мова
-  lettersFind,
-  syllableBuild,
+  lettersFind, syllableBuild,
+  // Англійська
+  lettersFindEn, englishWordPicture,
   // Наука
-  colorsFind,
-  shapes,
+  colorsFind, shapes, waterStates, sinkFloat, animalsHabitat, plantGrow,
+  // Логіка
+  logicSequences, sortingGame, sudoku, magicSquare,
+  // Пам'ять
+  memoryPairs, whatsChanged, digitSpan, reverseSequence, memoryAssociations,
+  // Світ
+  worldFlags, continentsOceans, uaSymbols,
+  // Життя
+  emotionsRecognize, lifeScenarios, breathing,
+  // Увага
+  tapTheDot,
 ];
 
 const byId = new Map<string, GameDefinition>(GAMES.map((g) => [g.id, g]));
@@ -78,13 +100,5 @@ export const SUBJECT_META: Record<Subject, { title: string; emoji: string }> = {
 };
 
 export const SUBJECT_ORDER: Subject[] = [
-  'math',
-  'language',
-  'english',
-  'science',
-  'logic',
-  'memory',
-  'world',
-  'life',
-  'attention',
+  'math', 'language', 'english', 'science', 'logic', 'memory', 'world', 'life', 'attention',
 ];
