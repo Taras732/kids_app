@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 
 /** Предметна категорія гри (для групування в Hub). */
-export type Subject = 'math' | 'memory' | 'logic';
+export type Subject = 'math' | 'memory' | 'logic' | 'language';
 
 /**
  * Рівень профілю дитини:

@@ -6,16 +6,32 @@ import counting from './counting';
 import addition from './addition';
 import compare from './compare';
 import mathExamples from './math-examples';
+import timesTables from './times-tables';
+import mathCompare from './math-compare';
 import memoryPairs from './memory-pairs';
+import whatsChanged from './whats-changed';
+import digitSpan from './digit-span';
 import logicSequences from './logic-sequences';
+import sortingGame from './sorting-game';
+import lettersFind from './letters-find';
 
 export const GAMES: GameDefinition[] = [
+  // Математика
   counting,
   addition,
   compare,
   mathExamples,
+  timesTables,
+  mathCompare,
+  // Пам'ять
   memoryPairs,
+  whatsChanged,
+  digitSpan,
+  // Логіка
   logicSequences,
+  sortingGame,
+  // Мова
+  lettersFind,
 ];
 
 const byId = new Map<string, GameDefinition>(GAMES.map((g) => [g.id, g]));
@@ -38,6 +54,7 @@ export const SUBJECT_META: Record<Subject, { title: string; emoji: string }> = {
   math: { title: 'Математика', emoji: '🔢' },
   memory: { title: "Пам'ять", emoji: '🧠' },
   logic: { title: 'Логіка', emoji: '🧩' },
+  language: { title: 'Мова', emoji: '📖' },
 };
 
-export const SUBJECT_ORDER: Subject[] = ['math', 'memory', 'logic'];
+export const SUBJECT_ORDER: Subject[] = ['math', 'memory', 'logic', 'language'];
