@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Welcome from '@/pages/Welcome';
 import Auth from '@/pages/Auth';
 import Onboarding from '@/pages/Onboarding';
@@ -30,7 +30,10 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<PhoneFrame><Welcome /></PhoneFrame>} />
+        {/* TODO(auth): тимчасово / веде одразу на дашборд (вхід/реєстрація відкладені).
+            Повернути <Welcome /> на "/", коли візьмемось за auth. */}
+        <Route path="/" element={<Navigate to="/hub" replace />} />
+        <Route path="/welcome" element={<PhoneFrame><Welcome /></PhoneFrame>} />
         <Route path="/auth" element={<PhoneFrame><Auth /></PhoneFrame>} />
         <Route path="/role" element={<PhoneFrame><RoleSelect /></PhoneFrame>} />
         <Route path="/onboarding" element={<PhoneFrame><Onboarding /></PhoneFrame>} />

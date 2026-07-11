@@ -60,15 +60,20 @@ function Avatar({ id, size = 46 }: { id: string; size?: number }) {
 export default function Hub() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { activeProfile, progress, loadProfiles } = useProfileStore();
+  const { activeProfile, progress, loadProfiles, createProfile } = useProfileStore();
 
   useEffect(() => {
     if (!activeProfile) {
-      loadProfiles(user?.id).then(() => {
-        if (!useProfileStore.getState().activeProfile) navigate('/onboarding');
+      loadProfiles(user?.id).then(async () => {
+        if (!useProfileStore.getState().activeProfile) {
+          // TODO(auth): тимчасовий байпас входу/онбордингу — авто-створення демо-профілю,
+          // щоб / одразу відкривав дашборд. Повернути онбординг, коли візьмемось за auth.
+          // '5-6' = рівень L0 → показує всі 6 ігор.
+          await createProfile('Демо', '5-6', 'rabbit', user?.id);
+        }
       });
     }
-  }, [activeProfile, user, loadProfiles, navigate]);
+  }, [activeProfile, user, loadProfiles, createProfile]);
 
   if (!activeProfile) {
     return (
