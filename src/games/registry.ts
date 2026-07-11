@@ -16,9 +16,11 @@ import whatsChanged from './whats-changed';
 import digitSpan from './digit-span';
 import logicSequences from './logic-sequences';
 import sortingGame from './sorting-game';
+import sudoku from './sudoku';
 import lettersFind from './letters-find';
 import syllableBuild from './syllable-build';
 import colorsFind from './colors-find';
+import shapes from './shapes';
 
 export const GAMES: GameDefinition[] = [
   // Математика
@@ -38,11 +40,13 @@ export const GAMES: GameDefinition[] = [
   // Логіка
   logicSequences,
   sortingGame,
+  sudoku,
   // Мова
   lettersFind,
   syllableBuild,
   // Наука
   colorsFind,
+  shapes,
 ];
 
 const byId = new Map<string, GameDefinition>(GAMES.map((g) => [g.id, g]));
