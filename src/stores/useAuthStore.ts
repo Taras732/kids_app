@@ -88,21 +88,29 @@ export const useAuthStore = create<AuthState>((set) => ({
   clearError: () => set({ error: null }),
 
   initialize: () => {
-    // 1. Get current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      set({ 
-        session, 
-        user: session?.user ?? null, 
-        loading: false 
-      });
+    // 1. Get current session; якщо нема — анонімний вхід (тимчасово).
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        set({ session, user: session.user, loading: false });
+        return;
+      }
+      // TODO(auth): поки вхід/реєстрація відкладені — анонімний вхід Supabase,
+      // щоб дані писались у реальну БД без екрана входу. Якщо anonymous sign-ins
+      // вимкнено у проєкті — тихо лишаємось у guest-режимі (localStorage).
+      const { error } = await supabase.auth.signInAnonymously();
+      if (error) {
+        console.warn('[auth] анонімний вхід недоступний, guest-режим:', error.message);
+        set({ session: null, user: null, loading: false });
+      }
+      // успіх → onAuthStateChange нижче виставить user/session і loading:false
     });
 
     // 2. Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      set({ 
-        session, 
-        user: session?.user ?? null, 
-        loading: false 
+      set({
+        session,
+        user: session?.user ?? null,
+        loading: false
       });
     });
 

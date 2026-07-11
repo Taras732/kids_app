@@ -59,10 +59,13 @@ function Avatar({ id, size = 46 }: { id: string; size?: number }) {
 
 export default function Hub() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, loading: authLoading } = useAuthStore();
   const { activeProfile, progress, loadProfiles, createProfile } = useProfileStore();
 
   useEffect(() => {
+    // Чекаємо, поки auth-ініціалізація (у т.ч. анонімний вхід) завершиться,
+    // щоб профіль створювався під правильним user (Supabase), а не в guest.
+    if (authLoading) return;
     if (!activeProfile) {
       loadProfiles(user?.id).then(async () => {
         if (!useProfileStore.getState().activeProfile) {
@@ -73,7 +76,7 @@ export default function Hub() {
         }
       });
     }
-  }, [activeProfile, user, loadProfiles, createProfile]);
+  }, [authLoading, activeProfile, user, loadProfiles, createProfile]);
 
   if (!activeProfile) {
     return (
