@@ -88,31 +88,33 @@ export const useAuthStore = create<AuthState>((set) => ({
   clearError: () => set({ error: null }),
 
   initialize: () => {
-    // 1. Get current session; якщо нема — анонімний вхід (тимчасово).
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // 1. Підписка на зміни: оновлюємо user/session, але НЕ чіпаємо loading тут —
+    //    onAuthStateChange одразу віддає початкову подію (INITIAL_SESSION=null),
+    //    і якщо тут ставити loading:false, гейт спаде ДО завершення анонімного
+    //    входу → профіль створиться в guest замість Supabase.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      set({ session, user: session?.user ?? null });
+    });
+
+    // 2. Розв'язати початковий стан: наявна сесія АБО анонімний вхід.
+    //    loading:false лише коли це реально завершилось.
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         set({ session, user: session.user, loading: false });
         return;
       }
       // TODO(auth): поки вхід/реєстрація відкладені — анонімний вхід Supabase,
       // щоб дані писались у реальну БД без екрана входу. Якщо anonymous sign-ins
-      // вимкнено у проєкті — тихо лишаємось у guest-режимі (localStorage).
-      const { error } = await supabase.auth.signInAnonymously();
+      // вимкнено — тихо лишаємось у guest-режимі (localStorage).
+      const { data, error } = await supabase.auth.signInAnonymously();
       if (error) {
         console.warn('[auth] анонімний вхід недоступний, guest-режим:', error.message);
         set({ session: null, user: null, loading: false });
+      } else {
+        set({ session: data.session, user: data.user, loading: false });
       }
-      // успіх → onAuthStateChange нижче виставить user/session і loading:false
-    });
-
-    // 2. Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      set({
-        session,
-        user: session?.user ?? null,
-        loading: false
-      });
-    });
+    })();
 
     return () => {
       subscription.unsubscribe();
