@@ -2,6 +2,7 @@ import { useEffect, useMemo, useReducer, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
+import { recordActivity } from '@/utils/activity';
 import {
   type GameDefinition,
   type ProfileLevel,
@@ -147,6 +148,7 @@ export default function GameShell({ game, level, profileId, onExit }: GameShellP
     if (!state.finished) return;
     const newUnlocked = unlockedAfter(state.difficulty, state.stars, prevUnlocked);
     confetti({ particleCount: 140, spread: 80, origin: { y: 0.5 }, disableForReducedMotion: true });
+    recordActivity(profileId);
     updateProgress(
       profileId,
       game.id,

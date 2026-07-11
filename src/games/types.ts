@@ -1,7 +1,16 @@
 import type { ComponentType } from 'react';
 
 /** Предметна категорія гри (для групування в Hub). */
-export type Subject = 'math' | 'memory' | 'logic' | 'language';
+export type Subject =
+  | 'math'
+  | 'language'
+  | 'english'
+  | 'science'
+  | 'logic'
+  | 'memory'
+  | 'world'
+  | 'life'
+  | 'attention';
 
 /**
  * Рівень профілю дитини:
@@ -62,8 +71,10 @@ export interface GameDefinition<TPayload = any, TAnswer = any> {
   subject: Subject;
   /** Для яких рівнів профілю гра доступна. */
   levels: ProfileLevel[];
-  /** Emoji-іконка картки. */
+  /** Emoji-іконка картки (fallback, якщо нема image). */
   icon: string;
+  /** Ілюстрація картки (шлях у /public). Пріоритетніша за emoji. */
+  image?: string;
   /** Короткий опис під назвою в Hub. */
   description: string;
   /** Пастельний фон іконки в Hub (canon). */

@@ -383,20 +383,17 @@ body {
    Web shell — повноцінний веб-застосунок (діти за комп'ютером),
    адаптивний під мобілку. Замінює телефонну рамку для ігор.
    ============================================================ */
+/* Повноекранний веб-застосунок — без «рамки», на весь екран. */
 .web-shell {
-  width: 100%;
-  height: 100%;
+  position: fixed;
+  inset: 0;
   background: var(--c-bg);
   color: var(--c-ink);
   font-family: var(--font-round);
-  border-radius: 24px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--c-shadow);
-}
-@media (max-width: 640px) {
-  .web-shell { border-radius: 0; box-shadow: none; }
+  z-index: 1;
 }
 
 /* ---- Hub dashboard ---- */
@@ -437,35 +434,110 @@ body {
   font-family: var(--font-round);
 }
 
-.hub-main { flex: 1; overflow-y: auto; padding: 26px 30px; }
-.hub-wrap { max-width: 1000px; margin: 0 auto; width: 100%; }
+.hub-main { flex: 1; overflow-y: auto; padding: 28px 32px; }
+.hub-wrap { max-width: 1080px; margin: 0 auto; width: 100%; }
 .hub-top {
   display: flex; align-items: center; justify-content: space-between;
-  gap: 14px; margin-bottom: 8px; flex-wrap: wrap;
+  gap: 14px; margin-bottom: 22px; flex-wrap: wrap;
 }
-.hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.hub-top h1 { font-size: 26px; font-weight: 900; letter-spacing: -.5px; }
+.hub-top .sub { color: var(--c-mut); font-weight: 600; margin-top: 2px; }
 .hub-topright { display: flex; align-items: center; gap: 12px; }
+.pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--c-card); border: 1px solid var(--c-line);
+  padding: 9px 14px; border-radius: 999px; font-weight: 800; box-shadow: var(--c-shadow);
+  white-space: nowrap;
+}
+.pill.gold { color: #B07A00; } .pill.fire { color: #E8590C; }
+.hub-avatar {
+  width: 46px; height: 46px; border-radius: 50%; background: #FFF1D6;
+  border: 2px solid var(--c-line); overflow: hidden; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.hub-avatar img { width: 100%; height: 100%; object-fit: contain; }
+
+/* дві колонки: контент + права панель */
+.hub-cols { display: grid; grid-template-columns: 1fr 324px; gap: 22px; align-items: start; }
+
+/* HERO «продовжити навчання» */
+.hero {
+  background: linear-gradient(120deg, #6C5CE7 0%, #8B7BF0 60%, #A29BFE 100%);
+  border-radius: 24px; padding: 26px 28px; color: #fff;
+  display: flex; align-items: center; gap: 18px; position: relative; overflow: hidden;
+  box-shadow: 0 14px 30px rgba(108,92,231,.3); margin-bottom: 26px;
+}
+.hero .glow { position: absolute; right: -40px; top: -50px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.18), transparent 70%); }
+.hero .txt { flex: 1; z-index: 1; }
+.hero .tag { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; opacity: .85; }
+.hero h2 { font-size: 23px; font-weight: 900; margin: 6px 0 4px; }
+.hero p { opacity: .9; font-weight: 600; font-size: 14px; margin-bottom: 16px; }
+.hero .btn {
+  background: #fff; color: var(--c-primary); border: none; padding: 12px 22px;
+  border-radius: 14px; font-weight: 900; font-size: 15px; cursor: pointer;
+  box-shadow: 0 6px 0 rgba(0,0,0,.12); font-family: var(--font-round);
+}
+.hero .btn:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,.12); }
+.hero .heroimg { width: 132px; height: 132px; flex-shrink: 0; z-index: 1; filter: drop-shadow(0 12px 16px rgba(0,0,0,.25)); }
+.hero .heroimg img { width: 100%; height: 100%; object-fit: contain; }
+
+.section-h { display: flex; align-items: center; gap: 9px; margin: 24px 2px 14px; }
+.section-h .emo { font-size: 19px; }
+.section-h h3 { font-size: 18px; font-weight: 900; }
+
+.hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
 
 .subj-card {
-  background: var(--c-card);
-  border: 1px solid var(--c-line);
-  border-radius: var(--c-r);
-  padding: 16px;
-  display: flex; align-items: center; gap: 14px;
-  cursor: pointer;
-  box-shadow: var(--c-shadow);
-  transition: transform .12s;
+  background: var(--c-card); border: 1px solid var(--c-line); border-radius: 20px;
+  padding: 18px; cursor: pointer; box-shadow: var(--c-shadow); transition: transform .12s;
 }
 .subj-card:hover { transform: translateY(-3px); }
+.subj-card .row { display: flex; align-items: center; gap: 13px; }
+.subj-card .ico {
+  width: 54px; height: 54px; flex-shrink: 0; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden;
+}
+.subj-card .ico img { width: 100%; height: 100%; object-fit: cover; }
+.subj-card h4 { font-size: 15.5px; font-weight: 900; }
+.subj-card .desc { color: var(--c-mut); font-weight: 600; font-size: 12.5px; margin-top: 2px; line-height: 1.3; }
+.bar { height: 8px; background: #EEF0F7; border-radius: 99px; margin-top: 14px; overflow: hidden; }
+.bar > span { display: block; height: 100%; border-radius: 99px; }
+.prog { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: var(--c-mut); margin-top: 8px; }
+
+/* права колонка: панелі */
+.rcol { display: flex; flex-direction: column; gap: 18px; }
+.panel { background: var(--c-card); border: 1px solid var(--c-line); border-radius: 20px; padding: 20px; box-shadow: var(--c-shadow); }
+.panel h3 { font-size: 16px; font-weight: 900; margin-bottom: 14px; }
+.goal { display: flex; align-items: center; gap: 14px; }
+.ring { width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.ring b { background: var(--c-card); width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; }
+.goal .gt b { font-size: 15px; font-weight: 900; display: block; }
+.goal .gt p { color: var(--c-mut); font-weight: 600; font-size: 13px; margin-top: 2px; }
+.week { display: flex; gap: 6px; justify-content: space-between; }
+.week .day { flex: 1; text-align: center; }
+.week .day .d { width: 30px; height: 30px; border-radius: 9px; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; background: #EEF0F7; color: var(--c-mut); }
+.week .day.on .d { background: var(--c-green); color: #fff; }
+.week .day.today .d { outline: 2px solid var(--c-primary); outline-offset: 1px; }
+.week .day small { color: var(--c-mut); font-weight: 700; font-size: 11px; }
+
+/* нагороди */
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 12px; }
+.badge { aspect-ratio: 1; border-radius: 16px; background: #FFF7E6; border: 1px solid #FCEFC7; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 30px; }
+.badge small { font-size: 10px; font-weight: 800; color: var(--c-mut); }
+.badge.lock { background: #F3F4FA; border-color: var(--c-line); filter: grayscale(1); opacity: .55; }
 
 .hub-mobtop { display: none; }
 
+@media (max-width: 900px) {
+  .hub-cols { grid-template-columns: 1fr; }
+}
 @media (max-width: 820px) {
   .hub-side { display: none; }
   .hub-main { padding: 16px 14px; }
   .hub-mobtop { display: flex; }
   .hub-topright { display: none; }
-  .hub-top h1 { font-size: 22px !important; }
+  .hub-top h1 { font-size: 22px; }
+  .hero .heroimg { width: 96px; height: 96px; }
 }
 
 /* ---- центрована колонка гри (десктоп: фокус ~620px; мобілка: на всю ширину) ---- */

@@ -8,12 +8,17 @@ import compare from './compare';
 import mathExamples from './math-examples';
 import timesTables from './times-tables';
 import mathCompare from './math-compare';
+import columnArithmetic from './column-arithmetic';
+import fractionsCompare from './fractions-compare';
+import clockTime from './clock-time';
 import memoryPairs from './memory-pairs';
 import whatsChanged from './whats-changed';
 import digitSpan from './digit-span';
 import logicSequences from './logic-sequences';
 import sortingGame from './sorting-game';
 import lettersFind from './letters-find';
+import syllableBuild from './syllable-build';
+import colorsFind from './colors-find';
 
 export const GAMES: GameDefinition[] = [
   // Математика
@@ -23,6 +28,9 @@ export const GAMES: GameDefinition[] = [
   mathExamples,
   timesTables,
   mathCompare,
+  columnArithmetic,
+  fractionsCompare,
+  clockTime,
   // Пам'ять
   memoryPairs,
   whatsChanged,
@@ -32,6 +40,9 @@ export const GAMES: GameDefinition[] = [
   sortingGame,
   // Мова
   lettersFind,
+  syllableBuild,
+  // Наука
+  colorsFind,
 ];
 
 const byId = new Map<string, GameDefinition>(GAMES.map((g) => [g.id, g]));
@@ -52,9 +63,24 @@ export function gamesForLevel(level: ProfileLevel): GameDefinition[] {
 
 export const SUBJECT_META: Record<Subject, { title: string; emoji: string }> = {
   math: { title: 'Математика', emoji: '🔢' },
-  memory: { title: "Пам'ять", emoji: '🧠' },
-  logic: { title: 'Логіка', emoji: '🧩' },
   language: { title: 'Мова', emoji: '📖' },
+  english: { title: 'Англійська', emoji: '🇬🇧' },
+  science: { title: 'Наука', emoji: '🔬' },
+  logic: { title: 'Логіка', emoji: '🧩' },
+  memory: { title: "Пам'ять", emoji: '🧠' },
+  world: { title: 'Світ', emoji: '🌍' },
+  life: { title: 'Життя', emoji: '💛' },
+  attention: { title: 'Увага', emoji: '🎯' },
 };
 
-export const SUBJECT_ORDER: Subject[] = ['math', 'memory', 'logic', 'language'];
+export const SUBJECT_ORDER: Subject[] = [
+  'math',
+  'language',
+  'english',
+  'science',
+  'logic',
+  'memory',
+  'world',
+  'life',
+  'attention',
+];
