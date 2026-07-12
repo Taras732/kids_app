@@ -83,7 +83,14 @@ CREATE POLICY "own skill_mastery" ON public.skill_mastery FOR ALL
   USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = skill_mastery.profile_id AND p.parent_id = auth.uid()))
   WITH CHECK (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = skill_mastery.profile_id AND p.parent_id = auth.uid()));
 CREATE INDEX IF NOT EXISTS idx_skill_mastery_skill ON public.skill_mastery(skill_id);
--- reuse тригера з 0003 (public.set_current_timestamp_updated_at)
+-- тригер updated_at. Функцію визначаємо тут само (самодостатньо; на remote її могло не бути).
+CREATE OR REPLACE FUNCTION public.set_current_timestamp_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS trigger_set_skill_mastery_updated_at ON public.skill_mastery;
 CREATE TRIGGER trigger_set_skill_mastery_updated_at
   BEFORE UPDATE ON public.skill_mastery
