@@ -15,6 +15,7 @@ import moneyBasics from './money-basics';
 import recognizeDigit from './recognize-digit';
 import measures from './measures';
 import numberTiles from './number-tiles';
+import wordProblems from './word-problems';
 // --- Мова ---
 import lettersFind from './letters-find';
 import syllableBuild from './syllable-build';
@@ -53,7 +54,7 @@ import tapTheDot from './tap-the-dot';
 export const GAMES: GameDefinition[] = [
   // Математика
   counting, addition, compare, mathExamples, timesTables, mathCompare,
-  columnArithmetic, fractionsCompare, clockTime, moneyBasics, recognizeDigit, measures, numberTiles,
+  columnArithmetic, fractionsCompare, clockTime, moneyBasics, recognizeDigit, measures, numberTiles, wordProblems,
   // Мова
   lettersFind, syllableBuild,
   // Англійська
