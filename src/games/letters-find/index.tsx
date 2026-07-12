@@ -103,6 +103,7 @@ const lettersFind: GameDefinition<Payload, string> = {
   accent: '#EEEBFF',
   generate,
   Component,
+  // TODO(A2-мова): skills після seed skill-graph мови
 };
 
 export default lettersFind;

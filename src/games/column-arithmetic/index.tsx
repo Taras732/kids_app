@@ -145,6 +145,11 @@ const columnArithmetic: GameDefinition<Payload, number> = {
   icon: '🧮',
   description: 'Додавання та віднімання стовпчиком.',
   accent: '#E0F2FE',
+  skillIds: {
+    1: ['math.ops.l3.add-sub-1000'],
+    2: ['math.ops.l3.add-sub-1000'],
+    3: ['math.ops.l3.add-sub-1000'],
+  },
   generate,
   Component,
 };

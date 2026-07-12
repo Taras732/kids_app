@@ -150,6 +150,12 @@ const wordProblems: GameDefinition<WordProblemPayload, number> = {
   icon: '📚',
   description: "Прочитай історію і розв'яжи задачу.",
   accent: '#FFE1EC',
+  // skillIds по складності: легша → простіші текстові задачі (нижчий grade_band).
+  skillIds: {
+    1: ['math.ops.l1.word-problems-simple'],
+    2: ['math.ops.l2.word-problems-100'],
+    3: ['math.ops.l3.word-problems-1000'],
+  },
   generate,
   Component,
 };

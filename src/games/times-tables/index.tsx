@@ -51,6 +51,11 @@ const timesTables: GameDefinition<Payload, number> = {
   icon: '✖️',
   description: 'Таблиця множення на швидкість.',
   accent: '#FFEDD5',
+  skillIds: {
+    1: ['math.ops.l2.mult-table-2-5'],
+    2: ['math.ops.l2.mult-table-2-5', 'math.ops.l2.mult-table-6-9'],
+    3: ['math.ops.l2.mult-table-6-9'],
+  },
   generate,
   Component,
 };

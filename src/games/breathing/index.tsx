@@ -85,6 +85,7 @@ const breathing: GameDefinition<Payload, Answer> = {
   accent: '#CFFAFE',
   generate,
   Component,
+  // TODO(A2-життя): skills після seed skill-graph життя
 };
 
 export default breathing;

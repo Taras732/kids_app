@@ -114,6 +114,7 @@ const tapTheDot: GameDefinition<Payload, Answer> = {
   accent: '#FEE2E2',
   generate,
   Component,
+  // TODO(A2-увага): skills після seed skill-graph уваги
 };
 
 export default tapTheDot;

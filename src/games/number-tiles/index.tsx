@@ -178,6 +178,13 @@ const numberTiles: GameDefinition<Payload, Answer> = {
   icon: '🔟',
   description: 'Прибирай пари: однакові числа або сума 10.',
   accent: '#FFF4D6',
+  // Числа завжди 1-9, ціль завжди сума 10 (лише розмір поля/наявність пар
+  // "однакове число" зростає зі складністю) — тому skill той самий на всіх difficulty.
+  skillIds: {
+    1: ['math.count.l1.compose-10'],
+    2: ['math.count.l1.compose-10'],
+    3: ['math.count.l1.compose-10'],
+  },
   generate,
   Component,
 };

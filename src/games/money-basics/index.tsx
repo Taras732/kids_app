@@ -126,6 +126,11 @@ const moneyBasics: GameDefinition<Payload, number> = {
   icon: '🪙',
   description: 'Полічи гроші.',
   accent: '#FEF3C7',
+  skillIds: {
+    1: ['math.measure.l3.money'],
+    2: ['math.measure.l3.money'],
+    3: ['math.measure.l3.money'],
+  },
   generate,
   Component,
 };

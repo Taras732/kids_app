@@ -147,6 +147,7 @@ const digitSpan: GameDefinition<Payload, string> = {
   accent: '#EEEBFF',
   generate,
   Component,
+  // TODO(A2-память): skills після seed skill-graph пам'яті
 };
 
 export default digitSpan;

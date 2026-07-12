@@ -163,6 +163,7 @@ const logicSequences: GameDefinition<Payload, number> = {
   accent: '#DCFCE7',
   generate,
   Component,
+  // TODO(A2-логіка): skills після seed skill-graph логіки
 };
 
 export default logicSequences;

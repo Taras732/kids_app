@@ -79,6 +79,11 @@ export interface GameDefinition<TPayload = any, TAnswer = any> {
   description: string;
   /** Пастельний фон іконки в Hub (canon). */
   accent?: string;
+  /**
+   * Skill-graph ID (з `src/school/skills-*.ts`), які ця гра тренує на кожній
+   * складності (BRIEF SHK-A3). Порожньо/відсутнє для предметів без seed skill-graph.
+   */
+  skillIds?: Partial<Record<Difficulty, string[]>>;
   /** Згенерувати набір раундів для складності + рівня профілю. */
   generate: (difficulty: Difficulty, level: ProfileLevel) => LevelData<TPayload, TAnswer>;
   /** Перевірити відповідь. Якщо не задано — порівняння з round.answer. */

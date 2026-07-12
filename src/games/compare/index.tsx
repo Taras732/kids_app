@@ -83,6 +83,11 @@ const compare: GameDefinition<Payload, number> = {
   icon: '⚖️',
   description: 'Де більше предметів? Порівнюємо кількість.',
   accent: '#FFEDD5',
+  skillIds: {
+    1: ['math.count.l0.compare-qty'],
+    2: ['math.count.l1.compare-numbers-20'],
+    3: ['math.count.l1.compare-numbers-20'],
+  },
   generate,
   Component,
 };

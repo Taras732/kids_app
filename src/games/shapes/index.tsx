@@ -146,6 +146,7 @@ const shapes: GameDefinition<Payload, string> = {
   accent: '#FEF3C7',
   generate,
   Component,
+  // TODO(A2-наука): skills після seed skill-graph науки
 };
 
 export default shapes;

@@ -100,6 +100,14 @@ const recognizeDigit: GameDefinition<Payload, number> = {
   icon: '🔢',
   description: 'Яка це цифра?',
   accent: '#EEEBFF',
+  // Немає seed-skill "розпізнавання цифр 0-9" повністю — гра покриває 0-9,
+  // а digits-1-5 (L0) обмежено діапазоном 1-5; numeral-writing (L1) додається
+  // на важчих рівнях як найближчий проксі для повного діапазону.
+  skillIds: {
+    1: ['math.count.l0.digits-1-5'],
+    2: ['math.count.l0.digits-1-5', 'math.count.l1.numeral-writing'],
+    3: ['math.count.l1.numeral-writing'],
+  },
   generate,
   Component,
 };

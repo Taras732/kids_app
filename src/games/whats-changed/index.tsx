@@ -168,6 +168,7 @@ const whatsChanged: GameDefinition<Payload, string> = {
   accent: '#FCE7F3',
   generate,
   Component,
+  // TODO(A2-память): skills після seed skill-graph пам'яті
 };
 
 export default whatsChanged;

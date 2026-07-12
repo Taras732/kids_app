@@ -69,6 +69,11 @@ const counting: GameDefinition<Payload, number> = {
   icon: '🔢',
   description: 'Рахуємо предмети від 1 до 10.',
   accent: '#E0F2FE',
+  skillIds: {
+    1: ['math.count.l0.forward-1-5'],
+    2: ['math.count.l1.forward-back-1-10'],
+    3: ['math.count.l1.forward-back-1-10'],
+  },
   generate,
   Component,
 };

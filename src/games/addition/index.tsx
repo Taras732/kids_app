@@ -69,6 +69,11 @@ const addition: GameDefinition<Payload, number> = {
   icon: '➕',
   description: 'Скільки разом? Додаємо маленькі числа.',
   accent: '#DCFCE7',
+  skillIds: {
+    1: ['math.count.l1.compose-10'],
+    2: ['math.ops.l1.add-sub-objects-10'],
+    3: ['math.ops.l1.add-sub-objects-10'],
+  },
   generate,
   Component,
 };

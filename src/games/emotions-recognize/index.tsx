@@ -62,6 +62,7 @@ const emotionsRecognize: GameDefinition<Payload, string> = {
   accent: '#FCE7F3',
   generate,
   Component,
+  // TODO(A2-життя): skills після seed skill-graph життя
 };
 
 export default emotionsRecognize;

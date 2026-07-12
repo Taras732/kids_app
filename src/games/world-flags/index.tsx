@@ -80,6 +80,7 @@ const worldFlags: GameDefinition<Payload, string> = {
   accent: '#DBEAFE',
   generate,
   Component,
+  // TODO(A2-світ): skills після seed skill-graph світу
 };
 
 export default worldFlags;

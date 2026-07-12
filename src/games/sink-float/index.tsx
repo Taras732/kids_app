@@ -78,6 +78,7 @@ const sinkFloat: GameDefinition<Payload, string> = {
   accent: '#CFFAFE',
   generate,
   Component,
+  // TODO(A2-наука): skills після seed skill-graph науки
 };
 
 export default sinkFloat;

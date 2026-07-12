@@ -178,6 +178,7 @@ const colorsFind: GameDefinition<Payload, string> = {
   accent: '#FCE7F3',
   generate,
   Component,
+  // TODO(A2-наука): skills після seed skill-graph науки
 };
 
 export default colorsFind;

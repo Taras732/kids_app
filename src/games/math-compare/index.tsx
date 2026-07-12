@@ -98,6 +98,13 @@ const mathCompare: GameDefinition<Payload, Sign> = {
   icon: '⚖️',
   description: 'Постав знак: <, = чи >.',
   accent: '#E0F2FE',
+  // Гра спільна для L0 (межа завжди 10, без масштабування складністю) і L3
+  // (diff1 → до 100, diff2-3 → до 1000); skillIds відображає L3-масштаб.
+  skillIds: {
+    1: ['math.count.l2.compare-100'],
+    2: ['math.count.l3.compare-1000'],
+    3: ['math.count.l3.compare-1000'],
+  },
   generate,
   Component,
 };

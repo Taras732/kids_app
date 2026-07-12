@@ -184,6 +184,7 @@ const sortingGame: GameDefinition<Payload, SortAnswer> = {
   generate,
   isCorrect: () => true,
   Component,
+  // TODO(A2-логіка): skills після seed skill-graph логіки
 };
 
 export default sortingGame;

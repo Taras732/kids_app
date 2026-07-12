@@ -232,6 +232,7 @@ const sudoku: GameDefinition<Payload, Answer> = {
   accent: '#EDE9FE',
   generate,
   Component,
+  // TODO(A2-логіка): skills після seed skill-graph логіки
 };
 
 export default sudoku;

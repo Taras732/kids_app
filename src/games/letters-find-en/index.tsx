@@ -99,6 +99,7 @@ const lettersFindEn: GameDefinition<Payload, string> = {
   accent: '#DBEAFE',
   generate,
   Component,
+  // TODO(A2-англійська): skills після seed skill-graph англійської
 };
 
 export default lettersFindEn;

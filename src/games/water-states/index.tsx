@@ -81,6 +81,7 @@ const waterStates: GameDefinition<Payload, string> = {
   accent: '#DBEAFE',
   generate,
   Component,
+  // TODO(A2-наука): skills після seed skill-graph науки
 };
 
 export default waterStates;

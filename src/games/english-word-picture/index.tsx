@@ -67,6 +67,7 @@ const englishWordPicture: GameDefinition<Payload, string> = {
   accent: '#E0F2FE',
   generate,
   Component,
+  // TODO(A2-англійська): skills після seed skill-graph англійської
 };
 
 export default englishWordPicture;

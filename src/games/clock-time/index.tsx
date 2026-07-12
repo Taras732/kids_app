@@ -154,6 +154,13 @@ const clockTime: GameDefinition<Payload, string> = {
   icon: '🕐',
   description: 'Котра година?',
   accent: '#DBEAFE',
+  // Єдиний seed-skill для читання годинника — складність тут лише деталізує
+  // хвилини (рівно/пів/чверть), без окремого skill-id на кожен крок.
+  skillIds: {
+    1: ['math.measure.l2.time-units'],
+    2: ['math.measure.l2.time-units'],
+    3: ['math.measure.l2.time-units'],
+  },
   generate,
   Component,
 };

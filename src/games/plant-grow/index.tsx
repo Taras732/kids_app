@@ -149,6 +149,7 @@ const plantGrow: GameDefinition<Payload, SortAnswer> = {
   generate,
   isCorrect: () => true,
   Component,
+  // TODO(A2-наука): skills після seed skill-graph науки
 };
 
 export default plantGrow;

@@ -168,6 +168,13 @@ const measures: GameDefinition<Payload, string> = {
   icon: '📏',
   description: 'Виміри та величини.',
   accent: '#E0F2FE',
+  // Гра тренує довжину/масу/ОБ'ЄМ (ml/l), але в seed skill-graph нема жодного
+  // skill для об'єму — раунди category='volume' лишаються непокритими.
+  skillIds: {
+    1: ['math.measure.l2.length-units', 'math.measure.l2.mass-units'],
+    2: ['math.measure.l2.length-units', 'math.measure.l2.mass-units', 'math.measure.l3.named-numbers-convert'],
+    3: ['math.measure.l3.named-numbers-convert'],
+  },
   generate,
   Component,
 };

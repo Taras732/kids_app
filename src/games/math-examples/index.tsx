@@ -175,6 +175,13 @@ const mathExamples: GameDefinition<Payload, number> = {
   icon: '➕',
   description: "Розв'яжи приклад — введи відповідь.",
   accent: '#EEEBFF',
+  // Гра спільна для L0 (лише +, межа 10) і L3 (+,−,×,÷ залежно від складності, межа 100);
+  // skillIds не розрізняє рівень профілю, тож відображає складніший L3-контент.
+  skillIds: {
+    1: ['math.ops.l2.add-sub-no-carry-100', 'math.ops.l2.mult-table-2-5'],
+    2: ['math.ops.l2.add-sub-carry-100', 'math.ops.l2.mult-table-6-9', 'math.ops.l2.division-table'],
+    3: ['math.ops.l2.add-sub-carry-100', 'math.ops.l2.mult-table-2-5'],
+  },
   generate,
   Component,
 };

@@ -146,6 +146,11 @@ const fractionsCompare: GameDefinition<Payload, Sign> = {
   icon: '🍕',
   description: 'Порівняй дроби.',
   accent: '#F3E8FF',
+  skillIds: {
+    1: ['math.ops.l3.fractions-part-whole'],
+    2: ['math.ops.l4.fractions-operations'],
+    3: ['math.ops.l4.fractions-operations'],
+  },
   generate,
   Component,
 };

@@ -110,6 +110,7 @@ const continentsOceans: GameDefinition<Payload, string> = {
   accent: '#CFFAFE',
   generate,
   Component,
+  // TODO(A2-світ): skills після seed skill-graph світу
 };
 
 export default continentsOceans;

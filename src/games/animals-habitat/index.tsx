@@ -97,6 +97,7 @@ const animalsHabitat: GameDefinition<Payload, string> = {
   accent: '#DCFCE7',
   generate,
   Component,
+  // TODO(A2-наука): skills після seed skill-graph науки
 };
 
 export default animalsHabitat;

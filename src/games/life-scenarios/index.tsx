@@ -162,6 +162,7 @@ const lifeScenarios: GameDefinition<Payload, string> = {
   accent: '#FEF3C7',
   generate,
   Component,
+  // TODO(A2-життя): skills після seed skill-graph життя
 };
 
 export default lifeScenarios;

@@ -149,6 +149,7 @@ const uaSymbols: GameDefinition<Payload, string> = {
   accent: '#FEF9C3',
   generate,
   Component,
+  // TODO(A2-світ): skills після seed skill-graph світу
 };
 
 export default uaSymbols;
