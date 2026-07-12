@@ -75,6 +75,14 @@ export async function upsertMastery(
   return data as SkillMastery;
 }
 
+export async function upsertMasteryMany(
+  rows: Array<Partial<SkillMastery> & { profile_id: string; skill_id: string }>,
+): Promise<void> {
+  if (rows.length === 0) return;
+  const { error } = await supabase.from('skill_mastery').upsert(rows, { onConflict: 'profile_id,skill_id' });
+  if (error) throw error;
+}
+
 // ---------- Daily plans ----------
 
 export async function fetchDailyPlan(

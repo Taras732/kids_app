@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { recordActivity } from '@/utils/activity';
+import { recordGameResult } from '@/school/mastery';
 import {
   type GameDefinition,
   type ProfileLevel,
@@ -157,6 +158,22 @@ export default function GameShell({ game, level, profileId, onExit }: GameShellP
       { at: new Date().toISOString(), difficulty: state.difficulty, mistakes: state.mistakes },
       user?.id,
     );
+
+    // A4: mastery-движок. Пишемо attempt + перераховуємо frontier лише для
+    // ігор зі skillIds на цій складності і для синхронізованих профілів
+    // (гість не має рядка profiles у БД → attempt впав би на FK). Fire-and-forget:
+    // не блокує екран результату й не ламає гру, якщо офлайн.
+    const skillIds = game.skillIds?.[state.difficulty];
+    if (user?.id && skillIds && skillIds.length > 0) {
+      recordGameResult({
+        profileId,
+        skillIds,
+        gameId: game.id,
+        difficulty: state.difficulty,
+        correct: Math.max(0, total - state.mistakes),
+        total,
+      }).catch((e) => console.warn('[mastery] update skipped:', e));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.finished]);
 
