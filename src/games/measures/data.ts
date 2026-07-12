@@ -1,4 +1,4 @@
-export type MeasureCategory = 'length' | 'mass' | 'volume';
+export type MeasureCategory = 'length' | 'mass' | 'volume' | 'temp';
 
 export interface UnitInfo {
   key: string;
@@ -21,6 +21,8 @@ export const UNITS: UnitInfo[] = [
 
   { key: 'ml', label: 'мл', category: 'volume', inBase: 1 },
   { key: 'l', label: 'л', category: 'volume', inBase: 1000 },
+
+  { key: 'c', label: '°C', category: 'temp', inBase: 1 },
 ];
 
 export function unitByKey(key: string): UnitInfo {
@@ -76,4 +78,13 @@ export const OBJECTS: ObjectFact[] = [
   { emoji: '🫖', name: 'Чайник', category: 'volume', value: 2, unitKey: 'l' },
   { emoji: '🪣', name: 'Відро', category: 'volume', value: 10, unitKey: 'l' },
   { emoji: '🛁', name: 'Ванна', category: 'volume', value: 100, unitKey: 'l' },
+
+  // температура (без від'ємних значень — HardOnly)
+  { emoji: '🧊', name: 'Лід', category: 'temp', value: 0, unitKey: 'c' },
+  { emoji: '🌤️', name: 'Весняний день', category: 'temp', value: 15, unitKey: 'c' },
+  { emoji: '🏠', name: 'Кімната', category: 'temp', value: 21, unitKey: 'c' },
+  { emoji: '🧍', name: 'Тіло людини', category: 'temp', value: 37, unitKey: 'c' },
+  { emoji: '☀️', name: 'Літній день', category: 'temp', value: 28, unitKey: 'c' },
+  { emoji: '🍵', name: 'Гарячий чай', category: 'temp', value: 70, unitKey: 'c' },
+  { emoji: '💨', name: 'Кипіток', category: 'temp', value: 100, unitKey: 'c' },
 ];

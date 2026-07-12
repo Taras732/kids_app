@@ -1,42 +1,113 @@
 import type { GameDefinition, GameComponentProps, Difficulty, LevelData, Round } from '../types';
-import { PromptCard, ChoiceGrid, randInt, shuffle } from '../shared/ui';
+import { PromptCard, ChoiceGrid, randInt, shuffle, numberDecoys } from '../shared/ui';
 
-interface Payload {
+type Mode = 'read' | 'elapsed' | 'convert';
+type ConvertKind = 'h2m' | 'm2h';
+
+interface ReadPayload {
+  mode: 'read';
   h: number; // 1-12
   m: number; // 0-59
 }
+
+interface ElapsedPayload {
+  mode: 'elapsed';
+  h: number; // початкова година 1-12
+  m: number; // початкова хвилина 0-59
+  deltaMin: number;
+  resultH: number;
+  resultM: number;
+}
+
+interface ConvertPayload {
+  mode: 'convert';
+  kind: ConvertKind;
+  value: number;
+  result: number;
+}
+
+type Payload = ReadPayload | ElapsedPayload | ConvertPayload;
+
+const ROUNDS = 5;
 
 function pick<T>(arr: T[]): T {
   return arr[randInt(0, arr.length - 1)];
 }
 
-/** difficulty: круглі години → півгодини → чверті. */
+/** Easy: цілі години + півгодини. Medium: чверті/5-хвилинні поділки. Hard: будь-яка хвилина. */
 function minuteStepsFor(difficulty: Difficulty): number[] {
-  if (difficulty === 1) return [0];
-  if (difficulty === 2) return [0, 30];
-  return [0, 15, 30, 45];
+  if (difficulty === 1) return [0, 30];
+  if (difficulty === 2) return [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+  return Array.from({ length: 60 }, (_, i) => i);
+}
+
+/** Easy/Medium — лише читання циферблата. Hard додає "через N хв" та співвідношення год/хв. */
+function modeSequenceFor(d: Difficulty): Mode[] {
+  if (d === 3) return shuffle<Mode>(['read', 'read', 'read', 'elapsed', 'convert']);
+  return Array<Mode>(ROUNDS).fill('read');
 }
 
 function fmt(h: number, m: number): string {
   return `${h}:${m.toString().padStart(2, '0')}`;
 }
 
+/** Додати deltaMin хвилин до h:m (12-годинний циферблат, h у діапазоні 1-12). */
+function addTime(h: number, m: number, deltaMin: number): { h: number; m: number } {
+  const totalMin = (((h % 12) * 60 + m + deltaMin) % (12 * 60) + 12 * 60) % (12 * 60);
+  let nh = Math.floor(totalMin / 60);
+  const nm = totalMin % 60;
+  if (nh === 0) nh = 12;
+  return { h: nh, m: nm };
+}
+
+function genRead(steps: number[], used: Set<string>): ReadPayload {
+  let h = randInt(1, 12);
+  let m = pick(steps);
+  let guard = 0;
+  while (used.has(`${h}:${m}`) && guard < 20) {
+    h = randInt(1, 12);
+    m = pick(steps);
+    guard++;
+  }
+  used.add(`${h}:${m}`);
+  return { mode: 'read', h, m };
+}
+
+function genElapsed(): ElapsedPayload {
+  const h = randInt(1, 12);
+  const m = randInt(0, 59);
+  const deltaMin = pick([5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]);
+  const { h: resultH, m: resultM } = addTime(h, m, deltaMin);
+  return { mode: 'elapsed', h, m, deltaMin, resultH, resultM };
+}
+
+function genConvert(): ConvertPayload {
+  const kind: ConvertKind = Math.random() < 0.5 ? 'h2m' : 'm2h';
+  if (kind === 'h2m') {
+    const value = randInt(1, 6);
+    return { mode: 'convert', kind, value, result: value * 60 };
+  }
+  const hours = randInt(1, 6);
+  return { mode: 'convert', kind, value: hours * 60, result: hours };
+}
+
+function correctFor(payload: Payload): string {
+  if (payload.mode === 'read') return fmt(payload.h, payload.m);
+  if (payload.mode === 'elapsed') return fmt(payload.resultH, payload.resultM);
+  return String(payload.result);
+}
+
 function generate(difficulty: Difficulty): LevelData<Payload, string> {
   const steps = minuteStepsFor(difficulty);
+  const modes = modeSequenceFor(difficulty);
   const used = new Set<string>();
-  const rounds: Round<Payload, string>[] = [];
-  for (let i = 0; i < 5; i++) {
-    let h = randInt(1, 12);
-    let m = pick(steps);
-    let guard = 0;
-    while (used.has(`${h}:${m}`) && guard < 20) {
-      h = randInt(1, 12);
-      m = pick(steps);
-      guard++;
-    }
-    used.add(`${h}:${m}`);
-    rounds.push({ id: `r${i}`, payload: { h, m }, answer: fmt(h, m) });
-  }
+  const rounds: Round<Payload, string>[] = modes.map((mode, i) => {
+    let payload: Payload;
+    if (mode === 'elapsed') payload = genElapsed();
+    else if (mode === 'convert') payload = genConvert();
+    else payload = genRead(steps, used);
+    return { id: `r${i}`, payload, answer: correctFor(payload) };
+  });
   return { difficulty, rounds };
 }
 
@@ -125,7 +196,48 @@ function ClockFace({ h, m, size }: { h: number; m: number; size: number }) {
 }
 
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, string>) {
-  const { h, m } = round.payload;
+  const { payload } = round;
+
+  if (payload.mode === 'convert') {
+    const questionText = payload.kind === 'h2m' ? `${payload.value} год = ? хв` : `${payload.value} хв = ? год`;
+    const decoys = numberDecoys(payload.result, 4, Math.max(2, Math.round(payload.result * 0.4)), 0);
+    const options = decoys.map((v) => ({ value: String(v) }));
+    return (
+      <>
+        <PromptCard question="Скільки це?" answerState={answerState}>
+          <div
+            style={{
+              textAlign: 'center',
+              fontSize: 34,
+              fontWeight: 900,
+              color: 'var(--c-ink)',
+              fontFamily: 'var(--font-round)',
+            }}
+          >
+            {questionText}
+          </div>
+        </PromptCard>
+        <ChoiceGrid options={options} correct={round.answer} disabled={disabled} answerState={answerState} onPick={onAnswer} columns={2} />
+      </>
+    );
+  }
+
+  if (payload.mode === 'elapsed') {
+    const { h, m, deltaMin, resultH, resultM } = payload;
+    const options = timeChoices(resultH, resultM, 3).map((value) => ({ value }));
+    return (
+      <>
+        <PromptCard question={`Зараз ${fmt(h, m)}. Котра буде через ${deltaMin} хв?`} answerState={answerState}>
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
+            <ClockFace h={h} m={m} size={150} />
+          </div>
+        </PromptCard>
+        <ChoiceGrid options={options} correct={round.answer} disabled={disabled} answerState={answerState} onPick={onAnswer} columns={2} />
+      </>
+    );
+  }
+
+  const { h, m } = payload;
   const options = timeChoices(h, m, 3).map((value) => ({ value }));
   return (
     <>
@@ -134,16 +246,43 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
           <ClockFace h={h} m={m} size={170} />
         </div>
       </PromptCard>
-      <ChoiceGrid
-        options={options}
-        correct={round.answer}
-        disabled={disabled}
-        answerState={answerState}
-        onPick={onAnswer}
-        columns={2}
-      />
+      <ChoiceGrid options={options} correct={round.answer} disabled={disabled} answerState={answerState} onPick={onAnswer} columns={2} />
     </>
   );
+}
+
+/** Dev-only self-check: N раундів на складність — відповідь узгоджена з payload, час у межах доби. */
+function selfCheck(roundsPerDifficulty = 20): boolean {
+  const difficulties: Difficulty[] = [1, 2, 3];
+  let allOk = true;
+  let checked = 0;
+  for (const difficulty of difficulties) {
+    for (let i = 0; i < roundsPerDifficulty; i++) {
+      const { rounds } = generate(difficulty);
+      for (const r of rounds) {
+        checked++;
+        const expect = correctFor(r.payload);
+        if (expect !== r.answer) {
+          allOk = false;
+          console.error(`[clock-time] self-check FAIL: difficulty=${difficulty} answer=${r.answer} !== expect=${expect}`);
+        }
+        if (r.payload.mode === 'read' && (r.payload.h < 1 || r.payload.h > 12 || r.payload.m < 0 || r.payload.m > 59)) {
+          allOk = false;
+          console.error(`[clock-time] self-check FAIL: difficulty=${difficulty} read час поза межами`, r.payload);
+        }
+        if (r.payload.mode === 'elapsed' && (r.payload.resultH < 1 || r.payload.resultH > 12 || r.payload.resultM < 0 || r.payload.resultM > 59)) {
+          allOk = false;
+          console.error(`[clock-time] self-check FAIL: difficulty=${difficulty} elapsed результат поза межами`, r.payload);
+        }
+      }
+    }
+  }
+  if (allOk) console.info(`[clock-time] self-check OK: ${checked} раундів, усі відповіді узгоджені.`);
+  return allOk;
+}
+
+if (import.meta.env.DEV) {
+  selfCheck();
 }
 
 const clockTime: GameDefinition<Payload, string> = {
