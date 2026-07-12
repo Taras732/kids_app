@@ -7,6 +7,7 @@ import RoleSelect from '@/pages/RoleSelect';
 import Hub from '@/pages/Hub';
 import ParentDashboard from '@/pages/ParentDashboard';
 import GamePlayer from '@/pages/GamePlayer';
+import Placement from '@/pages/Placement';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 // Легасі-сторінки (Welcome/Auth/Onboarding/...) поки в телефонній рамці.
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/onboarding" element={<PhoneFrame><Onboarding /></PhoneFrame>} />
         <Route path="/parent" element={<PhoneFrame><ParentDashboard /></PhoneFrame>} />
         <Route path="/hub" element={<WebShell><Hub /></WebShell>} />
+        <Route path="/placement" element={<WebShell><Placement /></WebShell>} />
         <Route path="/game/:id" element={<WebShell><GamePlayer /></WebShell>} />
       </Routes>
     </Router>

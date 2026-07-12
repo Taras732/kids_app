@@ -5,6 +5,8 @@ import { useProfileStore } from '@/stores/useProfileStore';
 import { gamesForLevel, getGame, profileLevel, SUBJECT_META, SUBJECT_ORDER } from '@/games/registry';
 import { DIFFICULTY_LABEL, type Difficulty, type GameDefinition } from '@/games/types';
 import { getActivitySummary } from '@/utils/activity';
+import { storage } from '@/utils/storage';
+import { placementDoneKey } from '@/pages/Placement';
 
 const MASCOTS: Record<string, string> = {
   dragon: '/creatures/zodiac_dragon_fire.png',
@@ -51,6 +53,7 @@ export default function Hub() {
   const subjects = SUBJECT_ORDER.filter((s) => games.some((g) => g.subject === s));
   const prog = progress[activeProfile.id] ?? {};
   const avatarImg = MASCOTS[activeProfile.avatar_id];
+  const placementDone = !!storage.get(placementDoneKey(activeProfile.id));
 
   // остання/наступна гра для hero
   const lastGame: GameDefinition | undefined = (() => {
@@ -203,6 +206,18 @@ export default function Hub() {
 
                 {/* права колонка */}
                 <div className="rcol">
+                  {!placementDone && (
+                    <div className="panel" style={{ background: 'var(--c-primary-soft)', border: '1px solid #D9D2FF' }}>
+                      <h3 style={{ color: 'var(--c-primary)' }}>🎯 Визначити рівень</h3>
+                      <p style={{ color: 'var(--c-mut)', fontWeight: 600, fontSize: 13, margin: '0 0 14px' }}>
+                        Коротка діагностика (5–8 хв) підбере завдання саме під тебе.
+                      </p>
+                      <button className="g-btn primary" onClick={() => navigate('/placement')}>
+                        Пройти діагностику
+                      </button>
+                    </div>
+                  )}
+
                   <div className="panel">
                     <h3>Ціль на сьогодні</h3>
                     <div className="goal">

@@ -55,7 +55,8 @@ export default function Onboarding() {
 
     setIsCreating(false);
     setNickname('');
-    navigate('/hub');
+    // Новий профіль → діагностика стартового рівня (A5), далі веде в /hub.
+    navigate('/placement');
   };
 
   const handleSelect = (id: string) => {
