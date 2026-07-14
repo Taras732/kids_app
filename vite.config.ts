@@ -17,7 +17,7 @@ export default defineConfig({
       manifest: {
         name: 'Школярик — Навчальний ігровий простір',
         short_name: 'Школярик',
-        description: 'Розвиваючий ігровий простір для дітей. Навчайся граючись!',
+        description: 'Розвивальний ігровий простір для дітей. Навчайся граючись!',
         theme_color: '#6C5CE7',
         background_color: '#DFE6FF',
         display: 'standalone',
