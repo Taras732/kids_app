@@ -11,10 +11,21 @@
 //   • порядок  — спершу review (за skill.sort), потім frontier (за skill.sort);
 //                стабільний тай-брейк по skill_id; обрізати до targetCount; sort=0..n-1.
 
-import type { Skill, SkillMastery, DailyPlanItemInsert } from './types';
+import { pickOfflineTasks, offlineTasksToPlanItems } from './offline-core';
+import type {
+  Skill,
+  SkillMastery,
+  MasteryStatus,
+  DailyPlanItemInsert,
+  OfflineTask,
+  GradeBand,
+} from './types';
 
 const MS_PER_DAY = 86_400_000;
 const DEFAULT_TARGET_COUNT = 5;
+const DEFAULT_OFFLINE_COUNT = 1;
+/** Порядок рівнів для порівняння «вищий band». */
+const GRADE_ORDER: readonly GradeBand[] = ['L0', 'L1', 'L2', 'L3', 'L4'];
 
 export interface BuildDayPlanInput {
   /** Повний довідник навичок (skill-graph). */
@@ -25,8 +36,12 @@ export interface BuildDayPlanInput {
   gameBySkill: Map<string, string>;
   /** Дата плану 'YYYY-MM-DD' — база для review-інтервалів. */
   date: string;
-  /** Максимум кроків у плані (деф. 5). */
+  /** Максимум ЕКРАННИХ кроків (game/review) у плані (деф. 5). */
   targetCount?: number;
+  /** Довідник офлайн-завдань (workbook/worksheet/activity). Порожньо/відсутньо → без офлайн. */
+  offlineTasks?: OfflineTask[];
+  /** Скільки офлайн-кроків домішати понад екранні (деф. 1). */
+  offlineCount?: number;
 }
 
 /** Ціла кількість календарних днів (UTC) від дати last_practiced_at до date. */
@@ -60,6 +75,26 @@ interface Candidate {
 
 const bySortThenId = (a: Candidate, b: Candidate): number =>
   a.sort - b.sort || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+
+/**
+ * Оцінити поточний рівень дитини для добору офлайн-завдань: найвищий grade_band
+ * серед frontier-навичок (поточний рубіж навчання); якщо frontier немає — серед
+ * mastered; якщо взагалі порожньо — 'L0'. Детерміновано, без IO.
+ */
+export function inferChildBand(skills: Skill[], mastery: SkillMastery[]): GradeBand {
+  const bandById = new Map(skills.map((s) => [s.id, s.grade_band]));
+  const bandsFor = (status: MasteryStatus): GradeBand[] =>
+    mastery
+      .filter((m) => m.status === status)
+      .map((m) => bandById.get(m.skill_id))
+      .filter((b): b is GradeBand => b !== undefined);
+
+  const bands = bandsFor('frontier').length ? bandsFor('frontier') : bandsFor('mastered');
+  return bands.reduce<GradeBand>(
+    (max, b) => (GRADE_ORDER.indexOf(b) > GRADE_ORDER.indexOf(max) ? b : max),
+    'L0',
+  );
+}
 
 export function buildDayPlan(input: BuildDayPlanInput): DailyPlanItemInsert[] {
   const { skills, mastery, gameBySkill, date } = input;
@@ -110,7 +145,15 @@ export function buildDayPlan(input: BuildDayPlanInput): DailyPlanItemInsert[] {
   reviews.sort(bySortThenId);
   frontiers.sort(bySortThenId);
 
-  return [...reviews, ...frontiers]
-    .slice(0, targetCount)
-    .map((c, i) => ({ ...c.item, sort: i }));
+  const screen = [...reviews, ...frontiers].slice(0, targetCount).map((c) => c.item);
+
+  // Офлайн-доповнення (B4): домішати офлайн-кроки під рівень дитини, ПОНАД екранні.
+  const offlineTasks = input.offlineTasks ?? [];
+  const offlineCount = input.offlineCount ?? DEFAULT_OFFLINE_COUNT;
+  const offlineItems =
+    offlineTasks.length > 0 && offlineCount > 0
+      ? offlineTasksToPlanItems(pickOfflineTasks(offlineTasks, inferChildBand(skills, mastery), offlineCount))
+      : [];
+
+  return [...screen, ...offlineItems].map((item, i) => ({ ...item, sort: i }));
 }

@@ -2,7 +2,7 @@
 // Мапінг skill→game будується з реєстру ігор (GAMES[].skillIds за складністю).
 // Патерн IO як mastery.ts / placement.ts: тонко, кидає при помилках БД (для UI «Мій день»).
 
-import { fetchMastery, fetchSkills, fetchDailyPlan, createDailyPlan } from './db';
+import { fetchMastery, fetchSkills, fetchDailyPlan, createDailyPlan, fetchOfflineTasks } from './db';
 import { buildDayPlan } from './planner-core';
 import { GAMES } from '@/games/registry';
 import type { DailyPlan, DailyPlanItem } from './types';
@@ -39,7 +39,11 @@ export async function getOrCreateTodayPlan(
   const existing = await fetchDailyPlan(profileId, date);
   if (existing) return existing;
 
-  const [mastery, skills] = await Promise.all([fetchMastery(profileId), fetchSkills()]);
-  const items = buildDayPlan({ skills, mastery, gameBySkill, date });
+  const [mastery, skills, offlineTasks] = await Promise.all([
+    fetchMastery(profileId),
+    fetchSkills(),
+    fetchOfflineTasks(),
+  ]);
+  const items = buildDayPlan({ skills, mastery, gameBySkill, date, offlineTasks });
   return createDailyPlan(profileId, date, items);
 }

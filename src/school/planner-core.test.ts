@@ -1,8 +1,20 @@
 import { describe, it, expect } from 'vitest';
-import { buildDayPlan, type BuildDayPlanInput } from './planner-core';
-import type { Skill, SkillMastery, MasteryStatus } from './types';
+import { buildDayPlan, inferChildBand, type BuildDayPlanInput } from './planner-core';
+import type { Skill, SkillMastery, MasteryStatus, OfflineTask } from './types';
 
 const DATE = '2026-07-14';
+
+function offlineTask(id: string, over: Partial<OfflineTask> = {}): OfflineTask {
+  return {
+    id,
+    type: 'activity',
+    title: id,
+    payload: {},
+    grade_band: null,
+    created_at: '2026-01-01T00:00:00.000Z',
+    ...over,
+  };
+}
 
 function skill(id: string, sort: number, over: Partial<Skill> = {}): Skill {
   return {
@@ -138,5 +150,75 @@ describe('buildDayPlan', () => {
     expect(items).toHaveLength(3);
     expect(items.map((i) => i.skill_id)).toEqual(['s0', 's1', 's2']);
     expect(items.map((i) => i.sort)).toEqual([0, 1, 2]);
+  });
+
+  it('офлайн-крок домішується в кінець плану (B4)', () => {
+    const items = run({
+      skills: [skill('s1', 10, { grade_band: 'L1' })],
+      mastery: [mastery('s1', 'frontier')],
+      gameBySkill: new Map([['s1', 'gA']]),
+      offlineTasks: [offlineTask('t1', { grade_band: null })],
+    });
+    expect(items).toHaveLength(2);
+    expect(items[0].kind).toBe('game');
+    expect(items[1]).toMatchObject({ kind: 'activity', ref_id: 't1', skill_id: null, sort: 1 });
+  });
+
+  it('offlineTasks відсутні → без офлайн-кроків (зворотна сумісність)', () => {
+    const items = run({
+      skills: [skill('s1', 10)],
+      mastery: [mastery('s1', 'frontier')],
+      gameBySkill: new Map([['s1', 'gA']]),
+    });
+    expect(items.every((i) => i.kind !== 'activity')).toBe(true);
+  });
+
+  it('offlineCount=0 → офлайн не домішується', () => {
+    const items = run({
+      skills: [skill('s1', 10)],
+      mastery: [mastery('s1', 'frontier')],
+      gameBySkill: new Map([['s1', 'gA']]),
+      offlineTasks: [offlineTask('t1')],
+      offlineCount: 0,
+    });
+    expect(items.every((i) => i.kind !== 'activity')).toBe(true);
+  });
+
+  it('офлайн фільтрується під band дитини (universal + свій, чужий відсіюється)', () => {
+    const items = run({
+      skills: [skill('s1', 10, { grade_band: 'L2' })],
+      mastery: [mastery('s1', 'frontier')],
+      gameBySkill: new Map(), // frontier без гри → у плані лише офлайн
+      offlineTasks: [
+        offlineTask('u', { grade_band: null }),
+        offlineTask('l2', { grade_band: 'L2' }),
+        offlineTask('l4', { grade_band: 'L4' }),
+      ],
+      offlineCount: 5,
+    });
+    const ids = items.map((i) => i.ref_id);
+    expect(ids).toContain('u');
+    expect(ids).toContain('l2');
+    expect(ids).not.toContain('l4');
+  });
+});
+
+describe('inferChildBand', () => {
+  const bandSkills = [
+    skill('a', 1, { grade_band: 'L1' }),
+    skill('b', 2, { grade_band: 'L3' }),
+    skill('c', 3, { grade_band: 'L2' }),
+  ];
+
+  it('найвищий band серед frontier-навичок', () => {
+    expect(inferChildBand(bandSkills, [mastery('a', 'frontier'), mastery('b', 'frontier')])).toBe('L3');
+  });
+
+  it('нема frontier → серед mastered', () => {
+    expect(inferChildBand(bandSkills, [mastery('c', 'mastered')])).toBe('L2');
+  });
+
+  it('порожній стан → L0', () => {
+    expect(inferChildBand(bandSkills, [])).toBe('L0');
   });
 });
