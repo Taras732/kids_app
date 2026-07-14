@@ -4,6 +4,9 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { fetchAttempts, fetchMastery, fetchSkills } from '@/school/db';
 import { computeStreakDays, groupProgressBySubject, recentActivities } from '@/school/progress-core';
+import { getWeeklyReport } from '@/school/report';
+import type { WeeklyReport as WeeklyReportData } from '@/school/report-core';
+import WeeklyReportCard from '@/components/WeeklyReport';
 import type { Attempt, Skill, SkillMastery } from '@/school/types';
 
 export default function ParentDashboard() {
@@ -19,6 +22,7 @@ export default function ParentDashboard() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [masteryRows, setMasteryRows] = useState<SkillMastery[]>([]);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [weekly, setWeekly] = useState<WeeklyReportData | null>(null);
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
 
@@ -33,12 +37,19 @@ export default function ParentDashboard() {
     let cancelled = false;
     setProgressLoading(true);
     setProgressError(null);
-    Promise.all([fetchSkills(), fetchMastery(selectedProfileId), fetchAttempts(selectedProfileId)])
-      .then(([skillsRes, masteryRes, attemptsRes]) => {
+    const weekEnd = new Date().toISOString().slice(0, 10);
+    Promise.all([
+      fetchSkills(),
+      fetchMastery(selectedProfileId),
+      fetchAttempts(selectedProfileId),
+      getWeeklyReport(selectedProfileId, weekEnd),
+    ])
+      .then(([skillsRes, masteryRes, attemptsRes, weeklyRes]) => {
         if (cancelled) return;
         setSkills(skillsRes);
         setMasteryRows(masteryRes);
         setAttempts(attemptsRes);
+        setWeekly(weeklyRes);
       })
       .catch(() => {
         if (!cancelled) setProgressError('Не вдалося завантажити прогрес.');
@@ -171,6 +182,12 @@ export default function ParentDashboard() {
                     {streak}
                   </div>
                 </div>
+
+                {weekly && (
+                  <div style={{ marginBottom: '12px' }}>
+                    <WeeklyReportCard report={weekly} />
+                  </div>
+                )}
 
                 {subjectsProgress.length === 0 && (
                   <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
