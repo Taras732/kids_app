@@ -1,50 +1,63 @@
-# Welcome to your Expo app 👋
+# Школярик
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Дитячий навчальний застосунок (web-PWA) для дітей дошкільного та молодшого шкільного віку (НУШ, 1–4 клас). Навчальні ігри з адаптивною складністю під клас дитини, щоденний план занять, відстеження прогресу та кабінет батьків з тижневими звітами.
 
-## Get started
+## Стек
 
-1. Install dependencies
+- **React 18** + **TypeScript** + **Vite** (SPA, `react-router-dom`)
+- **Zustand** — стан застосунку (`src/stores`)
+- **Supabase** — авторизація + БД (Postgres) для профілів, прогресу, аналітики
+- **vite-plugin-pwa** — офлайн-режим / installable PWA
+- Деплой: nginx-контейнер на node-auto через `scripts/deploy-dev.sh`
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Запуск
 
 ```bash
-npm run reset-project
+npm install
+
+# secrets через SOPS+age → .env (див. SUPABASE_SETUP.md)
+bash scripts/load-env.sh   # або: powershell -File scripts/load-env.ps1
+
+npm run dev      # dev-сервер (Vite)
+npm run build     # прод-збірка (tsc + vite build) → dist/
+npm run preview   # локальний прев'ю збірки
+npm run lint      # ESLint
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Тести (Vitest, `*-core.test.ts` поруч з логікою):
 
-## Learn more
+```bash
+npx vitest run
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Структура
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
+src/
+  pages/        # екрани: Welcome, Auth, Onboarding, RoleSelect, Hub, DayPlan,
+                # GamePlayer, Placement, ParentDashboard
+  games/        # каталог навчальних ігор (registry.ts = реєстр + profileClass/
+                # рівні складності; types.ts = ClassLevel/CLASS_META/Subject;
+                # кожна гра — окрема тека з generate()/компонентом)
+  school/       # навчальне ядро: mastery (засвоєння навичок), planner
+                # (щоденний план), placement (діагностика), progress, report
+                # (тижневі звіти), offline (офлайн-завдання), db.ts (Supabase-запити)
+  components/   # переюзабельні UI-компоненти (ParentalGate, WeeklyReport, OfflineTask)
+  stores/       # Zustand: useAuthStore (сесія/акаунт), useProfileStore (профілі дітей)
+  content/      # статичний навчальний контент
+  utils/        # supabase.ts та інші утиліти
+```
 
-## Join the community
+## Деплой (dev)
 
-Join our community of developers creating universal apps.
+```bash
+bash scripts/deploy-dev.sh
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Білдить проєкт, пакує `dist/`, копіює на node-auto в bind-mount контейнера `shkolyaryk-dev-web` (nginx). Доступно за адресою:
+
+**https://shkolyaryk-dev.kuznya.studio/**
+
+## Supabase
+
+Налаштування проєкту Supabase (env-змінні, міграції, auth, email-шаблони) — див. [`SUPABASE_SETUP.md`](./SUPABASE_SETUP.md).

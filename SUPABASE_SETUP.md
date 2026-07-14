@@ -15,15 +15,22 @@
 ## 2. Отримати ключі
 
 **Settings → API**:
-- `Project URL` → скопіювати у `.env` як `EXPO_PUBLIC_SUPABASE_URL`
-- `anon public` key → скопіювати у `.env` як `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+- `Project URL` → скопіювати у `.env` як `VITE_SUPABASE_URL`
+- `anon public` key → скопіювати у `.env` як `VITE_SUPABASE_ANON_KEY`
 
-Приклад `.env`:
+Приклад `.env` (клієнтські змінні, потрапляють у браузерний бандл — лише публічні ключі):
 ```
-EXPO_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
-EXPO_PUBLIC_MMKV_ENCRYPTION_KEY=<random-32-chars>
+VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
 ```
+
+🔐 **Для команди секрети керуються через SOPS+age**, не руками в `.env`:
+- Значення шифруються у `secrets/dev.env`
+- Розшифрувати у `.env`: `bash scripts/load-env.sh` (або `powershell -File scripts/load-env.ps1`)
+- Потрібен age-ключ у `~/.config/sops/age/keys.txt` / `%APPDATA%\sops\age\keys.txt`
+- `SUPABASE_SERVICE_ROLE_KEY` — сервер-only, **лише для seed/адмін-скриптів**, НІКОЛИ у клієнтський код чи `VITE_*`
+
+Повний перелік змінних — `.env.example`.
 
 ## 3. Застосувати SQL-міграцію
 
@@ -61,10 +68,10 @@ Subject:
 
 ```bash
 cd D:/Dev/shkolyaryk
-npm start
+npm run dev
 ```
 
-- Відкрити **w** (web)
+- Відкрити застосунок у браузері (адреса виведе Vite, зазвичай `http://localhost:5173`)
 - Зареєструвати тестовий email
 - Перевірити лист підтвердження українською
 - Клікнути лінк → авторизація має працювати

@@ -9,7 +9,8 @@ import { getOrCreateTodayPlan } from '@/school/planner';
 import { completeOfflineTask } from '@/school/offline';
 import { describeOfflineTask } from '@/school/offline-core';
 import { countCompleted, partitionPlanItems, sortPlanItems } from '@/pages/dayplan-core';
-import { getGame } from '@/games/registry';
+import { getGame, profileClass } from '@/games/registry';
+import { CLASS_META } from '@/games/types';
 import type { WeeklyReport as WeeklyReportData } from '@/school/report-core';
 import WeeklyReportCard from '@/components/WeeklyReport';
 import type { Attempt, DailyPlan, DailyPlanItem, OfflineTask, Skill, SkillMastery } from '@/school/types';
@@ -398,7 +399,7 @@ export default function ParentDashboard() {
                       {p.nickname}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: '600' }}>
-                      3-й Клас · ⭐ {p.total_stars} зірочок
+                      {CLASS_META[profileClass(p)].short} · ⭐ {p.total_stars} зірочок
                     </div>
                   </div>
 
