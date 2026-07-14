@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
-import { gamesForLevel, getGame, profileLevel, SUBJECT_META, SUBJECT_ORDER } from '@/games/registry';
+import { gamesForClass, getGame, profileClass, SUBJECT_META, SUBJECT_ORDER } from '@/games/registry';
 import { DIFFICULTY_LABEL, type Difficulty, type GameDefinition } from '@/games/types';
 import { getActivitySummary } from '@/utils/activity';
 import { storage } from '@/utils/storage';
@@ -48,8 +48,7 @@ export default function Hub() {
     );
   }
 
-  const level = profileLevel(activeProfile);
-  const games = gamesForLevel(level);
+  const games = gamesForClass(profileClass(activeProfile));
   const subjects = SUBJECT_ORDER.filter((s) => games.some((g) => g.subject === s));
   const prog = progress[activeProfile.id] ?? {};
   const avatarImg = MASCOTS[activeProfile.avatar_id];

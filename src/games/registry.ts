@@ -109,9 +109,41 @@ export function profileLevel(profile: Pick<ChildProfile, 'age_group' | 'class_le
   return classToProfileLevel(profileClass(profile));
 }
 
-/** Ігри, доступні для рівня профілю. */
+/** Ігри, доступні для «треку» гри (ProfileLevel). Лишається для зворотної сумісності. */
 export function gamesForLevel(level: ProfileLevel): GameDefinition[] {
   return GAMES.filter((g) => g.levels.includes(level));
+}
+
+/**
+ * Явне звуження доступності гри за КЛАСОМ (G3). Ключ — game.id. Якщо гра тут є —
+ * показуємо лише переліченим класам; інакше — fallback на levels-трек
+ * (classToProfileLevel): дошкільні L0-ігри → preschool, шкільні L3-ігри → 1–4 клас.
+ * Значення — за availableFor старої версії + логіка появи тем НУШ (множення/дроби —
+ * з 2 класу; периметр/площа — з 2; географія/магічний квадрат — 3–4).
+ */
+const AVAILABLE_BY_CLASS: Record<string, ClassLevel[]> = {
+  // старші математичні теми — не раніше відповідного класу НУШ
+  'times-tables': ['grade2', 'grade3', 'grade4'],
+  'fractions-compare': ['grade2', 'grade3', 'grade4'],
+  'column-arithmetic': ['grade1', 'grade2', 'grade3', 'grade4'],
+  'perimeter-area': ['grade2', 'grade3', 'grade4'],
+  'magic-square': ['grade3', 'grade4'],
+  // мова/світ для старших
+  'reading-speed': ['grade2', 'grade3', 'grade4'],
+  'grammar-parts': ['grade2', 'grade3', 'grade4'],
+  'continents-oceans': ['grade3', 'grade4'],
+  'world-flags': ['grade2', 'grade3', 'grade4'],
+  // переважно для найменших
+  'seasons-weather': ['preschool', 'grade1', 'grade2'],
+};
+
+/** Ігри, доступні для навчального КЛАСУ дитини (G3). Явне звуження + fallback на трек. */
+export function gamesForClass(classLevel: ClassLevel): GameDefinition[] {
+  const track = classToProfileLevel(classLevel);
+  return GAMES.filter((g) => {
+    const allow = AVAILABLE_BY_CLASS[g.id];
+    return allow ? allow.includes(classLevel) : g.levels.includes(track);
+  });
 }
 
 export const SUBJECT_META: Record<Subject, { title: string; emoji: string }> = {
