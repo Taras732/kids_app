@@ -37,7 +37,7 @@ interface ProfileState {
   
   // Actions
   loadProfiles: (parentUserId?: string) => Promise<void>;
-  createProfile: (nickname: string, ageGroup: ChildProfile['age_group'], avatarId: string, parentUserId?: string) => Promise<void>;
+  createProfile: (nickname: string, ageGroup: ChildProfile['age_group'], avatarId: string, parentUserId?: string, classLevel?: ClassLevel | null) => Promise<void>;
   deleteProfile: (profileId: string, parentUserId?: string) => Promise<void>;
   selectProfile: (profileId: string) => void;
   updateProgress: (profileId: string, gameId: string, level: number, starsEarned: number, history: any, parentUserId?: string) => Promise<void>;
@@ -164,11 +164,12 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }
   },
 
-  createProfile: async (nickname, ageGroup, avatarId, parentUserId) => {
+  createProfile: async (nickname, ageGroup, avatarId, parentUserId, classLevel) => {
     const newProfile: ChildProfile = {
       id: crypto.randomUUID(),
       nickname,
       age_group: ageGroup,
+      class_level: classLevel ?? null,
       avatar_id: avatarId,
       total_stars: 0,
       created_at: new Date().toISOString()
@@ -206,7 +207,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         id: crypto.randomUUID(),
         type: 'create_profile',
         profileId: newProfile.id,
-        payload: { nickname, age_group: ageGroup, avatar_id: avatarId },
+        payload: { nickname, age_group: ageGroup, avatar_id: avatarId, class_level: classLevel ?? null },
         timestamp: Date.now()
       });
       storage.setJSON(queueKey, queue);
@@ -360,7 +361,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
               parent_id: parentUserId,
               nickname: item.payload.nickname,
               age_group: item.payload.age_group,
-              avatar_id: item.payload.avatar_id
+              avatar_id: item.payload.avatar_id,
+              class_level: item.payload.class_level ?? null
             })
             .select('id')
             .single();

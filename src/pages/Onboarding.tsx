@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useProfileStore } from '@/stores/useProfileStore';
+import { useProfileStore, type ChildProfile } from '@/stores/useProfileStore';
+import { profileClass } from '@/games/registry';
+import { CLASS_META, CLASS_LEVELS, type ClassLevel } from '@/games/types';
 import ParentalGate from '@/components/ParentalGate';
 
 const MASCOTS = [
@@ -13,15 +15,37 @@ const MASCOTS = [
   { id: 'monkey', img: '/creatures/zodiac_monkey_fire.png', label: 'Мавпочка', color: '#FFEFD6' }
 ];
 
-// Рівні MVP: дошкільнята + 3 клас (мапляться на схему age_group у БД)
-const LEVELS = [
-  { id: 'preschool', ageGroup: '5-6' as const, emoji: '🧸', title: 'Дошкільнята', sub: 'Лічба, форми, перші числа' },
-  { id: 'grade3', ageGroup: '7-8' as const, emoji: '🎒', title: '3-й клас', sub: 'Математика (НУШ)' }
-];
+// Усі 5 класів (G5). Emoji/підпис — локальні, бо CLASS_META не містить UI-іконок.
+const CLASS_EMOJI: Record<ClassLevel, string> = {
+  preschool: '🧸',
+  grade1: '📘',
+  grade2: '📗',
+  grade3: '📙',
+  grade4: '📕'
+};
 
-// Підпис рівня за age_group профілю (для списку учнів)
-const levelLabel = (ageGroup: string) =>
-  ageGroup === '5-6' || ageGroup === 'under_4' ? 'Дошкільнята 🧸' : '3-й клас 🎒';
+const CLASS_SUB: Record<ClassLevel, string> = {
+  preschool: 'Лічба, форми, перші числа',
+  grade1: 'Читання, числа до 20',
+  grade2: 'Математика, українська',
+  grade3: 'Математика (НУШ)',
+  grade4: 'Математика, логіка (НУШ)'
+};
+
+// class_level → age_group (БД-поле для віку/привітання; age_group max '7-8', тому 2-4 клас клампляться)
+const CLASS_AGE_GROUP: Record<ClassLevel, ChildProfile['age_group']> = {
+  preschool: '5-6',
+  grade1: '6-7',
+  grade2: '7-8',
+  grade3: '7-8',
+  grade4: '7-8'
+};
+
+// Підпис рівня для картки профілю: явний class_level, або fallback з age_group (profileClass)
+const levelLabel = (p: Pick<ChildProfile, 'age_group' | 'class_level'>) => {
+  const cl = profileClass(p);
+  return `${CLASS_META[cl].short} ${CLASS_EMOJI[cl]}`;
+};
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -31,7 +55,7 @@ export default function Onboarding() {
   const [isCreating, setIsCreating] = useState(false);
   const [nickname, setNickname] = useState('');
   const [selectedMascot, setSelectedMascot] = useState('dragon');
-  const [selectedLevel, setSelectedLevel] = useState('grade3');
+  const [selectedLevel, setSelectedLevel] = useState<ClassLevel>('grade1');
   
   // Parental Gate State
   const [isGateOpen, setIsGateOpen] = useState(false);
@@ -45,12 +69,12 @@ export default function Onboarding() {
     e.preventDefault();
     if (!nickname.trim()) return;
 
-    const level = LEVELS.find(l => l.id === selectedLevel) ?? LEVELS[1];
     await createProfile(
       nickname.trim(),
-      level.ageGroup,
+      CLASS_AGE_GROUP[selectedLevel],
       selectedMascot,
-      user?.id
+      user?.id,
+      selectedLevel
     );
 
     setIsCreating(false);
@@ -161,7 +185,7 @@ export default function Onboarding() {
                       {p.nickname}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--primary-dark)', fontWeight: '800', marginTop: '4px' }}>
-                      {levelLabel(p.age_group)}
+                      {levelLabel(p)}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 'bold' }}>
                       ⭐ {p.total_stars} зірочок
@@ -305,34 +329,38 @@ export default function Onboarding() {
             {/* Level selection */}
             <div style={{ marginTop: '24px' }}>
               <label style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-dark)', fontFamily: 'var(--font-display)' }}>
-                НАВЧАЛЬНА ПРОГРАМА
+                НАВЧАЛЬНИЙ КЛАС
               </label>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                {LEVELS.map(l => (
-                  <button
-                    key={l.id}
-                    type="button"
-                    onClick={() => setSelectedLevel(l.id)}
-                    style={{
-                      flex: 1,
-                      textAlign: 'left',
-                      background: 'var(--surface-soft)',
-                      border: `3px solid ${selectedLevel === l.id ? 'var(--primary)' : 'var(--border-color)'}`,
-                      borderRadius: 'var(--border-radius-sm)',
-                      padding: '14px',
-                      cursor: 'pointer',
-                      boxShadow: selectedLevel === l.id
-                        ? '0 5px 0 var(--border-color), 0 0 10px rgba(108, 92, 231, 0.3)'
-                        : '0 4px 0 var(--border-color)',
-                      transform: selectedLevel === l.id ? 'translateY(-2px)' : 'none',
-                      transition: 'transform 0.1s, border-color 0.1s'
-                    }}
-                  >
-                    <span style={{ fontSize: '26px' }}>{l.emoji}</span>
-                    <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-dark)', marginTop: '4px' }}>{l.title}</div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: '600' }}>{l.sub}</div>
-                  </button>
-                ))}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginTop: '8px' }}>
+                {CLASS_LEVELS.map((cl, i) => {
+                  const meta = CLASS_META[cl];
+                  const isLastOdd = i === CLASS_LEVELS.length - 1 && CLASS_LEVELS.length % 2 === 1;
+                  return (
+                    <button
+                      key={cl}
+                      type="button"
+                      onClick={() => setSelectedLevel(cl)}
+                      style={{
+                        gridColumn: isLastOdd ? 'span 2' : undefined,
+                        textAlign: 'left',
+                        background: 'var(--surface-soft)',
+                        border: `3px solid ${selectedLevel === cl ? 'var(--primary)' : 'var(--border-color)'}`,
+                        borderRadius: 'var(--border-radius-sm)',
+                        padding: '14px',
+                        cursor: 'pointer',
+                        boxShadow: selectedLevel === cl
+                          ? '0 5px 0 var(--border-color), 0 0 10px rgba(108, 92, 231, 0.3)'
+                          : '0 4px 0 var(--border-color)',
+                        transform: selectedLevel === cl ? 'translateY(-2px)' : 'none',
+                        transition: 'transform 0.1s, border-color 0.1s'
+                      }}
+                    >
+                      <span style={{ fontSize: '26px' }}>{CLASS_EMOJI[cl]}</span>
+                      <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-dark)', marginTop: '4px' }}>{meta.title}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: '600' }}>{CLASS_SUB[cl]}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
