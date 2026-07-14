@@ -11,6 +11,7 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
+  const [infoMsg, setInfoMsg] = useState<string | null>(null);
 
   const supabaseConfigured = isSupabaseConfigured();
 
@@ -23,6 +24,7 @@ export default function Auth() {
   useEffect(() => {
     clearError();
     setLocalError(null);
+    setInfoMsg(null);
   }, [isRegister, clearError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,6 +43,10 @@ export default function Auth() {
 
     if (isRegister) {
       await signUp(email, password);
+      // З увімкненим Confirm email сесія не створюється одразу — треба підтвердити пошту.
+      if (!useAuthStore.getState().error) {
+        setInfoMsg('Ми надіслали лист на твою пошту 📬 Підтверди email за посиланням і повертайся, щоб увійти.');
+      }
     } else {
       await signIn(email, password);
     }
@@ -143,6 +149,23 @@ export default function Auth() {
               boxShadow: '0 3px 0 var(--border-color)'
             }}>
               ⚠️ {localError || error}
+            </div>
+          )}
+
+          {/* Успіх реєстрації (Confirm email увімкнено) */}
+          {infoMsg && (
+            <div style={{
+              background: '#E9FBEF',
+              border: '3px solid #22C55E',
+              color: '#15803D',
+              padding: '12px',
+              borderRadius: 'var(--border-radius-sm)',
+              fontSize: '12px',
+              fontWeight: '800',
+              lineHeight: '1.4',
+              boxShadow: '0 3px 0 var(--border-color)'
+            }}>
+              {infoMsg}
             </div>
           )}
 
