@@ -206,6 +206,16 @@ export default function Hub() {
 
                 {/* права колонка */}
                 <div className="rcol">
+                  <div className="panel" style={{ background: 'var(--c-primary-soft)', border: '1px solid #D9D2FF' }}>
+                    <h3 style={{ color: 'var(--c-primary)' }}>🗓️ Мій день</h3>
+                    <p style={{ color: 'var(--c-mut)', fontWeight: 600, fontSize: 13, margin: '0 0 14px' }}>
+                      План завдань на сьогодні — ігри й повторення.
+                    </p>
+                    <button className="g-btn primary" onClick={() => navigate('/day')}>
+                      Відкрити план дня
+                    </button>
+                  </div>
+
                   {!placementDone && (
                     <div className="panel" style={{ background: 'var(--c-primary-soft)', border: '1px solid #D9D2FF' }}>
                       <h3 style={{ color: 'var(--c-primary)' }}>🎯 Визначити рівень</h3>

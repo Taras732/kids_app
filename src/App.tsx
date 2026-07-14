@@ -8,6 +8,7 @@ import Hub from '@/pages/Hub';
 import ParentDashboard from '@/pages/ParentDashboard';
 import GamePlayer from '@/pages/GamePlayer';
 import Placement from '@/pages/Placement';
+import DayPlan from '@/pages/DayPlan';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 // Легасі-сторінки (Welcome/Auth/Onboarding/...) поки в телефонній рамці.
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/parent" element={<PhoneFrame><ParentDashboard /></PhoneFrame>} />
         <Route path="/hub" element={<WebShell><Hub /></WebShell>} />
         <Route path="/placement" element={<WebShell><Placement /></WebShell>} />
+        <Route path="/day" element={<WebShell><DayPlan /></WebShell>} />
         <Route path="/game/:id" element={<WebShell><GamePlayer /></WebShell>} />
       </Routes>
     </Router>
