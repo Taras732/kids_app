@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { countCompleted, findAutoCompletableGameItemIds, sortPlanItems } from './dayplan-core';
+import {
+  countCompleted,
+  findAutoCompletableGameItemIds,
+  isOfflinePlanItem,
+  partitionPlanItems,
+  sortPlanItems,
+} from './dayplan-core';
 import type { DailyPlanItem } from '@/school/types';
 
 function item(over: Partial<DailyPlanItem> = {}): DailyPlanItem {
@@ -73,5 +79,31 @@ describe('findAutoCompletableGameItemIds', () => {
   it('немає запису прогресу для гри → не позначає', () => {
     const items = [item({ id: 'i1', kind: 'game', ref_id: 'gX', status: 'pending' })];
     expect(findAutoCompletableGameItemIds(items, {}, DATE)).toEqual([]);
+  });
+});
+
+describe('partitionPlanItems (E2)', () => {
+  it('isOfflinePlanItem: offline-типи → true, екранні → false', () => {
+    expect(isOfflinePlanItem('workbook')).toBe(true);
+    expect(isOfflinePlanItem('worksheet')).toBe(true);
+    expect(isOfflinePlanItem('activity')).toBe(true);
+    expect(isOfflinePlanItem('game')).toBe(false);
+    expect(isOfflinePlanItem('review')).toBe(false);
+  });
+
+  it('розділяє на screen (game/review) та offline, зберігаючи порядок', () => {
+    const items = [
+      item({ id: 'a', kind: 'game' }),
+      item({ id: 'b', kind: 'activity' }),
+      item({ id: 'c', kind: 'review' }),
+      item({ id: 'd', kind: 'workbook' }),
+    ];
+    const { screen, offline } = partitionPlanItems(items);
+    expect(screen.map((i) => i.id)).toEqual(['a', 'c']);
+    expect(offline.map((i) => i.id)).toEqual(['b', 'd']);
+  });
+
+  it('порожній список → дві порожні групи', () => {
+    expect(partitionPlanItems([])).toEqual({ screen: [], offline: [] });
   });
 });

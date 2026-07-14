@@ -2,12 +2,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
-import { fetchAttempts, fetchMastery, fetchSkills } from '@/school/db';
+import { fetchAttempts, fetchDailyPlan, fetchMastery, fetchOfflineTasks, fetchSkills } from '@/school/db';
 import { computeStreakDays, groupProgressBySubject, recentActivities } from '@/school/progress-core';
 import { getWeeklyReport } from '@/school/report';
+import { getOrCreateTodayPlan } from '@/school/planner';
+import { completeOfflineTask } from '@/school/offline';
+import { describeOfflineTask } from '@/school/offline-core';
+import { countCompleted, partitionPlanItems, sortPlanItems } from '@/pages/dayplan-core';
+import { getGame } from '@/games/registry';
 import type { WeeklyReport as WeeklyReportData } from '@/school/report-core';
 import WeeklyReportCard from '@/components/WeeklyReport';
-import type { Attempt, Skill, SkillMastery } from '@/school/types';
+import type { Attempt, DailyPlan, DailyPlanItem, OfflineTask, Skill, SkillMastery } from '@/school/types';
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
@@ -23,6 +28,9 @@ export default function ParentDashboard() {
   const [masteryRows, setMasteryRows] = useState<SkillMastery[]>([]);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [weekly, setWeekly] = useState<WeeklyReportData | null>(null);
+  const [todayPlan, setTodayPlan] = useState<{ plan: DailyPlan; items: DailyPlanItem[] } | null>(null);
+  const [offlineById, setOfflineById] = useState<Record<string, OfflineTask>>({});
+  const [planBusy, setPlanBusy] = useState(false);
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
 
@@ -37,19 +45,23 @@ export default function ParentDashboard() {
     let cancelled = false;
     setProgressLoading(true);
     setProgressError(null);
-    const weekEnd = new Date().toISOString().slice(0, 10);
+    const today = new Date().toISOString().slice(0, 10);
     Promise.all([
       fetchSkills(),
       fetchMastery(selectedProfileId),
       fetchAttempts(selectedProfileId),
-      getWeeklyReport(selectedProfileId, weekEnd),
+      getWeeklyReport(selectedProfileId, today),
+      fetchDailyPlan(selectedProfileId, today),
+      fetchOfflineTasks(),
     ])
-      .then(([skillsRes, masteryRes, attemptsRes, weeklyRes]) => {
+      .then(([skillsRes, masteryRes, attemptsRes, weeklyRes, planRes, offlineRes]) => {
         if (cancelled) return;
         setSkills(skillsRes);
         setMasteryRows(masteryRes);
         setAttempts(attemptsRes);
         setWeekly(weeklyRes);
+        setTodayPlan(planRes);
+        setOfflineById(Object.fromEntries(offlineRes.map((t) => [t.id, t])));
       })
       .catch(() => {
         if (!cancelled) setProgressError('Не вдалося завантажити прогрес.');
@@ -84,6 +96,36 @@ export default function ParentDashboard() {
       await deleteProfile(targetProfileId, user?.id);
       setConfirmDeleteType('none');
       setTargetProfileId(null);
+    }
+  };
+
+  // ---- Керування планом дня (E2) ----
+  const handleCreatePlan = async () => {
+    if (!selectedProfileId) return;
+    const today = new Date().toISOString().slice(0, 10);
+    setPlanBusy(true);
+    try {
+      setTodayPlan(await getOrCreateTodayPlan(selectedProfileId, today));
+    } catch {
+      setProgressError('Не вдалося створити план дня.');
+    } finally {
+      setPlanBusy(false);
+    }
+  };
+
+  const handleVerifyOffline = async (itemId: string) => {
+    setPlanBusy(true);
+    try {
+      await completeOfflineTask(itemId);
+      setTodayPlan((prev) =>
+        prev
+          ? { ...prev, items: prev.items.map((it) => (it.id === itemId ? { ...it, status: 'done' } : it)) }
+          : prev,
+      );
+    } catch {
+      setProgressError('Не вдалося підтвердити виконання.');
+    } finally {
+      setPlanBusy(false);
     }
   };
 
@@ -263,6 +305,111 @@ export default function ParentDashboard() {
                   </div>
                 )}
               </>
+            )}
+          </div>
+        )}
+
+        {/* План на сьогодні (E2) */}
+        {selectedProfile && (
+          <div style={{ marginTop: '28px' }}>
+            <div className="font-display" style={{ fontSize: '11px', color: 'var(--text-dark)', marginBottom: '12px' }}>
+              ПЛАН НА СЬОГОДНІ 🗓️
+            </div>
+
+            {!todayPlan ? (
+              <div className="card-clay" style={{ padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '12px' }}>
+                  Дитина ще не починала «Мій день» сьогодні.
+                </div>
+                <button
+                  className="btn-clay"
+                  onClick={handleCreatePlan}
+                  disabled={planBusy}
+                  style={{ padding: '8px 16px', fontSize: '12px' }}
+                >
+                  {planBusy ? 'Створення…' : 'Створити план дня'}
+                </button>
+              </div>
+            ) : (
+              (() => {
+                const items = sortPlanItems(todayPlan.items);
+                const { screen, offline } = partitionPlanItems(items);
+                return (
+                  <>
+                    <div
+                      className="card-clay"
+                      style={{ padding: '14px 16px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    >
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>Виконано</div>
+                      <div className="font-display" style={{ fontSize: '16px', color: 'var(--primary)' }}>
+                        {countCompleted(items)}/{items.length}
+                      </div>
+                    </div>
+
+                    {items.length === 0 && (
+                      <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
+                        План порожній.
+                      </div>
+                    )}
+
+                    {screen.map((it) => {
+                      const game = it.ref_id ? getGame(it.ref_id) : undefined;
+                      const done = it.status !== 'pending';
+                      return (
+                        <div
+                          key={it.id}
+                          className="card-clay"
+                          style={{ padding: '12px 16px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}
+                        >
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', minWidth: 0 }}>
+                            {it.kind === 'review' ? '🔁 ' : '🎮 '}
+                            {game?.title ?? 'Гра'}
+                          </div>
+                          <div style={{ fontSize: '12px', fontWeight: 800, flexShrink: 0, color: done ? 'var(--success-dark)' : 'var(--text-muted)' }}>
+                            {done ? '✅ зроблено' : 'очікує'}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {offline.map((it) => {
+                      const task = it.ref_id ? offlineById[it.ref_id] : undefined;
+                      const view = task ? describeOfflineTask(task) : null;
+                      const done = it.status !== 'pending';
+                      return (
+                        <div
+                          key={it.id}
+                          className="card-clay"
+                          style={{ padding: '12px 16px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}
+                        >
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)' }}>
+                              {view?.icon ?? '📝'} {task?.title ?? 'Офлайн-завдання'}
+                            </div>
+                            {view?.summary && (
+                              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px' }}>
+                                {view.summary}
+                              </div>
+                            )}
+                          </div>
+                          {done ? (
+                            <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--success-dark)', flexShrink: 0 }}>✅ зроблено</div>
+                          ) : (
+                            <button
+                              className="btn-clay"
+                              onClick={() => handleVerifyOffline(it.id)}
+                              disabled={planBusy}
+                              style={{ padding: '6px 12px', fontSize: '11px', flexShrink: 0 }}
+                            >
+                              Підтвердити
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </>
+                );
+              })()
             )}
           </div>
         )}

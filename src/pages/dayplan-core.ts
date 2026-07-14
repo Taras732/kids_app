@@ -1,7 +1,7 @@
 // Чиста логіка «Мій день» (B2): сортування кроків плану + евристика автопозначення
 // ігор/повторень «зроблено». Без IO/React — юніт-тестується напряму (vitest).
 
-import type { DailyPlanItem, DailyPlanItemStatus } from '@/school/types';
+import type { DailyPlanItem, DailyPlanItemStatus, DailyPlanItemKind } from '@/school/types';
 
 /**
  * Захисне сортування кроків плану за sort. Для щойно створеного плану
@@ -45,4 +45,25 @@ export function findAutoCompletableGameItemIds(
     .filter((i) => (i.kind === 'game' || i.kind === 'review') && i.status === 'pending' && i.ref_id)
     .filter((i) => (progress[i.ref_id as string]?.updated_at ?? '').slice(0, 10) === date)
     .map((i) => i.id);
+}
+
+/** Офлайн-кроки плану — виконуються поза екраном (workbook/worksheet/activity). */
+const OFFLINE_KINDS: readonly DailyPlanItemKind[] = ['workbook', 'worksheet', 'activity'];
+
+export function isOfflinePlanItem(kind: DailyPlanItemKind): boolean {
+  return OFFLINE_KINDS.includes(kind);
+}
+
+/**
+ * Розділити кроки плану на екранні (game/review — грає дитина) та офлайн
+ * (workbook/worksheet/activity — виконуються на папері, підтверджує батько у
+ * кабінеті, E2). Порядок усередині кожної групи зберігається.
+ */
+export function partitionPlanItems<T extends { kind: DailyPlanItemKind }>(
+  items: T[],
+): { screen: T[]; offline: T[] } {
+  const screen: T[] = [];
+  const offline: T[] = [];
+  for (const it of items) (isOfflinePlanItem(it.kind) ? offline : screen).push(it);
+  return { screen, offline };
 }
