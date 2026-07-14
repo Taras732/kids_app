@@ -342,35 +342,34 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         const targetProfileId = idMap[item.profileId] || item.profileId;
 
         if (item.type === 'create_profile') {
-          // 1. Check if profile already exists in DB (maybe from previous run)
+          // 1. Уже в БД (напр. попередній запуск)? Перевіряємо за ЄДИНИМ id.
           const { data: existing } = await supabase
             .from('profiles')
             .select('id')
-            .eq('nickname', item.payload.nickname)
+            .eq('id', targetProfileId)
             .limit(1);
 
           if (existing && existing.length > 0) {
-            idMap[item.profileId] = existing[0].id;
+            idMap[item.profileId] = targetProfileId;
             continue;
           }
 
-          // Insert into Supabase
-          const { data, error } = await supabase
+          // Insert у Supabase з ТИМ САМИМ локальним id (валідний UUID), щоб id
+          // профілю був ЄДИНИЙ у localStorage і БД. Інакше запити кабінету/плану/
+          // mastery по локальному id б'ють по неіснуючому DB-рядку → порожньо.
+          const { error } = await supabase
             .from('profiles')
             .insert({
+              id: targetProfileId,
               parent_id: parentUserId,
               nickname: item.payload.nickname,
               age_group: item.payload.age_group,
               avatar_id: item.payload.avatar_id,
               class_level: item.payload.class_level ?? null
-            })
-            .select('id')
-            .single();
+            });
 
           if (error) throw error;
-          if (data) {
-            idMap[item.profileId] = data.id;
-          }
+          idMap[item.profileId] = targetProfileId;
         } else if (item.type === 'update_progress') {
           // Update progress
           const { error } = await supabase

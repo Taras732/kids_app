@@ -166,16 +166,19 @@ export default function GameShell({ game, level, classLevel, profileId, onExit }
     // ігор зі skillIds на цій складності і для синхронізованих профілів
     // (гість не має рядка profiles у БД → attempt впав би на FK). Fire-and-forget:
     // не блокує екран результату й не ламає гру, якщо офлайн.
-    const skillIds = game.skillIds?.[state.difficulty];
-    if (user?.id && skillIds && skillIds.length > 0) {
+    // Пишемо результат гри у навчальне ядро для аналітики кабінету — для ВСІХ
+    // ігор (не лише math зі skillIds) і для будь-якого синхронізованого профілю
+    // (гість = анонім-сесія теж має user.id). recordGameResult сам вирішує:
+    // mastery оновлюється лише де є skillIds, інакше — загальний attempt.
+    if (user?.id) {
       recordGameResult({
         profileId,
-        skillIds,
+        skillIds: game.skillIds?.[state.difficulty] ?? [],
         gameId: game.id,
         difficulty: state.difficulty,
         correct: Math.max(0, total - state.mistakes),
         total,
-      }).catch((e) => console.warn('[mastery] update skipped:', e));
+      }).catch((e) => console.warn('[mastery] запис пропущено:', e));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.finished]);

@@ -37,10 +37,23 @@ export interface GameResult {
  * Кидає при помилках БД — викликати у fire-and-forget з .catch (не блокувати UI/гру).
  */
 export async function recordGameResult(r: GameResult): Promise<void> {
-  if (r.skillIds.length === 0) return;
-
   const rate = attemptRate(r.correct, r.total);
   const nowIso = new Date().toISOString();
+
+  // Гра без skill-мапінгу (не-math): пишемо загальний attempt для аналітики
+  // кабінету («останні заняття»), без оновлення mastery/frontier.
+  if (r.skillIds.length === 0) {
+    await insertAttempt({
+      profile_id: r.profileId,
+      skill_id: null,
+      game_id: r.gameId,
+      difficulty: String(r.difficulty),
+      correct: r.correct,
+      total: r.total,
+      duration_sec: r.durationSec ?? null,
+    });
+    return;
+  }
 
   const existing = await fetchMastery(r.profileId);
   const byId = new Map<string, SkillMastery>(existing.map((m) => [m.skill_id, m]));
