@@ -111,7 +111,7 @@ export default function Welcome() {
           padding: '0 12px',
           fontWeight: '600'
         }}>
-          Граємося та вчимо математику! Прогресивні завдання для учнів <span style={{ color: 'var(--primary-dark)', fontWeight: '800' }}>3-го класу</span> за програмою НУШ.
+          Граємося та вчимося! Завдання, що ростуть разом із дитиною — від <span style={{ color: 'var(--primary-dark)', fontWeight: '800' }}>дошкілля до 4 класу</span> за програмою НУШ.
         </div>
         
         <button 

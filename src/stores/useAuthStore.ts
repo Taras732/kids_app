@@ -10,6 +10,7 @@ interface AuthState {
   signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInGuest: () => Promise<void>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   clearError: () => void;
@@ -44,13 +45,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signInWithGoogle: async () => {
     set({ loading: true, error: null });
-    // На localhost лишаємо поточний origin (dev), у проді — завжди канонічний
-    // домен, щоб вхід зі старих/будь-яких URL не падав на 404 після OAuth.
-    const origin = window.location.origin;
-    const isLocalDev = origin.includes('localhost') || origin.includes('127.0.0.1');
-    const redirectTo = isLocalDev
-      ? origin + '/onboarding'
-      : 'https://shkolyaryk.kuznya.studio/onboarding';
+    // Redirect на ПОТОЧНИЙ origin — щоб вхід працював на будь-якому домені
+    // (localhost, dev, prod), а не лише на одному захардкодженому.
+    // ⚠️ Кожен домен має бути доданий у Supabase → Auth → URL Configuration →
+    // Redirect URLs, інакше OAuth поверне 404 після входу.
+    const redirectTo = window.location.origin + '/onboarding';
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -59,6 +58,21 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
     if (error) {
       set({ error: error.message, loading: false });
+    }
+  },
+
+  // Гостьовий вхід — анонімна сесія Supabase, щоб прогрес дитини писався в
+  // реальну БД без реєстрації. Викликається явно з екрана Auth (кнопка «гість»).
+  // Якщо anonymous вимкнено — лишаємось без user (guest-режим на localStorage),
+  // флоу все одно проходить.
+  signInGuest: async () => {
+    set({ loading: true, error: null });
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) {
+      console.warn('[auth] анонімний вхід недоступний, guest-режим:', error.message);
+      set({ session: null, user: null, loading: false });
+    } else {
+      set({ session: data.session, user: data.user, loading: false });
     }
   },
 
@@ -96,24 +110,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ session, user: session?.user ?? null });
     });
 
-    // 2. Розв'язати початковий стан: наявна сесія АБО анонімний вхід.
-    //    loading:false лише коли це реально завершилось.
+    // 2. Розв'язати початковий стан із наявної сесії. БЕЗ авто-входу — вхід і
+    //    гостьовий режим тепер ЯВНІ (через екран Auth). Так екран входу/реєстрації
+    //    реально показується, а не скіпається авто-анонімним user.
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        set({ session, user: session.user, loading: false });
-        return;
-      }
-      // TODO(auth): поки вхід/реєстрація відкладені — анонімний вхід Supabase,
-      // щоб дані писались у реальну БД без екрана входу. Якщо anonymous sign-ins
-      // вимкнено — тихо лишаємось у guest-режимі (localStorage).
-      const { data, error } = await supabase.auth.signInAnonymously();
-      if (error) {
-        console.warn('[auth] анонімний вхід недоступний, guest-режим:', error.message);
-        set({ session: null, user: null, loading: false });
-      } else {
-        set({ session: data.session, user: data.user, loading: false });
-      }
+      set({ session, user: session?.user ?? null, loading: false });
     })();
 
     return () => {

@@ -5,7 +5,7 @@ import { isSupabaseConfigured } from '@/utils/supabase';
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { user, loading, error, signIn, signUp, signInWithGoogle, clearError } = useAuthStore();
+  const { user, loading, error, signIn, signUp, signInWithGoogle, signInGuest, clearError } = useAuthStore();
   
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
@@ -185,14 +185,15 @@ export default function Auth() {
             <span style={{ fontSize: '18px' }}>🌐</span> Увійти через Google
           </button>
 
-          {/* Guest Auth */}
+          {/* Guest Auth — явний анонімний вхід (прогрес пишеться в БД без реєстрації) */}
           <button
             type="button"
-            onClick={() => navigate('/role')}
+            onClick={async () => { await signInGuest(); navigate('/role'); }}
+            disabled={loading}
             className="btn-clay accent"
             style={{ width: '100%', marginTop: '8px' }}
           >
-            🐣 Увійти як Гість (Офлайн)
+            🐣 Продовжити як Гість
           </button>
         </div>
       </div>

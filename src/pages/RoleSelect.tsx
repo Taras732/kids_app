@@ -8,7 +8,8 @@ const ROLES = [
     sub: 'Грати, вчитися й рости разом із другом-помічником!',
     color: '#EAF6FF',
     border: '#3B9EF0',
-    to: '/onboarding'
+    to: '/onboarding',
+    disabled: false
   },
   {
     id: 'parent',
@@ -17,16 +18,18 @@ const ROLES = [
     sub: 'Бачити прогрес дитини й керувати профілями.',
     color: '#EAFBF0',
     border: '#22C55E',
-    to: '/parent'
+    to: '/parent',
+    disabled: false
   },
   {
     id: 'teacher',
     emoji: '👩‍🏫',
     title: 'Вчитель',
-    sub: 'Клас, завдання та успіхи учнів (скоро).',
+    sub: 'Клас, завдання та успіхи учнів — скоро!',
     color: '#F3EEFF',
     border: '#6C5CE7',
-    to: '/parent'
+    to: '/parent',
+    disabled: true
   }
 ];
 
@@ -34,6 +37,7 @@ export default function RoleSelect() {
   const navigate = useNavigate();
 
   const pick = (role: typeof ROLES[number]) => {
+    if (role.disabled) return;
     try { localStorage.setItem('shk_role', role.id); } catch { /* ignore */ }
     navigate(role.to);
   };
@@ -62,6 +66,7 @@ export default function RoleSelect() {
             key={r.id}
             type="button"
             onClick={() => pick(r)}
+            disabled={r.disabled}
             className="card-clay"
             style={{
               background: r.color,
@@ -72,7 +77,8 @@ export default function RoleSelect() {
               alignItems: 'center',
               gap: '16px',
               padding: '18px',
-              cursor: 'pointer'
+              cursor: r.disabled ? 'not-allowed' : 'pointer',
+              opacity: r.disabled ? 0.55 : 1
             }}
           >
             <div style={{

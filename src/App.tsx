@@ -32,10 +32,9 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        {/* TODO(auth): тимчасово / веде одразу на дашборд (вхід/реєстрація відкладені).
-            Повернути <Welcome /> на "/", коли візьмемось за auth. */}
-        <Route path="/" element={<Navigate to="/hub" replace />} />
-        <Route path="/welcome" element={<PhoneFrame><Welcome /></PhoneFrame>} />
+        {/* Вхід у продукт: Welcome → Auth → RoleSelect → Onboarding → Placement → Hub. */}
+        <Route path="/" element={<PhoneFrame><Welcome /></PhoneFrame>} />
+        <Route path="/welcome" element={<Navigate to="/" replace />} />
         <Route path="/auth" element={<PhoneFrame><Auth /></PhoneFrame>} />
         <Route path="/role" element={<PhoneFrame><RoleSelect /></PhoneFrame>} />
         <Route path="/onboarding" element={<PhoneFrame><Onboarding /></PhoneFrame>} />
@@ -45,6 +44,8 @@ export default function App() {
         <Route path="/placement" element={<WebShell><Placement /></WebShell>} />
         <Route path="/day" element={<WebShell><DayPlan /></WebShell>} />
         <Route path="/game/:id" element={<WebShell><GamePlayer /></WebShell>} />
+        {/* Невідомий URL → на головну (без білого екрана). */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

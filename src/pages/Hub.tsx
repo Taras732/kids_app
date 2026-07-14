@@ -23,19 +23,21 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
 export default function Hub() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuthStore();
-  const { activeProfile, progress, loadProfiles, createProfile } = useProfileStore();
+  const { activeProfile, progress, loadProfiles } = useProfileStore();
   const [view, setView] = useState<'home' | 'awards'>('home');
 
   useEffect(() => {
     if (authLoading) return;
     if (!activeProfile) {
-      loadProfiles(user?.id).then(async () => {
+      loadProfiles(user?.id).then(() => {
+        // Немає профілю → не підставляємо фейкового «Демо», а ведемо в онбординг
+        // (вибір імені/класу/аватара + діагностика рівня).
         if (!useProfileStore.getState().activeProfile) {
-          await createProfile('Демо', '5-6', 'rabbit', user?.id);
+          navigate('/onboarding');
         }
       });
     }
-  }, [authLoading, activeProfile, user, loadProfiles, createProfile]);
+  }, [authLoading, activeProfile, user, loadProfiles, navigate]);
 
   const pid = activeProfile?.id ?? '';
   const activity = useMemo(() => (pid ? getActivitySummary(pid) : null), [pid, view]);
