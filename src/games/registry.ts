@@ -16,9 +16,12 @@ import recognizeDigit from './recognize-digit';
 import measures from './measures';
 import numberTiles from './number-tiles';
 import wordProblems from './word-problems';
+import perimeterArea from './perimeter-area';
 // --- Мова ---
 import lettersFind from './letters-find';
 import syllableBuild from './syllable-build';
+import readingSpeed from './reading-speed';
+import grammarParts from './grammar-parts';
 // --- Англійська ---
 import lettersFindEn from './letters-find-en';
 import englishWordPicture from './english-word-picture';
@@ -29,6 +32,7 @@ import waterStates from './water-states';
 import sinkFloat from './sink-float';
 import animalsHabitat from './animals-habitat';
 import plantGrow from './plant-grow';
+import seasonsWeather from './seasons-weather';
 // --- Логіка ---
 import logicSequences from './logic-sequences';
 import sortingGame from './sorting-game';
@@ -54,13 +58,13 @@ import tapTheDot from './tap-the-dot';
 export const GAMES: GameDefinition[] = [
   // Математика
   counting, addition, compare, mathExamples, timesTables, mathCompare,
-  columnArithmetic, fractionsCompare, clockTime, moneyBasics, recognizeDigit, measures, numberTiles, wordProblems,
+  columnArithmetic, fractionsCompare, clockTime, moneyBasics, recognizeDigit, measures, numberTiles, wordProblems, perimeterArea,
   // Мова
-  lettersFind, syllableBuild,
+  lettersFind, syllableBuild, readingSpeed, grammarParts,
   // Англійська
   lettersFindEn, englishWordPicture,
   // Наука
-  colorsFind, shapes, waterStates, sinkFloat, animalsHabitat, plantGrow,
+  colorsFind, shapes, waterStates, sinkFloat, animalsHabitat, plantGrow, seasonsWeather,
   // Логіка
   logicSequences, sortingGame, sudoku, magicSquare,
   // Пам'ять
