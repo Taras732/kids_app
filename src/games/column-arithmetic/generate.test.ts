@@ -73,3 +73,74 @@ describe('column-arithmetic: generate', () => {
     }
   });
 });
+
+describe('column-arithmetic: generate — класовий масштаб (G2b, classLevel)', () => {
+  it('обрій зростає grade1 < grade2 < grade3 < grade4 (за макс. значенням a на difficulty=3)', () => {
+    const maxObserved: Record<'grade1' | 'grade2' | 'grade3' | 'grade4', number> = {
+      grade1: 0,
+      grade2: 0,
+      grade3: 0,
+      grade4: 0,
+    };
+    for (const cl of ['grade1', 'grade2', 'grade3', 'grade4'] as const) {
+      for (let i = 0; i < 30; i++) {
+        const { rounds } = generate(3, 'L3', cl);
+        for (const r of rounds) {
+          maxObserved[cl] = Math.max(maxObserved[cl], r.payload.a, r.payload.b);
+        }
+      }
+    }
+    expect(maxObserved.grade1).toBeLessThanOrEqual(50);
+    expect(maxObserved.grade2).toBeLessThanOrEqual(99);
+    expect(maxObserved.grade3).toBeLessThanOrEqual(999);
+    expect(maxObserved.grade4).toBeLessThanOrEqual(9999);
+    expect(maxObserved.grade2).toBeGreaterThan(maxObserved.grade1);
+    expect(maxObserved.grade3).toBeGreaterThan(maxObserved.grade2);
+    expect(maxObserved.grade4).toBeGreaterThan(maxObserved.grade3);
+  });
+
+  it('grade1 difficulty=1 — без переносу, без віднімання, у межах 50', () => {
+    for (let i = 0; i < 25; i++) {
+      const { rounds } = generate(1, 'L3', 'grade1');
+      for (const r of rounds) {
+        expect(r.payload.op).toBe('+');
+        expect(r.payload.a).toBeLessThanOrEqual(50);
+        expect(r.payload.b).toBeLessThanOrEqual(50);
+        expect(r.answer).toBe(r.payload.a + r.payload.b);
+      }
+    }
+  });
+
+  it('grade4 difficulty=2-3 — 4-значні числа (>=1000), перенос і віднімання', () => {
+    let saw4Digit = false;
+    for (let i = 0; i < 20; i++) {
+      const { rounds } = generate(3, 'L3', 'grade4');
+      for (const r of rounds) {
+        expect(r.payload.a).toBeLessThanOrEqual(9999);
+        if (r.payload.a >= 1000) saw4Digit = true;
+        expect(r.answer).toBe(r.payload.op === '+' ? r.payload.a + r.payload.b : r.payload.a - r.payload.b);
+        expect(r.answer).toBeGreaterThanOrEqual(0);
+      }
+    }
+    expect(saw4Digit).toBe(true);
+  });
+
+  it('grade3 difficulty=1 — 3-значні числа, без переносу (a у сотнях)', () => {
+    for (let i = 0; i < 20; i++) {
+      const { rounds } = generate(1, 'L3', 'grade3');
+      for (const r of rounds) {
+        expect(r.payload.a).toBeGreaterThanOrEqual(100);
+        expect(r.payload.a).toBeLessThanOrEqual(999);
+      }
+    }
+  });
+
+  it('classLevel не задано — поведінка ідентична попередній (fallback через gradeBandFor)', () => {
+    const withUndefined = generate(2, 'L3', undefined);
+    const withoutParam = generate(2, 'L3');
+    for (const r of [...withUndefined.rounds, ...withoutParam.rounds]) {
+      expect(r.payload.a).toBeGreaterThanOrEqual(100);
+      expect(r.payload.a).toBeLessThanOrEqual(600);
+    }
+  });
+});

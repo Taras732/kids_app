@@ -3,7 +3,10 @@ import { PromptCard, ChoiceGrid } from '../shared/ui';
 import { generate, type Payload, type Sign } from './generate';
 
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, Sign>) {
-  const { left, right } = round.payload;
+  const { left, right, leftDisplay, rightDisplay } = round.payload;
+  const leftText = leftDisplay ?? String(left);
+  const rightText = rightDisplay ?? String(right);
+  const sideFontSize = (text: string) => (text.length > 3 ? 32 : 56);
   const options = (['<', '=', '>'] as Sign[]).map((s) => ({
     value: s,
     node: <span style={{ fontSize: 36 }}>{s}</span>,
@@ -21,8 +24,15 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
             margin: '10px 0',
           }}
         >
-          <span style={{ fontSize: 56, fontWeight: 900, color: 'var(--c-ink)', fontFamily: 'var(--font-round)' }}>
-            {left}
+          <span
+            style={{
+              fontSize: sideFontSize(leftText),
+              fontWeight: 900,
+              color: 'var(--c-ink)',
+              fontFamily: 'var(--font-round)',
+            }}
+          >
+            {leftText}
           </span>
           <span
             style={{
@@ -40,8 +50,15 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
           >
             ?
           </span>
-          <span style={{ fontSize: 56, fontWeight: 900, color: 'var(--c-ink)', fontFamily: 'var(--font-round)' }}>
-            {right}
+          <span
+            style={{
+              fontSize: sideFontSize(rightText),
+              fontWeight: 900,
+              color: 'var(--c-ink)',
+              fontFamily: 'var(--font-round)',
+            }}
+          >
+            {rightText}
           </span>
         </div>
       </PromptCard>
