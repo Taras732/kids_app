@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
-import { getGame, profileLevel } from '@/games/registry';
+import { getGame, profileLevel, profileClass } from '@/games/registry';
 import GameShell from '@/games/GameShell';
 
 function Centered({ children }: { children: React.ReactNode }) {
@@ -59,6 +59,7 @@ export default function GamePlayer() {
       key={game.id}
       game={game}
       level={profileLevel(activeProfile)}
+      classLevel={profileClass(activeProfile)}
       profileId={activeProfile.id}
       onExit={() => navigate('/hub')}
     />

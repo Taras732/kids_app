@@ -175,8 +175,13 @@ export interface GameDefinition<TPayload = any, TAnswer = any> {
    * складності (BRIEF SHK-A3). Порожньо/відсутнє для предметів без seed skill-graph.
    */
   skillIds?: Partial<Record<Difficulty, string[]>>;
-  /** Згенерувати набір раундів для складності + рівня профілю. */
-  generate: (difficulty: Difficulty, level: ProfileLevel) => LevelData<TPayload, TAnswer>;
+  /**
+   * Згенерувати набір раундів для складності + рівня профілю.
+   * `classLevel` (G2) — навчальний клас дитини для двовісної складності
+   * (клас × difficulty). Опційний: старі одновісні ігри його ігнорують,
+   * двовісні math-ігри масштабують «математичний обрій» під клас.
+   */
+  generate: (difficulty: Difficulty, level: ProfileLevel, classLevel?: ClassLevel) => LevelData<TPayload, TAnswer>;
   /** Перевірити відповідь. Якщо не задано — порівняння з round.answer. */
   isCorrect?: (round: Round<TPayload, TAnswer>, answer: TAnswer) => boolean;
   Component: ComponentType<GameComponentProps<TPayload, TAnswer>>;

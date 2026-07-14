@@ -7,6 +7,7 @@ import { recordGameResult } from '@/school/mastery';
 import {
   type GameDefinition,
   type ProfileLevel,
+  type ClassLevel,
   type Difficulty,
   type AnswerState,
   type LevelData,
@@ -81,11 +82,13 @@ function reducer(state: ShellState, action: Action): ShellState {
 interface GameShellProps {
   game: GameDefinition;
   level: ProfileLevel;
+  /** Навчальний клас дитини (G2) — для двовісних генераторів. */
+  classLevel: ClassLevel;
   profileId: string;
   onExit: () => void;
 }
 
-export default function GameShell({ game, level, profileId, onExit }: GameShellProps) {
+export default function GameShell({ game, level, classLevel, profileId, onExit }: GameShellProps) {
   const { user } = useAuthStore();
   const { progress, updateProgress } = useProfileStore();
 
@@ -98,7 +101,7 @@ export default function GameShell({ game, level, profileId, onExit }: GameShellP
   }, []);
 
   const [state, dispatch] = useReducer(reducer, undefined, (): ShellState => {
-    const levelData = game.generate(prevUnlocked, level);
+    const levelData = game.generate(prevUnlocked, level, classLevel);
     return {
       levelData,
       difficulty: prevUnlocked,
@@ -279,7 +282,7 @@ export default function GameShell({ game, level, profileId, onExit }: GameShellP
               className="g-btn primary"
               onClick={() => {
                 const nextDiff = (state.difficulty + 1) as Difficulty;
-                dispatch({ type: 'RESET', levelData: game.generate(nextDiff, level), difficulty: nextDiff });
+                dispatch({ type: 'RESET', levelData: game.generate(nextDiff, level, classLevel), difficulty: nextDiff });
               }}
             >
               Далі складніше ⬆️
@@ -288,7 +291,7 @@ export default function GameShell({ game, level, profileId, onExit }: GameShellP
           <button
             className="g-btn soft"
             onClick={() =>
-              dispatch({ type: 'RESET', levelData: game.generate(state.difficulty, level), difficulty: state.difficulty })
+              dispatch({ type: 'RESET', levelData: game.generate(state.difficulty, level, classLevel), difficulty: state.difficulty })
             }
           >
             Зіграти ще раз 🔁
