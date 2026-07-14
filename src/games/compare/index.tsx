@@ -1,37 +1,6 @@
-import type { GameDefinition, GameComponentProps, Difficulty, LevelData, Round } from '../types';
-import { PromptCard, ChoiceGrid, randInt } from '../shared/ui';
-
-interface Payload {
-  l: number;
-  r: number;
-  emoji: string;
-}
-
-const EMOJI = ['🍎', '⭐', '🎈', '🐤', '🍓'];
-
-function maxFor(d: Difficulty): number {
-  return d === 1 ? 6 : d === 2 ? 9 : 12;
-}
-
-function generate(difficulty: Difficulty): LevelData<Payload, number> {
-  const max = maxFor(difficulty);
-  const rounds: Round<Payload, number>[] = [];
-  for (let i = 0; i < 5; i++) {
-    let l = randInt(1, max);
-    let r = randInt(1, max);
-    let guard = 0;
-    while (l === r && guard < 20) {
-      r = randInt(1, max);
-      guard++;
-    }
-    rounds.push({
-      id: `r${i}`,
-      payload: { l, r, emoji: EMOJI[randInt(0, EMOJI.length - 1)] },
-      answer: Math.max(l, r),
-    });
-  }
-  return { difficulty, rounds };
-}
+import type { GameDefinition, GameComponentProps } from '../types';
+import { PromptCard, ChoiceGrid } from '../shared/ui';
+import { generate, type Payload } from './generate';
 
 function Bunch({ n, emoji }: { n: number; emoji: string }) {
   return (

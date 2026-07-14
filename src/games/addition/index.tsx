@@ -1,10 +1,6 @@
-import type { GameDefinition, GameComponentProps, Difficulty, LevelData, Round } from '../types';
-import { PromptCard, ChoiceGrid, randInt, numberDecoys } from '../shared/ui';
-
-interface Payload {
-  a: number;
-  b: number;
-}
+import type { GameDefinition, GameComponentProps } from '../types';
+import { PromptCard, ChoiceGrid, numberDecoys } from '../shared/ui';
+import { generate, type Payload } from './generate';
 
 function group(n: number, e: string) {
   return (
@@ -16,31 +12,6 @@ function group(n: number, e: string) {
       ))}
     </div>
   );
-}
-
-function limitsFor(d: Difficulty): { maxA: number; maxB: number; maxSum: number } {
-  if (d === 1) return { maxA: 3, maxB: 3, maxSum: 6 };
-  if (d === 2) return { maxA: 5, maxB: 4, maxSum: 10 };
-  return { maxA: 6, maxB: 5, maxSum: 10 };
-}
-
-function generate(difficulty: Difficulty): LevelData<Payload, number> {
-  const { maxA, maxB, maxSum } = limitsFor(difficulty);
-  const used = new Set<string>();
-  const rounds: Round<Payload, number>[] = [];
-  for (let i = 0; i < 5; i++) {
-    let a = 1;
-    let b = 1;
-    let guard = 0;
-    do {
-      a = randInt(1, maxA);
-      b = randInt(1, maxB);
-      guard++;
-    } while ((a + b > maxSum || used.has(`${a}+${b}`)) && guard < 40);
-    used.add(`${a}+${b}`);
-    rounds.push({ id: `r${i}`, payload: { a, b }, answer: a + b });
-  }
-  return { difficulty, rounds };
 }
 
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, number>) {

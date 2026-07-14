@@ -1,39 +1,6 @@
-import type { GameDefinition, GameComponentProps, Difficulty, LevelData, Round, ProfileLevel } from '../types';
-import { PromptCard, ChoiceGrid, randInt } from '../shared/ui';
-
-interface Payload {
-  left: number;
-  right: number;
-}
-
-type Sign = '<' | '=' | '>';
-
-const ROUNDS_PER_LEVEL = 5;
-/** Шанс, що left і right навмисно зроблять рівними (щоб трапився знак '='). */
-const EQUAL_PROBABILITY = 0.28;
-
-function maxFor(level: ProfileLevel, difficulty: Difficulty): number {
-  if (level === 'L0') return 10;
-  // L3: diff1 — до 100, diff2-3 — до 1000
-  return difficulty === 1 ? 100 : 1000;
-}
-
-function compareSign(left: number, right: number): Sign {
-  if (left < right) return '<';
-  if (left > right) return '>';
-  return '=';
-}
-
-function generate(difficulty: Difficulty, level: ProfileLevel): LevelData<Payload, Sign> {
-  const max = maxFor(level, difficulty);
-  const rounds: Round<Payload, Sign>[] = [];
-  for (let i = 0; i < ROUNDS_PER_LEVEL; i++) {
-    const left = randInt(1, max);
-    const right = Math.random() < EQUAL_PROBABILITY ? left : randInt(1, max);
-    rounds.push({ id: `r${i}`, payload: { left, right }, answer: compareSign(left, right) });
-  }
-  return { difficulty, rounds };
-}
+import type { GameDefinition, GameComponentProps } from '../types';
+import { PromptCard, ChoiceGrid } from '../shared/ui';
+import { generate, type Payload, type Sign } from './generate';
 
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, Sign>) {
   const { left, right } = round.payload;

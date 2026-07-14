@@ -22,6 +22,36 @@ export type ProfileLevel = 'L0' | 'L3';
 /** Складність усередині гри. 1=Easy, 2=Medium, 3=Hard. */
 export type Difficulty = 1 | 2 | 3;
 
+/**
+ * Узгоджена шкала складності контенту в іграх (D5), 5 рівнів: L0 (найлегше) …
+ * L4 (найскладніше). Ті самі літери й порядок, що і `GradeBand` навчального
+ * ядра (`src/school/types.ts`) — навмисно НЕ імпортується звідти (games-шар
+ * лишається незалежним від school), лише узгоджена семантика назв, щоб у
+ * всьому продукті був один словник рівнів складності.
+ *
+ * Призначення: усередині `generate()` кожної гри — єдина точка переходу від
+ * (ProfileLevel, Difficulty) до змістовного рівня складності, замість
+ * розрізнених ad hoc таблиць по `difficulty`, які раніше не узгоджувались між
+ * іграми (однакова Difficulty=2 в різних іграх означала зовсім різну реальну
+ * складність).
+ */
+export type GradeBand = 'L0' | 'L1' | 'L2' | 'L3' | 'L4';
+
+export const GRADE_BANDS: readonly GradeBand[] = ['L0', 'L1', 'L2', 'L3', 'L4'];
+
+/**
+ * (ProfileLevel профілю, Difficulty гри) → GradeBand змісту.
+ * ProfileLevel 'L0' (дошкільнята) охоплює GradeBand L0-L2 (Easy→L0,
+ * Medium→L1, Hard→L2); 'L3' (школярі) — L2-L4 (Easy→L2, Medium→L3,
+ * Hard→L4). Стик на L2 — навмисний: найскладніший рівень дошкільного треку і
+ * найлегший рівень шкільного треку описують сусідні точки одного континууму
+ * майстерності, а не два незалежні рахунки.
+ */
+export function gradeBandFor(level: ProfileLevel, difficulty: Difficulty): GradeBand {
+  const base = level === 'L0' ? 0 : 2;
+  return GRADE_BANDS[base + (difficulty - 1)];
+}
+
 /** Один раунд гри: довільний payload + правильна відповідь. */
 export interface Round<TPayload = unknown, TAnswer = unknown> {
   id: string;
