@@ -1,4 +1,4 @@
-import type { Difficulty, GradeBand, LevelData, ProfileLevel, Round } from '../types';
+import type { ClassLevel, Difficulty, GradeBand, LevelData, ProfileLevel, Round } from '../types';
 import { gradeBandFor } from '../types';
 import { randInt, shuffle } from '../shared/ui';
 import { UNITS, OBJECTS, unitByKey, baseValue, type ObjectFact, type MeasureCategory } from './data';
@@ -120,6 +120,33 @@ export const CONFIG_BY_BAND: Record<GradeBand, BandConfig> = {
   },
 };
 
+/**
+ * Клас → набір допустимих одиниць (G2b, перенесено 1:1 зі старого
+ * `allowedUnitsFor` у main). На відміну від `CONFIG_BY_BAND` (band-вісь:
+ * дошкільний/шкільний трек × difficulty), ця вісь масштабує складність за
+ * НАВЧАЛЬНИМ КЛАСОМ: 1 клас — лише [cm, m, kg], 4 клас — повний набір з
+ * кілометрами й тонами. `preschool` не мав окремої гілки у старому коді
+ * (measures був недоступний дошкільнятам) — тут узято найменший (grade1) набір
+ * як безпечний дефолт.
+ */
+export const CLASS_UNIT_KEYS: Record<ClassLevel, string[]> = {
+  preschool: ['cm', 'm', 'kg'],
+  grade1: ['cm', 'm', 'kg'],
+  grade2: ['cm', 'dm', 'm', 'g', 'kg', 'l'],
+  grade3: ['mm', 'cm', 'dm', 'm', 'km', 'g', 'kg', 'ml', 'l'],
+  grade4: ['mm', 'cm', 'dm', 'm', 'km', 'g', 'kg', 't', 'ml', 'l'],
+};
+
+/** Difficulty → режим раунду для клас-осі (перенесено зі старого paramsFor: <=1→unit, ===2→convert, ===3→compare). */
+function modeForClass(difficulty: Difficulty, unitKeys: string[]): RoundMode {
+  if (difficulty <= 1) return 'unit';
+  if (difficulty === 2) {
+    const hasConvertPair = CONVERT_PAIRS_HARD.some((p) => unitKeys.includes(p.big) && unitKeys.includes(p.small));
+    return hasConvertPair ? 'convert' : 'unit';
+  }
+  return 'compare';
+}
+
 export function genCompare(pool: ObjectFact[], categories: MeasureCategory[]): ComparePayload {
   let cat = categories[randInt(0, categories.length - 1)];
   let inCat = pool.filter((o) => o.category === cat);
@@ -185,7 +212,30 @@ export function correctFor(payload: Payload): string {
   return String(payload.result);
 }
 
-export function generate(difficulty: Difficulty, level: ProfileLevel = 'L3'): LevelData<Payload, string> {
+export function generate(
+  difficulty: Difficulty,
+  level: ProfileLevel = 'L3',
+  classLevel?: ClassLevel,
+): LevelData<Payload, string> {
+  if (classLevel) {
+    const unitKeys = CLASS_UNIT_KEYS[classLevel];
+    const filtered = OBJECTS.filter((o) => unitKeys.includes(o.unitKey));
+    const pool = filtered.length > 0 ? filtered : OBJECTS;
+    const categoriesInPool = BASE_CATEGORIES.filter((cat) => pool.some((o) => o.category === cat));
+    const categories = categoriesInPool.length > 0 ? categoriesInPool : BASE_CATEGORIES;
+    const mode = modeForClass(difficulty, unitKeys);
+    const pairs = CONVERT_PAIRS_HARD.filter((p) => unitKeys.includes(p.big) && unitKeys.includes(p.small));
+
+    const rounds: Round<Payload, string>[] = Array.from({ length: 5 }, (_, i) => {
+      let payload: Payload;
+      if (mode === 'unit') payload = genUnit(pool);
+      else if (mode === 'compare') payload = genCompare(pool, categories);
+      else payload = genConvert(pairs, false);
+      return { id: `r${i}`, payload, answer: correctFor(payload) };
+    });
+    return { difficulty, rounds };
+  }
+
   const config = CONFIG_BY_BAND[gradeBandFor(level, difficulty)];
   const filtered = OBJECTS.filter((o) => config.unitKeys.includes(o.unitKey));
   const pool = filtered.length > 0 ? filtered : OBJECTS;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CONFIG_BY_BAND, generate, correctFor } from './generate';
+import { CONFIG_BY_BAND, paramsForClass, generate, correctFor } from './generate';
 
 describe('clock-time: CONFIG_BY_BAND (D5 шкала L0-L4)', () => {
   it('кількість хвилинних поділок монотонно не спадає від L0 (найлегше) до L4 (найважче)', () => {
@@ -79,5 +79,87 @@ describe('clock-time: generate(difficulty, level)', () => {
     const { rounds } = generate(1);
     expect(rounds).toHaveLength(5);
     for (const r of rounds) expect(r.payload.mode).toBe('read');
+  });
+});
+
+describe('clock-time: paramsForClass (G2b, клас-вісь)', () => {
+  it('точність (кількість хвилинних поділок) монотонно не спадає від grade1 до grade4 на difficulty=3', () => {
+    const classes = ['grade1', 'grade2', 'grade3', 'grade4'] as const;
+    for (let i = 1; i < classes.length; i++) {
+      expect(paramsForClass(3, classes[i]).steps.length).toBeGreaterThanOrEqual(paramsForClass(3, classes[i - 1]).steps.length);
+    }
+  });
+
+  it('grade1 — лише чверті години (0/15/30/45 на Medium/Hard), 12h (перенесено зі старого paramsFor)', () => {
+    expect(paramsForClass(1, 'grade1')).toEqual({ steps: [0, 30], use24h: false, hourRange: [1, 12] });
+    expect(paramsForClass(2, 'grade1')).toEqual({ steps: [0, 15, 30, 45], use24h: false, hourRange: [1, 12] });
+    expect(paramsForClass(3, 'grade1').use24h).toBe(false);
+  });
+
+  it('grade2 — крок 5 хв на Medium/Hard', () => {
+    const steps5 = Array.from({ length: 12 }, (_, i) => i * 5);
+    expect(paramsForClass(2, 'grade2').steps).toEqual(steps5);
+    expect(paramsForClass(3, 'grade2').steps).toEqual(steps5);
+    expect(paramsForClass(2, 'grade2').use24h).toBe(false);
+  });
+
+  it('grade3 — будь-яка хвилина від Medium, 24h лише на Hard', () => {
+    const stepsAny = Array.from({ length: 60 }, (_, i) => i);
+    expect(paramsForClass(2, 'grade3')).toEqual({ steps: stepsAny, use24h: false, hourRange: [1, 12] });
+    expect(paramsForClass(3, 'grade3')).toEqual({ steps: stepsAny, use24h: true, hourRange: [0, 23] });
+  });
+
+  it('grade4 — будь-яка хвилина + 24h на всіх difficulty', () => {
+    for (const difficulty of [1, 2, 3] as const) {
+      const cfg = paramsForClass(difficulty, 'grade4');
+      expect(cfg.use24h).toBe(true);
+      expect(cfg.hourRange).toEqual([0, 23]);
+      expect(cfg.steps).toHaveLength(60);
+    }
+  });
+});
+
+describe('clock-time: generate(difficulty, level, classLevel) — клас-вісь (G2b)', () => {
+  it('відповіді узгоджені з correctFor і h/m у межах paramsForClass для всіх класів × difficulty', () => {
+    const classes = ['preschool', 'grade1', 'grade2', 'grade3', 'grade4'] as const;
+    for (const classLevel of classes) {
+      for (const difficulty of [1, 2, 3] as const) {
+        const { hourRange, steps } = paramsForClass(difficulty, classLevel);
+        for (let i = 0; i < 10; i++) {
+          const { rounds } = generate(difficulty, 'L3', classLevel);
+          expect(rounds).toHaveLength(5);
+          for (const r of rounds) {
+            expect(correctFor(r.payload)).toBe(r.answer);
+            expect(r.payload.mode).toBe('read');
+            if (r.payload.mode === 'read') {
+              expect(r.payload.h).toBeGreaterThanOrEqual(hourRange[0]);
+              expect(r.payload.h).toBeLessThanOrEqual(hourRange[1]);
+              expect(steps).toContain(r.payload.m);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it('grade3 при difficulty=3 генерує години поза межами 1-12 (24h формат)', () => {
+    let sawBeyond12 = false;
+    for (let i = 0; i < 30; i++) {
+      const { rounds } = generate(3, 'L3', 'grade3');
+      for (const r of rounds) {
+        if (r.payload.mode === 'read' && (r.payload.h === 0 || r.payload.h > 12)) sawBeyond12 = true;
+      }
+    }
+    expect(sawBeyond12).toBe(true);
+  });
+
+  it('grade1 (difficulty=1) генерує лише кроки [0, 30] (перенесено зі старого paramsFor)', () => {
+    for (let i = 0; i < 20; i++) {
+      const { rounds } = generate(1, 'L3', 'grade1');
+      for (const r of rounds) {
+        expect(r.payload.mode).toBe('read');
+        if (r.payload.mode === 'read') expect([0, 30]).toContain(r.payload.m);
+      }
+    }
   });
 });

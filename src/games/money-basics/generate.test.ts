@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CONFIG_BY_BAND, generate, correctFor } from './generate';
+import { CONFIG_BY_BAND, CLASS_MONEY_CONFIG, generate, correctFor } from './generate';
 
 describe('money-basics: CONFIG_BY_BAND (D5 шкала L0-L4)', () => {
   it('розмір hrnPool монотонно не спадає від L0 (найлегше) до L4 (найважче)', () => {
@@ -82,5 +82,64 @@ describe('money-basics: generate(difficulty, level)', () => {
     const { rounds } = generate(1);
     expect(rounds).toHaveLength(5);
     expect(rounds.every((r) => correctFor(r.payload) === r.answer)).toBe(true);
+  });
+});
+
+describe('money-basics: CLASS_MONEY_CONFIG (G2b, клас-вісь)', () => {
+  it('розмір hrnPool монотонно не спадає від grade1 до grade4', () => {
+    const classes = ['grade1', 'grade2', 'grade3', 'grade4'] as const;
+    for (let i = 1; i < classes.length; i++) {
+      expect(CLASS_MONEY_CONFIG[classes[i]].hrnPool.length).toBeGreaterThanOrEqual(CLASS_MONEY_CONFIG[classes[i - 1]].hrnPool.length);
+    }
+  });
+
+  it('grade1 — номінали до 20 грн без копійок; grade4 — повний ряд до 1000 грн (перенесено зі старого denominationsForClass)', () => {
+    expect(CLASS_MONEY_CONFIG.grade1).toMatchObject({ hrnPool: [1, 2, 5, 10, 20], kopChance: 0 });
+    expect(CLASS_MONEY_CONFIG.grade4.hrnPool).toEqual([1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]);
+  });
+
+  it('копійки з\'являються лише з grade3 (як у старому коді: includeKop = grade3||grade4)', () => {
+    expect(CLASS_MONEY_CONFIG.grade1.kopChance).toBe(0);
+    expect(CLASS_MONEY_CONFIG.grade2.kopChance).toBe(0);
+    expect(CLASS_MONEY_CONFIG.grade3.kopChance).toBeGreaterThan(0);
+    expect(CLASS_MONEY_CONFIG.grade4.kopChance).toBeGreaterThan(0);
+  });
+});
+
+describe('money-basics: generate(difficulty, level, classLevel) — клас-вісь (G2b)', () => {
+  it('відповіді узгоджені з correctFor і номінали належать клас-набору для всіх класів × difficulty', () => {
+    const classes = ['grade1', 'grade2', 'grade3', 'grade4'] as const;
+    for (const classLevel of classes) {
+      for (const difficulty of [1, 2, 3] as const) {
+        for (let i = 0; i < 15; i++) {
+          const { rounds } = generate(difficulty, 'L3', classLevel);
+          expect(rounds).toHaveLength(5);
+          for (const r of rounds) {
+            expect(correctFor(r.payload)).toBe(r.answer);
+            if (r.payload.mode === 'count' && r.payload.unit === 'hrn') {
+              for (const v of r.payload.items) expect(CLASS_MONEY_CONFIG[classLevel].hrnPool).toContain(v);
+            }
+            if (r.payload.mode === 'change') {
+              expect(r.payload.paid - r.payload.cost).toBeGreaterThan(0);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it('difficulty=1 → лише mode="count" (порахувати), difficulty=2 → лише mode="compose" (заплатити), difficulty=3 → лише mode="change" (решта)', () => {
+    for (let i = 0; i < 15; i++) {
+      expect(generate(1, 'L3', 'grade2').rounds.every((r) => r.payload.mode === 'count')).toBe(true);
+      expect(generate(2, 'L3', 'grade2').rounds.every((r) => r.payload.mode === 'compose')).toBe(true);
+      expect(generate(3, 'L3', 'grade2').rounds.every((r) => r.payload.mode === 'change')).toBe(true);
+    }
+  });
+
+  it('grade1 (difficulty=1) не використовує копійки (kopChance=0)', () => {
+    for (let i = 0; i < 20; i++) {
+      const { rounds } = generate(1, 'L3', 'grade1');
+      for (const r of rounds) if (r.payload.mode === 'count') expect(r.payload.unit).toBe('hrn');
+    }
   });
 });

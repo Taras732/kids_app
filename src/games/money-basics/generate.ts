@@ -1,4 +1,4 @@
-import type { Difficulty, GradeBand, LevelData, ProfileLevel, Round } from '../types';
+import type { ClassLevel, Difficulty, GradeBand, LevelData, ProfileLevel, Round } from '../types';
 import { gradeBandFor } from '../types';
 import { randInt, shuffle } from '../shared/ui';
 
@@ -97,13 +97,32 @@ export const CONFIG_BY_BAND: Record<GradeBand, BandConfig> = {
   },
 };
 
-function poolFor(unit: Unit, config: BandConfig): number[] {
+/** Підмножина полів BandConfig, потрібна для count/compose — спільна для band- і клас-осі. */
+export type MoneyScale = Pick<BandConfig, 'hrnPool' | 'kopChance' | 'countRange'>;
+
+/**
+ * Клас → номінали/ймовірність копійок/діапазон кількості (G2b, перенесено
+ * зі старого `denominationsForClass`/`paramsFor` у main). На відміну від
+ * `CONFIG_BY_BAND` (band-вісь), ця вісь масштабує суми/номінали за НАВЧАЛЬНИМ
+ * КЛАСОМ: 1 клас — монети+банкноти до 20 грн (без копійок), 2 клас — до 100 грн,
+ * 3 клас — до 500 грн + копійки (як у старому коді, копійки з'являлись з 3
+ * класу), 4 клас — повний номінальний ряд до 1000 грн.
+ */
+export const CLASS_MONEY_CONFIG: Record<ClassLevel, MoneyScale> = {
+  preschool: { hrnPool: [1, 2, 5], kopChance: 0, countRange: [2, 3] },
+  grade1: { hrnPool: [1, 2, 5, 10, 20], kopChance: 0, countRange: [2, 4] },
+  grade2: { hrnPool: [1, 2, 5, 10, 20, 50, 100], kopChance: 0, countRange: [3, 5] },
+  grade3: { hrnPool: [1, 2, 5, 10, 20, 50, 100, 200, 500], kopChance: 0.3, countRange: [3, 6] },
+  grade4: { hrnPool: [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000], kopChance: 0.3, countRange: [4, 7] },
+};
+
+function poolFor(unit: Unit, config: MoneyScale): number[] {
   if (unit === 'kop') return [1, 2, 5, 10];
   return config.hrnPool;
 }
 
 /** Easy-бенди інколи працюють у копійках — окремий контекст від гривень. */
-function pickUnit(config: BandConfig): Unit {
+function pickUnit(config: MoneyScale): Unit {
   return Math.random() < config.kopChance ? 'kop' : 'hrn';
 }
 
@@ -118,14 +137,25 @@ function pick<T>(arr: T[]): T {
   return arr[randInt(0, arr.length - 1)];
 }
 
-function genCount(config: BandConfig): CountPayload {
+function genCount(config: MoneyScale): CountPayload {
   const unit = pickUnit(config);
   const pool = poolFor(unit, config);
   const [minCount, maxCount] = config.countRange;
   return { mode: 'count', unit, items: randomItems(pool, minCount, maxCount) };
 }
 
-function genCompose(config: BandConfig): ComposePayload {
+/** 'change' для клас-осі: більший номінал з пулу класу як "заплачено", менший — "ціна". */
+function genChangeForClass(hrnPool: number[]): ChangePayload {
+  const usable = hrnPool.filter((v) => v > 1);
+  const sorted = (usable.length > 0 ? usable : hrnPool).slice().sort((a, b) => a - b);
+  const topStart = Math.max(0, sorted.length - 3);
+  let paid = sorted[randInt(topStart, sorted.length - 1)];
+  if (paid <= 1) paid = 2;
+  const cost = randInt(1, paid - 1);
+  return { mode: 'change', cost, paid };
+}
+
+function genCompose(config: MoneyScale): ComposePayload {
   const unit = pickUnit(config);
   const pool = poolFor(unit, config);
   const [minCount, maxCount] = config.countRange;
@@ -191,7 +221,23 @@ export function correctFor(payload: Payload): string {
   return payload.askCheaper ? lower.name : higher.name;
 }
 
-export function generate(difficulty: Difficulty, level: ProfileLevel = 'L3'): LevelData<Payload, string> {
+export function generate(
+  difficulty: Difficulty,
+  level: ProfileLevel = 'L3',
+  classLevel?: ClassLevel,
+): LevelData<Payload, string> {
+  if (classLevel) {
+    const scale = CLASS_MONEY_CONFIG[classLevel];
+    // Перенесено зі старого paramsFor: <=1→count (порахувати), ===2→pay (compose: заплатити), ===3→change (дати решту).
+    const mode: Mode = difficulty <= 1 ? 'count' : difficulty === 2 ? 'compose' : 'change';
+    const rounds: Round<Payload, string>[] = Array.from({ length: 5 }, (_, i) => {
+      const payload: Payload =
+        mode === 'count' ? genCount(scale) : mode === 'compose' ? genCompose(scale) : genChangeForClass(scale.hrnPool);
+      return { id: `r${i}`, payload, answer: correctFor(payload) };
+    });
+    return { difficulty, rounds };
+  }
+
   const config = CONFIG_BY_BAND[gradeBandFor(level, difficulty)];
   const modes = shuffle(config.modes);
   const rounds: Round<Payload, string>[] = modes.map((mode, i) => {

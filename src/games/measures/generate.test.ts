@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CONFIG_BY_BAND, generate, correctFor } from './generate';
+import { CONFIG_BY_BAND, CLASS_UNIT_KEYS, generate, correctFor } from './generate';
 
 describe('measures: CONFIG_BY_BAND (D5 шкала L0-L4)', () => {
   it('кількість дозволених одиниць монотонно не спадає від L0 (найлегше) до L4 (найважче)', () => {
@@ -87,5 +87,81 @@ describe('measures: generate(difficulty, level)', () => {
     const { rounds } = generate(1);
     expect(rounds).toHaveLength(5);
     expect(rounds.every((r) => correctFor(r.payload) === r.answer)).toBe(true);
+  });
+});
+
+describe('measures: CLASS_UNIT_KEYS (G2b, клас-вісь)', () => {
+  it('набір одиниць монотонно не спадає від grade1 до grade4', () => {
+    const classes = ['grade1', 'grade2', 'grade3', 'grade4'] as const;
+    for (let i = 1; i < classes.length; i++) {
+      expect(CLASS_UNIT_KEYS[classes[i]].length).toBeGreaterThanOrEqual(CLASS_UNIT_KEYS[classes[i - 1]].length);
+    }
+  });
+
+  it('grade1 — лише [cm, m, kg]; grade4 — повний набір з т і км (перенесено зі старого allowedUnitsFor)', () => {
+    expect(CLASS_UNIT_KEYS.grade1).toEqual(['cm', 'm', 'kg']);
+    expect(CLASS_UNIT_KEYS.grade4).toEqual(['mm', 'cm', 'dm', 'm', 'km', 'g', 'kg', 't', 'ml', 'l']);
+  });
+});
+
+describe('measures: generate(difficulty, level, classLevel) — клас-вісь (G2b)', () => {
+  it('відповіді узгоджені з correctFor і одиниці належать клас-набору для всіх класів × difficulty', () => {
+    const classes = ['grade1', 'grade2', 'grade3', 'grade4'] as const;
+    for (const classLevel of classes) {
+      for (const difficulty of [1, 2, 3] as const) {
+        for (let i = 0; i < 15; i++) {
+          const { rounds } = generate(difficulty, 'L3', classLevel);
+          expect(rounds).toHaveLength(5);
+          for (const r of rounds) {
+            expect(correctFor(r.payload)).toBe(r.answer);
+            if (r.payload.mode === 'unit') expect(CLASS_UNIT_KEYS[classLevel]).toContain(r.payload.obj.unitKey);
+            if (r.payload.mode === 'compare') {
+              expect(CLASS_UNIT_KEYS[classLevel]).toContain(r.payload.left.unitKey);
+              expect(CLASS_UNIT_KEYS[classLevel]).toContain(r.payload.right.unitKey);
+            }
+            if (r.payload.mode === 'convert') {
+              expect(CLASS_UNIT_KEYS[classLevel]).toContain(r.payload.fromKey);
+              expect(CLASS_UNIT_KEYS[classLevel]).toContain(r.payload.toKey);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it('grade1 при difficulty=1 генерує лише mode="unit" з набору [cm, m, kg]', () => {
+    for (let i = 0; i < 20; i++) {
+      const { rounds } = generate(1, 'L3', 'grade1');
+      for (const r of rounds) {
+        expect(r.payload.mode).toBe('unit');
+        if (r.payload.mode === 'unit') expect(['cm', 'm', 'kg']).toContain(r.payload.obj.unitKey);
+      }
+    }
+  });
+
+  it('grade4 при difficulty=3 генерує лише mode="compare" (без temp — старий код не мав температури)', () => {
+    for (let i = 0; i < 20; i++) {
+      const { rounds } = generate(3, 'L3', 'grade4');
+      for (const r of rounds) {
+        expect(r.payload.mode).toBe('compare');
+        if (r.payload.mode === 'compare') {
+          expect(r.payload.left.category).not.toBe('temp');
+          expect(r.payload.right.category).not.toBe('temp');
+        }
+      }
+    }
+  });
+
+  it('grade1 при difficulty=2 генерує mode="convert" у межах свого набору (m↔cm, як у старому коді)', () => {
+    for (let i = 0; i < 20; i++) {
+      const { rounds } = generate(2, 'L3', 'grade1');
+      for (const r of rounds) {
+        expect(r.payload.mode).toBe('convert');
+        if (r.payload.mode === 'convert') {
+          expect(['cm', 'm', 'kg']).toContain(r.payload.fromKey);
+          expect(['cm', 'm', 'kg']).toContain(r.payload.toKey);
+        }
+      }
+    }
   });
 });
