@@ -1,54 +1,8 @@
 import { useEffect, useState } from 'react';
-import type { GameDefinition, GameComponentProps, Difficulty, LevelData, Round } from '../types';
-import { PromptCard, randInt } from '../shared/ui';
+import type { GameDefinition, GameComponentProps } from '../types';
+import { PromptCard } from '../shared/ui';
 import Keypad from './Keypad';
-
-type Op = '+' | '−';
-
-interface Payload {
-  a: number;
-  b: number;
-  op: Op;
-}
-
-const ROUNDS_PER_LEVEL = 5;
-
-interface Cfg {
-  min: number;
-  max: number;
-  allowSub: boolean;
-}
-
-/** Дії стовпчиком у межах 100-1000; складність масштабує розрядність/діапазон. */
-function paramsFor(d: Difficulty): Cfg {
-  if (d === 1) return { min: 100, max: 300, allowSub: false };
-  if (d === 2) return { min: 100, max: 600, allowSub: true };
-  return { min: 300, max: 999, allowSub: true };
-}
-
-function genPair(op: Op, cfg: Cfg): { a: number; b: number } {
-  const a = randInt(cfg.min, cfg.max);
-  if (op === '+') {
-    const bMax = Math.max(cfg.min, Math.min(cfg.max, 999 - a));
-    const b = randInt(cfg.min, bMax);
-    return { a, b };
-  }
-  // віднімання: b <= a, щоб результат був невід'ємний
-  const b = randInt(cfg.min, a);
-  return { a, b };
-}
-
-function generate(difficulty: Difficulty): LevelData<Payload, number> {
-  const cfg = paramsFor(difficulty);
-  const rounds: Round<Payload, number>[] = [];
-  for (let i = 0; i < ROUNDS_PER_LEVEL; i++) {
-    const op: Op = cfg.allowSub && Math.random() < 0.5 ? '−' : '+';
-    const { a, b } = genPair(op, cfg);
-    const answer = op === '+' ? a + b : a - b;
-    rounds.push({ id: `r${i}`, payload: { a, b, op }, answer });
-  }
-  return { difficulty, rounds };
-}
+import { generate, type Payload } from './generate';
 
 /** Один рядок стовпчика: опційний знак дії зліва + вирівняні праворуч розряди. */
 function DigitRow({ text, digitCount, prefix = ' ' }: { text: string; digitCount: number; prefix?: string }) {
