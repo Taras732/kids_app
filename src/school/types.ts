@@ -8,6 +8,14 @@ export type DailyPlanItemKind = 'game' | 'review' | 'workbook' | 'worksheet' | '
 export type DailyPlanItemStatus = 'pending' | 'done' | 'skipped';
 export type OfflineTaskType = 'workbook' | 'worksheet' | 'activity';
 
+/**
+ * Освітня галузь НУШ (скорочення з Держстандарту, N1 — compliance-шар).
+ * МОВ мовно-літ. · ІНО іншомовна · МАО математична · ПРО природнича ·
+ * ТЕО технологічна · ІФО інформатична · СЗО соц./здоров'я · ГІО громад./істор. ·
+ * МИО мистецька · ФІО фізкультурна.
+ */
+export type NushGaluz = 'МОВ' | 'ІНО' | 'МАО' | 'ПРО' | 'ТЕО' | 'ІФО' | 'СЗО' | 'ГІО' | 'МИО' | 'ФІО';
+
 /** Вузол skill-graph. Довідник (публічне читання). */
 export interface Skill {
   id: string;
@@ -20,6 +28,13 @@ export interface Skill {
   review_interval_days: number;
   sort: number;
   created_at: string;
+  // ---- НУШ-compliance (N1). Опційні: заповнюються міграцією 0005 + мапінгом; до того — undefined. ----
+  /** Освітня галузь НУШ. null/undefined — ще не змаплено. */
+  galuzey?: NushGaluz | null;
+  /** Коди очікуваних результатів навчання (ОРН), напр. "2 МАО 1.1.2". Порожньо — ще не змаплено. */
+  orn_refs?: string[];
+  /** Цикл НУШ: 1 (1–2 кл) / 2 (3–4 кл) / null (дошкілля або не визначено). */
+  cycle?: 1 | 2 | null;
 }
 
 /** Ребро DAG: skill_id залежить від prerequisite_id. */

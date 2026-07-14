@@ -52,6 +52,67 @@ export function gradeBandFor(level: ProfileLevel, difficulty: Difficulty): Grade
   return GRADE_BANDS[base + (difficulty - 1)];
 }
 
+/**
+ * Навчальний КЛАС дитини (G1) — справжня 5-рівнева вісь прогресії, на відміну від
+ * бінарного ProfileLevel. Дзеркалить структуру НУШ (дошкілля + 1–4 клас).
+ * ProfileLevel лишається як «трек» гри (дошкільний/шкільний) для зворотної
+ * сумісності зі старими генераторами; ClassLevel — вісь адаптивності та контенту,
+ * якою користуватимуться двовісні генератори (G2) і аналітика НУШ.
+ */
+export type ClassLevel = 'preschool' | 'grade1' | 'grade2' | 'grade3' | 'grade4';
+
+export const CLASS_LEVELS: readonly ClassLevel[] = ['preschool', 'grade1', 'grade2', 'grade3', 'grade4'];
+
+/** Цикл НУШ: 0 — дошкілля (БКДО), 1 — I цикл (1–2 кл), 2 — II цикл (3–4 кл). */
+export type NushCycle = 0 | 1 | 2;
+
+export interface ClassLevelMeta {
+  id: ClassLevel;
+  title: string;
+  /** Короткий підпис для списків. */
+  short: string;
+  /** Цикл НУШ — вісь compliance (конкретні ОРН визначені на кінець циклу). */
+  cycle: NushCycle;
+  /** Масштаб UI: старшим — щільніше (G7). */
+  uiScale: number;
+}
+
+export const CLASS_META: Record<ClassLevel, ClassLevelMeta> = {
+  preschool: { id: 'preschool', title: 'Дошкільнята', short: 'Дошкілля', cycle: 0, uiScale: 1.25 },
+  grade1: { id: 'grade1', title: '1 клас', short: '1 клас', cycle: 1, uiScale: 1.12 },
+  grade2: { id: 'grade2', title: '2 клас', short: '2 клас', cycle: 1, uiScale: 1.0 },
+  grade3: { id: 'grade3', title: '3 клас', short: '3 клас', cycle: 2, uiScale: 0.95 },
+  grade4: { id: 'grade4', title: '4 клас', short: '4 клас', cycle: 2, uiScale: 0.9 },
+};
+
+const CLASS_BAND_BASE: Record<ClassLevel, number> = {
+  preschool: 0,
+  grade1: 1,
+  grade2: 2,
+  grade3: 3,
+  grade4: 4,
+};
+
+/**
+ * Клас → «трек» гри (ProfileLevel) для зворотної сумісності: дошкілля лишається
+ * на дошкільному треку, 1–4 клас — на шкільному. Старі генератори, що беруть
+ * ProfileLevel, продовжують працювати без змін; двовісні (G2) беруть ClassLevel.
+ */
+export function classToProfileLevel(cl: ClassLevel): ProfileLevel {
+  return cl === 'preschool' ? 'L0' : 'L3';
+}
+
+/**
+ * Клас × складність → GradeBand змісту (стартова модель G1). Клас задає базовий
+ * рівень, difficulty зсуває вгору в межах шкали. Точні межі уточнять двовісні
+ * генератори G2 (paramsFor per клас); тут — узгоджений семантичний рівень для
+ * аналітики й підбору.
+ */
+export function classBand(cl: ClassLevel, difficulty: Difficulty): GradeBand {
+  const idx = Math.min(GRADE_BANDS.length - 1, CLASS_BAND_BASE[cl] + (difficulty - 1));
+  return GRADE_BANDS[idx];
+}
+
 /** Один раунд гри: довільний payload + правильна відповідь. */
 export interface Round<TPayload = unknown, TAnswer = unknown> {
   id: string;

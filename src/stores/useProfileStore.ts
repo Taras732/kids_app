@@ -1,12 +1,19 @@
 import { create } from 'zustand';
 import { supabase } from '@/utils/supabase';
 import { storage } from '@/utils/storage';
+import type { ClassLevel } from '@/games/types';
 
 export interface ChildProfile {
   id: string;
   parent_id?: string;
   nickname: string;
   age_group: 'under_4' | '5-6' | '6-7' | '7-8';
+  /**
+   * Навчальний клас дитини (G1). Джерело істини для рівня контенту й адаптивності.
+   * Опційне: заповнюється онбордингом вибору класу (G5) / діагностикою (G4);
+   * поки не заданий — виводиться з age_group у profileClass() (лише до 2 класу).
+   */
+  class_level?: ClassLevel | null;
   avatar_id: string;
   total_stars: number;
   created_at: string;

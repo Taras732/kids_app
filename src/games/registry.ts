@@ -1,4 +1,5 @@
-import type { GameDefinition, ProfileLevel, Subject } from './types';
+import { classToProfileLevel } from './types';
+import type { GameDefinition, ProfileLevel, ClassLevel, Subject } from './types';
 import type { ChildProfile } from '@/stores/useProfileStore';
 
 // --- Математика ---
@@ -83,9 +84,29 @@ export function getGame(id: string): GameDefinition | undefined {
   return byId.get(id);
 }
 
-/** Мапінг вікової групи профілю → рівень контенту. */
-export function profileLevel(profile: Pick<ChildProfile, 'age_group'>): ProfileLevel {
-  return profile.age_group === 'under_4' || profile.age_group === '5-6' ? 'L0' : 'L3';
+/**
+ * Навчальний клас профілю (G1): явний `class_level`, якщо заданий (онбординг G5 /
+ * діагностика G4), інакше — тимчасовий вивід із віку. Віку вистачає лише до 2 класу;
+ * 3–4 клас вимагають явного class_level (тому онбординг вибору класу — обов'язковий крок G5).
+ */
+export function profileClass(profile: Pick<ChildProfile, 'age_group' | 'class_level'>): ClassLevel {
+  if (profile.class_level) return profile.class_level;
+  switch (profile.age_group) {
+    case 'under_4':
+    case '5-6':
+      return 'preschool';
+    case '6-7':
+      return 'grade1';
+    case '7-8':
+      return 'grade2';
+    default:
+      return 'preschool';
+  }
+}
+
+/** «Трек» гри (дошкільний/шкільний) — похідний від класу. Зворотна сумісність зі старими генераторами. */
+export function profileLevel(profile: Pick<ChildProfile, 'age_group' | 'class_level'>): ProfileLevel {
+  return classToProfileLevel(profileClass(profile));
 }
 
 /** Ігри, доступні для рівня профілю. */
