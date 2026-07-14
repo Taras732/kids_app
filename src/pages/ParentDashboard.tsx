@@ -1,15 +1,67 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
+import { fetchAttempts, fetchMastery, fetchSkills } from '@/school/db';
+import { computeStreakDays, groupProgressBySubject, recentActivities } from '@/school/progress-core';
+import type { Attempt, Skill, SkillMastery } from '@/school/types';
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
   const { user, deleteAccount, loading: authLoading } = useAuthStore();
-  const { profiles, deleteProfile } = useProfileStore();
+  const { profiles, activeProfile, deleteProfile } = useProfileStore();
 
   const [confirmDeleteType, setConfirmDeleteType] = useState<'none' | 'account' | 'profile'>('none');
   const [targetProfileId, setTargetProfileId] = useState<string | null>(null);
+
+  // ---- Прогрес навчання (E1) ----
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [masteryRows, setMasteryRows] = useState<SkillMastery[]>([]);
+  const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [progressLoading, setProgressLoading] = useState(false);
+  const [progressError, setProgressError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedProfileId) return;
+    const fallback = activeProfile?.id ?? profiles[0]?.id ?? null;
+    if (fallback) setSelectedProfileId(fallback);
+  }, [activeProfile, profiles, selectedProfileId]);
+
+  useEffect(() => {
+    if (!selectedProfileId) return;
+    let cancelled = false;
+    setProgressLoading(true);
+    setProgressError(null);
+    Promise.all([fetchSkills(), fetchMastery(selectedProfileId), fetchAttempts(selectedProfileId)])
+      .then(([skillsRes, masteryRes, attemptsRes]) => {
+        if (cancelled) return;
+        setSkills(skillsRes);
+        setMasteryRows(masteryRes);
+        setAttempts(attemptsRes);
+      })
+      .catch(() => {
+        if (!cancelled) setProgressError('Не вдалося завантажити прогрес.');
+      })
+      .finally(() => {
+        if (!cancelled) setProgressLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedProfileId]);
+
+  const subjectsProgress = useMemo(() => groupProgressBySubject(skills, masteryRows), [skills, masteryRows]);
+  const recent = useMemo(() => recentActivities(attempts, 5), [attempts]);
+  const streak = useMemo(() => computeStreakDays(attempts, new Date().toISOString().slice(0, 10)), [attempts]);
+  const selectedProfile = profiles.find((p) => p.id === selectedProfileId) ?? null;
+
+  const formatGameLabel = (gameId: string | null) => {
+    if (!gameId) return 'Гра';
+    return gameId.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase());
+  };
+
+  const formatDay = (iso: string) => new Intl.DateTimeFormat('uk-UA', { day: 'numeric', month: 'short' }).format(new Date(iso));
 
   const handleDeleteAccount = async () => {
     await deleteAccount();
@@ -64,6 +116,139 @@ export default function ParentDashboard() {
             {user ? user.email : 'Гість (Офлайн-режим)'}
           </div>
         </div>
+
+        {/* Progress section (E1) */}
+        {profiles.length > 0 && (
+          <div style={{ marginTop: '28px' }}>
+            <div className="font-display" style={{ fontSize: '11px', color: 'var(--text-dark)', marginBottom: '12px' }}>
+              ПРОГРЕС НАВЧАННЯ
+            </div>
+
+            {profiles.length > 1 && (
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '14px' }}>
+                {profiles.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setSelectedProfileId(p.id)}
+                    style={{
+                      flexShrink: 0,
+                      padding: '8px 14px',
+                      borderRadius: 'var(--border-radius-sm)',
+                      border: '2px solid var(--border-color)',
+                      background: p.id === selectedProfileId ? 'var(--primary)' : 'var(--surface-soft)',
+                      color: p.id === selectedProfileId ? 'var(--text-light)' : 'var(--text-dark)',
+                      fontWeight: 800,
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {p.nickname}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {progressLoading && (
+              <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
+                Завантаження прогресу…
+              </div>
+            )}
+
+            {progressError && (
+              <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--secondary-dark)', fontWeight: 700 }}>
+                {progressError}
+              </div>
+            )}
+
+            {!progressLoading && !progressError && selectedProfile && (
+              <>
+                <div
+                  className="card-clay"
+                  style={{ padding: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                >
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>🔥 Серія днів поспіль</div>
+                  <div className="font-display" style={{ fontSize: '18px', color: 'var(--primary)' }}>
+                    {streak}
+                  </div>
+                </div>
+
+                {subjectsProgress.length === 0 && (
+                  <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
+                    Ще немає даних про навички.
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {subjectsProgress.map((subj) => (
+                    <div key={subj.subject} className="card-clay" style={{ padding: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>{subj.subject}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--primary)' }}>{subj.masteryPct}%</div>
+                      </div>
+                      <div
+                        style={{
+                          height: '10px',
+                          borderRadius: '6px',
+                          background: 'var(--surface-soft)',
+                          overflow: 'hidden',
+                          marginBottom: '10px',
+                        }}
+                      >
+                        <div style={{ width: `${subj.masteryPct}%`, height: '100%', background: 'var(--success)' }} />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {subj.strands.map((s) => (
+                          <div
+                            key={s.strand}
+                            style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}
+                          >
+                            <span>{s.strand}</span>
+                            <span>
+                              {s.mastered}/{s.total} засвоєно · {s.frontier} у роботі
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="font-display" style={{ fontSize: '11px', color: 'var(--text-dark)', margin: '16px 0 10px' }}>
+                  ОСТАННІ ЗАНЯТТЯ
+                </div>
+                {recent.length === 0 ? (
+                  <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
+                    Ще не було жодної спроби.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {recent.map((a, i) => (
+                      <div
+                        key={i}
+                        className="card-clay"
+                        style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      >
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>{formatGameLabel(a.game_id)}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>{formatDay(a.created_at)}</div>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '13px',
+                            fontWeight: 800,
+                            color: a.correct === a.total ? 'var(--success-dark)' : 'var(--text-dark)',
+                          }}
+                        >
+                          {a.correct}/{a.total}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
         {/* Child Profiles Manager */}
         <div style={{ marginTop: '28px' }}>
