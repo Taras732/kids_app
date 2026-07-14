@@ -130,406 +130,368 @@ export default function ParentDashboard() {
   };
 
   return (
-    <div style={{
-      flex: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      padding: '24px',
-      background: 'radial-gradient(circle at 50% 30%, #F5F1FF 0%, #E8E2FF 100%)',
-      overflowY: 'auto'
-    }}>
-      <div>
-        {/* Navigation */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button 
-            onClick={() => navigate('/onboarding')}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '24px',
-              cursor: 'pointer',
-              color: 'var(--text-dark)'
-            }}
-          >
-            ←
-          </button>
-          <span className="font-display" style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-dark)' }}>
-            КАБІНЕТ БАТЬКІВ 📊
-          </span>
-          <div style={{ width: '24px' }}></div>
-        </div>
-
-        {/* Parent Details Card */}
-        <div className="card-clay" style={{ marginTop: '24px', padding: '16px' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '800', fontFamily: 'var(--font-display)' }}>
-            ОБЛІКОВИЙ ЗАПИС
-          </div>
-          <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-dark)', marginTop: '6px', wordBreak: 'break-all' }}>
-            {user ? user.email : 'Гість (Офлайн-режим)'}
-          </div>
-        </div>
-
-        {/* Progress section (E1) */}
-        {profiles.length > 0 && (
-          <div style={{ marginTop: '28px' }}>
-            <div className="font-display" style={{ fontSize: '11px', color: 'var(--text-dark)', marginBottom: '12px' }}>
-              ПРОГРЕС НАВЧАННЯ
+    <div className="pd-shell">
+      <div className="pd-scroll">
+        <div className="pd-wrap">
+          {/* Topbar */}
+          <div className="pd-topbar">
+            <div className="pd-topbar-left">
+              <button className="pd-back" onClick={() => navigate('/onboarding')} aria-label="Назад">
+                ←
+              </button>
+              <span className="font-display" style={{ fontSize: '15px', color: 'var(--text-dark)' }}>
+                КАБІНЕТ БАТЬКІВ 📊
+              </span>
             </div>
-
-            {profiles.length > 1 && (
-              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '14px' }}>
-                {profiles.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setSelectedProfileId(p.id)}
-                    style={{
-                      flexShrink: 0,
-                      padding: '8px 14px',
-                      borderRadius: 'var(--border-radius-sm)',
-                      border: '2px solid var(--border-color)',
-                      background: p.id === selectedProfileId ? 'var(--primary)' : 'var(--surface-soft)',
-                      color: p.id === selectedProfileId ? 'var(--text-light)' : 'var(--text-dark)',
-                      fontWeight: 800,
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {p.nickname}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {progressLoading && (
-              <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
-                Завантаження прогресу…
-              </div>
-            )}
-
-            {progressError && (
-              <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--secondary-dark)', fontWeight: 700 }}>
-                {progressError}
-              </div>
-            )}
-
-            {!progressLoading && !progressError && selectedProfile && (
-              <>
-                <div
-                  className="card-clay"
-                  style={{ padding: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                >
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>🔥 Серія днів поспіль</div>
-                  <div className="font-display" style={{ fontSize: '18px', color: 'var(--primary)' }}>
-                    {streak}
-                  </div>
-                </div>
-
-                {weekly && (
-                  <div style={{ marginBottom: '12px' }}>
-                    <WeeklyReportCard report={weekly} />
-                  </div>
-                )}
-
-                {subjectsProgress.length === 0 && (
-                  <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
-                    Ще немає даних про навички.
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {subjectsProgress.map((subj) => (
-                    <div key={subj.subject} className="card-clay" style={{ padding: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>{subj.subject}</div>
-                        <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--primary)' }}>{subj.masteryPct}%</div>
-                      </div>
-                      <div
-                        style={{
-                          height: '10px',
-                          borderRadius: '6px',
-                          background: 'var(--surface-soft)',
-                          overflow: 'hidden',
-                          marginBottom: '10px',
-                        }}
-                      >
-                        <div style={{ width: `${subj.masteryPct}%`, height: '100%', background: 'var(--success)' }} />
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {subj.strands.map((s) => (
-                          <div
-                            key={s.strand}
-                            style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}
-                          >
-                            <span>{s.strand}</span>
-                            <span>
-                              {s.mastered}/{s.total} засвоєно · {s.frontier} у роботі
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="font-display" style={{ fontSize: '11px', color: 'var(--text-dark)', margin: '16px 0 10px' }}>
-                  ОСТАННІ ЗАНЯТТЯ
-                </div>
-                {recent.length === 0 ? (
-                  <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
-                    Ще не було жодної спроби.
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {recent.map((a, i) => (
-                      <div
-                        key={i}
-                        className="card-clay"
-                        style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                      >
-                        <div>
-                          <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>{formatGameLabel(a.game_id)}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>{formatDay(a.created_at)}</div>
-                        </div>
-                        <div
-                          style={{
-                            fontSize: '13px',
-                            fontWeight: 800,
-                            color: a.correct === a.total ? 'var(--success-dark)' : 'var(--text-dark)',
-                          }}
-                        >
-                          {a.correct}/{a.total}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {/* План на сьогодні (E2) */}
-        {selectedProfile && (
-          <div style={{ marginTop: '28px' }}>
-            <div className="font-display" style={{ fontSize: '11px', color: 'var(--text-dark)', marginBottom: '12px' }}>
-              ПЛАН НА СЬОГОДНІ 🗓️
+            <div className="pd-account">
+              <span>👤</span>
+              <span className="pd-account-email">{user ? user.email : 'Гість (Офлайн-режим)'}</span>
             </div>
+          </div>
 
-            {!todayPlan ? (
-              <div className="card-clay" style={{ padding: '16px', textAlign: 'center' }}>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '12px' }}>
-                  Дитина ще не починала «Мій день» сьогодні.
-                </div>
+          {/* Перемикач профілю — веб-таби */}
+          {profiles.length > 1 && (
+            <div className="pd-profiles">
+              {profiles.map((p) => (
                 <button
-                  className="btn-clay"
-                  onClick={handleCreatePlan}
-                  disabled={planBusy}
-                  style={{ padding: '8px 16px', fontSize: '12px' }}
+                  key={p.id}
+                  onClick={() => setSelectedProfileId(p.id)}
+                  className={`pd-profile-tab${p.id === selectedProfileId ? ' active' : ''}`}
                 >
-                  {planBusy ? 'Створення…' : 'Створити план дня'}
+                  <span>{p.nickname}</span>
                 </button>
-              </div>
-            ) : (
-              (() => {
-                const items = sortPlanItems(todayPlan.items);
-                const { screen, offline } = partitionPlanItems(items);
-                return (
+              ))}
+            </div>
+          )}
+
+          {/* Прогрес навчання (E1) + План на сьогодні (E2) — 2-колонковий грід */}
+          {profiles.length > 0 && selectedProfile && (
+            <div className="pd-grid">
+              {/* Ліва колонка: прогрес навчання */}
+              <div className="pd-col">
+                <div className="font-display pd-section-title">ПРОГРЕС НАВЧАННЯ</div>
+
+                {progressLoading && (
+                  <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
+                    Завантаження прогресу…
+                  </div>
+                )}
+
+                {progressError && (
+                  <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--secondary-dark)', fontWeight: 700 }}>
+                    {progressError}
+                  </div>
+                )}
+
+                {!progressLoading && !progressError && (
                   <>
                     <div
                       className="card-clay"
-                      style={{ padding: '14px 16px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                     >
-                      <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>Виконано</div>
-                      <div className="font-display" style={{ fontSize: '16px', color: 'var(--primary)' }}>
-                        {countCompleted(items)}/{items.length}
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>🔥 Серія днів поспіль</div>
+                      <div className="font-display" style={{ fontSize: '18px', color: 'var(--primary)' }}>
+                        {streak}
                       </div>
                     </div>
 
-                    {items.length === 0 && (
+                    {subjectsProgress.length === 0 && (
                       <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
-                        План порожній.
+                        Ще немає даних про навички.
                       </div>
                     )}
 
-                    {screen.map((it) => {
-                      const game = it.ref_id ? getGame(it.ref_id) : undefined;
-                      const done = it.status !== 'pending';
-                      return (
-                        <div
-                          key={it.id}
-                          className="card-clay"
-                          style={{ padding: '12px 16px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}
-                        >
-                          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', minWidth: 0 }}>
-                            {it.kind === 'review' ? '🔁 ' : '🎮 '}
-                            {game?.title ?? 'Гра'}
-                          </div>
-                          <div style={{ fontSize: '12px', fontWeight: 800, flexShrink: 0, color: done ? 'var(--success-dark)' : 'var(--text-muted)' }}>
-                            {done ? '✅ зроблено' : 'очікує'}
-                          </div>
+                    {subjectsProgress.map((subj) => (
+                      <div key={subj.subject} className="card-clay" style={{ padding: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>{subj.subject}</div>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--primary)' }}>{subj.masteryPct}%</div>
                         </div>
-                      );
-                    })}
-
-                    {offline.map((it) => {
-                      const task = it.ref_id ? offlineById[it.ref_id] : undefined;
-                      const view = task ? describeOfflineTask(task) : null;
-                      const done = it.status !== 'pending';
-                      return (
                         <div
-                          key={it.id}
+                          style={{
+                            height: '10px',
+                            borderRadius: '6px',
+                            background: 'var(--surface-soft)',
+                            overflow: 'hidden',
+                            marginBottom: '10px',
+                          }}
+                        >
+                          <div style={{ width: `${subj.masteryPct}%`, height: '100%', background: 'var(--success)' }} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {subj.strands.map((s) => (
+                            <div
+                              key={s.strand}
+                              style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', flexWrap: 'wrap', gap: '4px' }}
+                            >
+                              <span>{s.strand}</span>
+                              <span>
+                                {s.mastered}/{s.total} засвоєно · {s.frontier} у роботі
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="font-display" style={{ fontSize: '11px', color: 'var(--text-dark)', margin: '6px 0 2px' }}>
+                      ОСТАННІ ЗАНЯТТЯ
+                    </div>
+                    {recent.length === 0 ? (
+                      <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
+                        Ще не було жодної спроби.
+                      </div>
+                    ) : (
+                      recent.map((a, i) => (
+                        <div
+                          key={i}
                           className="card-clay"
-                          style={{ padding: '12px 16px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}
+                          style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}
                         >
                           <div style={{ minWidth: 0 }}>
-                            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)' }}>
-                              {view?.icon ?? '📝'} {task?.title ?? 'Офлайн-завдання'}
-                            </div>
-                            {view?.summary && (
-                              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px' }}>
-                                {view.summary}
-                              </div>
-                            )}
+                            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>{formatGameLabel(a.game_id)}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>{formatDay(a.created_at)}</div>
                           </div>
-                          {done ? (
-                            <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--success-dark)', flexShrink: 0 }}>✅ зроблено</div>
-                          ) : (
-                            <button
-                              className="btn-clay"
-                              onClick={() => handleVerifyOffline(it.id)}
-                              disabled={planBusy}
-                              style={{ padding: '6px 12px', fontSize: '11px', flexShrink: 0 }}
-                            >
-                              Підтвердити
-                            </button>
-                          )}
+                          <div
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: 800,
+                              flexShrink: 0,
+                              color: a.correct === a.total ? 'var(--success-dark)' : 'var(--text-dark)',
+                            }}
+                          >
+                            {a.correct}/{a.total}
+                          </div>
                         </div>
-                      );
-                    })}
+                      ))
+                    )}
                   </>
-                );
-              })()
-            )}
-          </div>
-        )}
+                )}
+              </div>
 
-        {/* Child Profiles Manager */}
-        <div style={{ marginTop: '28px' }}>
-          <div className="font-display" style={{ fontSize: '11px', color: 'var(--text-dark)', marginBottom: '12px' }}>
-            УЧНІ ({profiles.length})
-          </div>
+              {/* Права колонка: тижневий звіт + план на сьогодні */}
+              <div className="pd-col">
+                {!progressLoading && !progressError && weekly && <WeeklyReportCard report={weekly} />}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {profiles.map(p => (
-              <div 
-                key={p.id}
-                className="card-clay"
-                style={{
-                  padding: '14px 16px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}
-              >
                 <div>
-                  <div style={{ fontWeight: '800', fontSize: '15px', color: 'var(--text-dark)' }}>
-                    {p.nickname}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: '600' }}>
-                    3-й Клас · ⭐ {p.total_stars} зірочок
-                  </div>
-                </div>
+                  <div className="font-display pd-section-title">ПЛАН НА СЬОГОДНІ 🗓️</div>
 
-                <button 
-                  onClick={() => {
-                    setTargetProfileId(p.id);
-                    setConfirmDeleteType('profile');
-                  }}
+                  {!todayPlan ? (
+                    <div className="card-clay" style={{ padding: '16px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '12px' }}>
+                        Дитина ще не починала «Мій день» сьогодні.
+                      </div>
+                      <button
+                        className="btn-clay"
+                        onClick={handleCreatePlan}
+                        disabled={planBusy}
+                        style={{ padding: '8px 16px', fontSize: '12px' }}
+                      >
+                        {planBusy ? 'Створення…' : 'Створити план дня'}
+                      </button>
+                    </div>
+                  ) : (
+                    (() => {
+                      const items = sortPlanItems(todayPlan.items);
+                      const { screen, offline } = partitionPlanItems(items);
+                      return (
+                        <>
+                          <div
+                            className="card-clay"
+                            style={{ padding: '14px 16px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                          >
+                            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>Виконано</div>
+                            <div className="font-display" style={{ fontSize: '16px', color: 'var(--primary)' }}>
+                              {countCompleted(items)}/{items.length}
+                            </div>
+                          </div>
+
+                          {items.length === 0 && (
+                            <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
+                              План порожній.
+                            </div>
+                          )}
+
+                          {screen.map((it) => {
+                            const game = it.ref_id ? getGame(it.ref_id) : undefined;
+                            const done = it.status !== 'pending';
+                            return (
+                              <div
+                                key={it.id}
+                                className="card-clay"
+                                style={{ padding: '12px 16px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}
+                              >
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', minWidth: 0 }}>
+                                  {it.kind === 'review' ? '🔁 ' : '🎮 '}
+                                  {game?.title ?? 'Гра'}
+                                </div>
+                                <div style={{ fontSize: '12px', fontWeight: 800, flexShrink: 0, color: done ? 'var(--success-dark)' : 'var(--text-muted)' }}>
+                                  {done ? '✅ зроблено' : 'очікує'}
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          {offline.map((it) => {
+                            const task = it.ref_id ? offlineById[it.ref_id] : undefined;
+                            const view = task ? describeOfflineTask(task) : null;
+                            const done = it.status !== 'pending';
+                            return (
+                              <div
+                                key={it.id}
+                                className="card-clay"
+                                style={{ padding: '12px 16px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}
+                              >
+                                <div style={{ minWidth: 0 }}>
+                                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)' }}>
+                                    {view?.icon ?? '📝'} {task?.title ?? 'Офлайн-завдання'}
+                                  </div>
+                                  {view?.summary && (
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px' }}>
+                                      {view.summary}
+                                    </div>
+                                  )}
+                                </div>
+                                {done ? (
+                                  <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--success-dark)', flexShrink: 0 }}>✅ зроблено</div>
+                                ) : (
+                                  <button
+                                    className="btn-clay"
+                                    onClick={() => handleVerifyOffline(it.id)}
+                                    disabled={planBusy}
+                                    style={{ padding: '6px 12px', fontSize: '11px', flexShrink: 0 }}
+                                  >
+                                    Підтвердити
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </>
+                      );
+                    })()
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Учні */}
+          <div className="pd-section">
+            <div className="font-display pd-section-title">УЧНІ ({profiles.length})</div>
+
+            <div className="pd-students-grid">
+              {profiles.map((p) => (
+                <div
+                  key={p.id}
+                  className="card-clay"
                   style={{
-                    background: 'var(--secondary-light)',
-                    border: '2px solid var(--border-color)',
-                    borderRadius: '50%',
-                    width: '36px',
-                    height: '36px',
-                    fontSize: '16px',
-                    cursor: 'pointer',
+                    padding: '14px 16px',
                     display: 'flex',
-                    justifyContent: 'center',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
-                    boxShadow: '0 2px 0 var(--border-color)'
+                    gap: '10px',
                   }}
                 >
-                  🗑️
-                </button>
-              </div>
-            ))}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: '800', fontSize: '15px', color: 'var(--text-dark)', overflowWrap: 'anywhere' }}>
+                      {p.nickname}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: '600' }}>
+                      3-й Клас · ⭐ {p.total_stars} зірочок
+                    </div>
+                  </div>
 
-            {profiles.length === 0 && (
-              <div style={{
-                textAlign: 'center',
-                color: 'var(--text-muted)',
-                fontSize: '13px',
-                padding: '24px',
-                border: '3px dashed var(--text-muted)',
-                borderRadius: 'var(--border-radius-md)'
+                  <button
+                    onClick={() => {
+                      setTargetProfileId(p.id);
+                      setConfirmDeleteType('profile');
+                    }}
+                    style={{
+                      background: 'var(--secondary-light)',
+                      border: '2px solid var(--border-color)',
+                      borderRadius: '50%',
+                      width: '36px',
+                      height: '36px',
+                      fontSize: '16px',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      boxShadow: '0 2px 0 var(--border-color)',
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))}
+
+              {profiles.length === 0 && (
+                <div style={{
+                  textAlign: 'center',
+                  color: 'var(--text-muted)',
+                  fontSize: '13px',
+                  padding: '24px',
+                  border: '3px dashed var(--text-muted)',
+                  borderRadius: 'var(--border-radius-md)',
+                }}>
+                  Немає зареєстрованих учнів.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* GDPR settings */}
+          {user && (
+            <div className="pd-section" style={{
+              background: 'rgba(255, 107, 107, 0.08)',
+              border: '3px solid var(--secondary)',
+              borderRadius: 'var(--border-radius-md)',
+              padding: '18px',
+              boxShadow: '0 4px 0 var(--border-color)',
+            }}>
+              <h4 className="font-display" style={{
+                fontSize: '12px',
+                color: 'var(--secondary-dark)',
               }}>
-                Немає зареєстрованих учнів.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* GDPR settings */}
-        {user && (
-          <div style={{
-            marginTop: '32px',
-            background: 'rgba(255, 107, 107, 0.08)',
-            border: '3px solid var(--secondary)',
-            borderRadius: 'var(--border-radius-md)',
-            padding: '18px',
-            boxShadow: '0 4px 0 var(--border-color)'
-          }}>
-            <h4 className="font-display" style={{
-              fontSize: '12px',
-              color: 'var(--secondary-dark)'
-            }}>
-              Конфіденційність (GDPR)
-            </h4>
-            <p style={{
-              fontSize: '11px',
-              color: 'var(--text-dark)',
-              lineHeight: '1.5',
-              marginTop: '8px',
-              fontWeight: '600'
-            }}>
-              Ви маєте право безповоротно видалити свій обліковий запис. При видаленні акаунта всі профілі дітей та результати навчання будуть автоматично видалені з наших серверів.
-            </p>
-
-            <button 
-              onClick={() => setConfirmDeleteType('account')}
-              className="btn-clay secondary"
-              style={{
-                marginTop: '14px',
-                padding: '8px 16px',
+                Конфіденційність (GDPR)
+              </h4>
+              <p style={{
                 fontSize: '11px',
-                borderRadius: 'var(--border-radius-sm)'
-              }}
-            >
-              Видалити мій акаунт
-            </button>
-          </div>
-        )}
-      </div>
+                color: 'var(--text-dark)',
+                lineHeight: '1.5',
+                marginTop: '8px',
+                fontWeight: '600',
+              }}>
+                Ви маєте право безповоротно видалити свій обліковий запис. При видаленні акаунта всі профілі дітей та результати навчання будуть автоматично видалені з наших серверів.
+              </p>
 
-      {/* Back button */}
-      <button 
-        onClick={() => navigate('/onboarding')}
-        className="btn-clay"
-        style={{ width: '100%', marginTop: '32px' }}
-      >
-        Повернутися до гравців
-      </button>
+              <button
+                onClick={() => setConfirmDeleteType('account')}
+                className="btn-clay secondary"
+                style={{
+                  marginTop: '14px',
+                  padding: '8px 16px',
+                  fontSize: '11px',
+                  borderRadius: 'var(--border-radius-sm)',
+                }}
+              >
+                Видалити мій акаунт
+              </button>
+            </div>
+          )}
+
+          {/* Back button */}
+          <button
+            onClick={() => navigate('/onboarding')}
+            className="btn-clay"
+            style={{ width: '100%', marginTop: '32px' }}
+          >
+            Повернутися до гравців
+          </button>
+        </div>
+      </div>
 
       {/* Confirmation Dialogs */}
       {confirmDeleteType !== 'none' && (
@@ -545,40 +507,40 @@ export default function ParentDashboard() {
           alignItems: 'center',
           zIndex: 1000,
           backdropFilter: 'blur(4px)',
-          padding: '24px'
+          padding: '24px',
         }}>
           <div className="card-clay" style={{
             background: '#fff',
             padding: '24px 20px',
             width: '100%',
-            maxWidth: '320px',
-            textAlign: 'center'
+            maxWidth: '400px',
+            textAlign: 'center',
           }}>
             <span style={{ fontSize: '36px' }}>⚠️</span>
-            
+
             <h3 className="font-display" style={{
               fontSize: '15px',
               color: 'var(--text-dark)',
-              marginTop: '8px'
+              marginTop: '8px',
             }}>
               {confirmDeleteType === 'account' ? 'ВИДАЛИТИ АКАУНТ?' : 'ВИДАЛИТИ ПРОФІЛЬ?'}
             </h3>
-            
+
             <p style={{
               fontSize: '12px',
               color: 'var(--text-muted)',
               marginTop: '8px',
               lineHeight: '1.5',
-              fontWeight: '600'
+              fontWeight: '600',
             }}>
-              {confirmDeleteType === 'account' 
+              {confirmDeleteType === 'account'
                 ? 'Ця дія є остаточною. Усі накопичені зірочки та профілі ваших дітей будуть безповоротно видалені!'
                 : 'Прогрес та ігрова статистика учня будуть назавжди стерті.'
               }
             </p>
 
             <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-              <button 
+              <button
                 onClick={() => {
                   setConfirmDeleteType('none');
                   setTargetProfileId(null);
@@ -588,19 +550,19 @@ export default function ParentDashboard() {
                   flex: 1,
                   background: 'var(--surface-soft)',
                   color: 'var(--text-dark)',
-                  padding: '10px'
+                  padding: '10px',
                 }}
               >
                 Ні
               </button>
-              
-              <button 
+
+              <button
                 onClick={confirmDeleteType === 'account' ? handleDeleteAccount : handleDeleteProfile}
                 disabled={authLoading}
                 className="btn-clay secondary"
                 style={{
                   flex: 1,
-                  padding: '10px'
+                  padding: '10px',
                 }}
               >
                 {authLoading ? 'Видалення...' : 'Так, видалити'}

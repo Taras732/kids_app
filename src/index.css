@@ -542,3 +542,63 @@ body {
 
 /* ---- центрована колонка гри (десктоп: фокус ~620px; мобілка: на всю ширину) ---- */
 .play-col { width: 100%; max-width: 620px; margin: 0 auto; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+/* ============================================================
+   Кабінет батьків — веб-SaaS layout (S1).
+   Additive, префікс pd- щоб не збити наявні клас-неймспейси.
+   Рендериться через .web-shell (fixed, on-screen), а не в телефонній
+   рамці — картки/грід нижче лишаються на клеймоморфізм-палітрі
+   (--primary, --text, --surface, card-clay, font-display).
+   ============================================================ */
+/* Дитина .web-shell (обгортка з App.tsx) — своя палітра + контейнер для абсолютного оверлею діалогів */
+.pd-shell { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; background: var(--bg-gradient); }
+.pd-scroll { flex: 1; overflow-y: auto; }
+.pd-wrap { max-width: 1100px; margin: 0 auto; width: 100%; padding: 28px 32px 48px; }
+
+.pd-topbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
+.pd-topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.pd-back {
+  background: var(--surface-card); border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius-sm); width: 40px; height: 40px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer; color: var(--text-dark);
+  box-shadow: var(--shadow-3d-sm); transition: transform .1s;
+}
+.pd-back:hover { transform: translateY(-2px); }
+.pd-account {
+  display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 280px;
+  background: var(--surface-card); border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius-sm); padding: 8px 14px;
+  font-size: 12px; font-weight: 700; color: var(--text-dark);
+  box-shadow: var(--shadow-3d-sm);
+}
+.pd-account-email { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.pd-profiles { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+.pd-profile-tab {
+  display: flex; align-items: center; gap: 8px; max-width: 220px; overflow: hidden;
+  padding: 10px 16px; border-radius: var(--border-radius-sm);
+  border: var(--border-width) solid var(--border-color);
+  background: var(--surface-card); color: var(--text-dark);
+  font-weight: 800; font-size: 13px; cursor: pointer;
+  transition: transform .1s, background-color .15s, color .15s;
+}
+.pd-profile-tab span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.pd-profile-tab:hover { transform: translateY(-2px); }
+.pd-profile-tab.active { background: var(--primary); color: var(--text-light); }
+
+.pd-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; align-items: start; min-width: 0; }
+.pd-col { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+
+.pd-section { margin-top: 32px; min-width: 0; }
+.pd-section-title { font-size: 11px; color: var(--text-dark); margin-bottom: 12px; }
+
+.pd-students-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+
+@media (max-width: 900px) {
+  .pd-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .pd-wrap { padding: 18px 16px 32px; }
+  .pd-account { max-width: 160px; }
+}

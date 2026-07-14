@@ -39,7 +39,8 @@ export default function App() {
         <Route path="/auth" element={<PhoneFrame><Auth /></PhoneFrame>} />
         <Route path="/role" element={<PhoneFrame><RoleSelect /></PhoneFrame>} />
         <Route path="/onboarding" element={<PhoneFrame><Onboarding /></PhoneFrame>} />
-        <Route path="/parent" element={<PhoneFrame><ParentDashboard /></PhoneFrame>} />
+        {/* S1: кабінет батьків — веб-SaaS layout, як Hub/GamePlayer, а не телефонна рамка. */}
+        <Route path="/parent" element={<WebShell><ParentDashboard /></WebShell>} />
         <Route path="/hub" element={<WebShell><Hub /></WebShell>} />
         <Route path="/placement" element={<WebShell><Placement /></WebShell>} />
         <Route path="/day" element={<WebShell><DayPlan /></WebShell>} />
