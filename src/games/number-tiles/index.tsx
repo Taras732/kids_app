@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { GameDefinition, GameComponentProps, Difficulty, LevelData, ProfileLevel, Round } from '../types';
+import type { GameDefinition, GameComponentProps, ClassLevel, Difficulty, LevelData, ProfileLevel, Round } from '../types';
 import { BOARD_DONE } from '../types';
 import { type Cell, type BoardGrid, generateBoard, isValidPair, canConnect, fuzzCheck } from './generate';
 
@@ -12,8 +12,8 @@ interface Payload {
 
 type Answer = typeof BOARD_DONE;
 
-function generate(difficulty: Difficulty, level: ProfileLevel): LevelData<Payload, Answer> {
-  const { config, grid } = generateBoard(difficulty, level);
+function generate(difficulty: Difficulty, level: ProfileLevel, classLevel?: ClassLevel): LevelData<Payload, Answer> {
+  const { config, grid } = generateBoard(difficulty, level, classLevel);
   const round: Round<Payload, Answer> = {
     id: `board-${difficulty}`,
     payload: { rows: config.rows, cols: config.cols, grid, hints: config.hints },

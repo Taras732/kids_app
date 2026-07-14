@@ -32,10 +32,10 @@ function FractionPie({ n, d, size, color }: { n: number; d: number; size: number
   return <svg width={size} height={size}>{slices}</svg>;
 }
 
-function FractionBlock({ n, d, color }: { n: number; d: number; color: string }) {
+function FractionBlock({ n, d, color, showVisual }: { n: number; d: number; color: string; showVisual: boolean }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-      <FractionPie n={n} d={d} size={92} color={color} />
+      {showVisual && <FractionPie n={n} d={d} size={92} color={color} />}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <span style={{ fontSize: 26, fontWeight: 800, color: 'var(--c-ink)', lineHeight: 1.1 }}>{n}</span>
         <span style={{ width: 32, height: 3, background: 'var(--c-ink)', borderRadius: 2, margin: '3px 0' }} />
@@ -46,15 +46,15 @@ function FractionBlock({ n, d, color }: { n: number; d: number; color: string })
 }
 
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, Sign>) {
-  const { n1, d1, n2, d2 } = round.payload;
+  const { n1, d1, n2, d2, showVisual } = round.payload;
   const options = (['<', '=', '>'] as Sign[]).map((value) => ({ value }));
   return (
     <>
       <PromptCard question="Порівняй дроби" answerState={answerState}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, margin: '8px 0' }}>
-          <FractionBlock n={n1} d={d1} color="var(--c-pink)" />
+          <FractionBlock n={n1} d={d1} color="var(--c-pink)" showVisual={showVisual} />
           <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--c-mut)' }}>?</div>
-          <FractionBlock n={n2} d={d2} color="var(--c-blue)" />
+          <FractionBlock n={n2} d={d2} color="var(--c-blue)" showVisual={showVisual} />
         </div>
       </PromptCard>
       <ChoiceGrid

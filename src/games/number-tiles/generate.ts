@@ -1,4 +1,4 @@
-import type { Difficulty, GradeBand, ProfileLevel } from '../types';
+import type { ClassLevel, Difficulty, GradeBand, ProfileLevel } from '../types';
 import { gradeBandFor, GRADE_BANDS } from '../types';
 
 export type Cell = [number, number];
@@ -18,6 +18,9 @@ export interface BoardConfig {
  * профілю 'L3' (школярі, `levels: ['L3']`), тож реально задіяні лише L2-L4
  * (Easy/Medium/Hard, значення точно як у попередній difficulty-таблиці); L0-L1
  * — про запас на майбутнє розширення `levels` (менші поля, ще простіші за L2).
+ *
+ * Fallback-шлях: використовується лише коли `classLevel` не задано (див.
+ * `configFor`). При заданому класі — `CONFIG_BY_CLASS` нижче (G2b-2).
  */
 export const CONFIG_BY_BAND: Record<GradeBand, BoardConfig> = {
   L0: { rows: 2, cols: 4, sumOnly: true, hints: true },
@@ -27,7 +30,46 @@ export const CONFIG_BY_BAND: Record<GradeBand, BoardConfig> = {
   L4: { rows: 6, cols: 6, sumOnly: false, hints: false },
 };
 
-export function configFor(difficulty: Difficulty, level: ProfileLevel = 'L3'): BoardConfig {
+/**
+ * Розмір поля за КЛАСОМ × difficulty (G2b-2, двовісна складність). Гра НОВА
+ * (немає прямого аналога у старій версії, гілка main) — масштаб підібраний
+ * логічно: поле зростає і всередині класу (difficulty: Easy→Hard), і між
+ * класами (preschool→grade4). Шви навмисно узгоджені з `CONFIG_BY_BAND`:
+ * grade2/Easy = L2, grade2/Hard = L3, grade3/Hard = L4 — щоб клас-шкала була
+ * продовженням старої фолбек-шкали, а не паралельною системою координат.
+ * `sumOnly`/`hints` вимикаються від тієї ж точки (grade2/Hard), де раніше
+ * вимикались на L3.
+ */
+export const CONFIG_BY_CLASS: Record<ClassLevel, Record<Difficulty, BoardConfig>> = {
+  preschool: {
+    1: { rows: 2, cols: 3, sumOnly: true, hints: true },
+    2: { rows: 2, cols: 4, sumOnly: true, hints: true },
+    3: { rows: 3, cols: 4, sumOnly: true, hints: true },
+  },
+  grade1: {
+    1: { rows: 3, cols: 4, sumOnly: true, hints: true },
+    2: { rows: 3, cols: 5, sumOnly: true, hints: true },
+    3: { rows: 4, cols: 4, sumOnly: true, hints: true },
+  },
+  grade2: {
+    1: { rows: 4, cols: 4, sumOnly: true, hints: true },
+    2: { rows: 4, cols: 5, sumOnly: true, hints: true },
+    3: { rows: 5, cols: 5, sumOnly: false, hints: false },
+  },
+  grade3: {
+    1: { rows: 5, cols: 5, sumOnly: false, hints: false },
+    2: { rows: 5, cols: 6, sumOnly: false, hints: false },
+    3: { rows: 6, cols: 6, sumOnly: false, hints: false },
+  },
+  grade4: {
+    1: { rows: 6, cols: 6, sumOnly: false, hints: false },
+    2: { rows: 6, cols: 7, sumOnly: false, hints: false },
+    3: { rows: 7, cols: 7, sumOnly: false, hints: false },
+  },
+};
+
+export function configFor(difficulty: Difficulty, level: ProfileLevel = 'L3', classLevel?: ClassLevel): BoardConfig {
+  if (classLevel) return CONFIG_BY_CLASS[classLevel][difficulty];
   return CONFIG_BY_BAND[gradeBandFor(level, difficulty)];
 }
 
@@ -117,8 +159,12 @@ export function canConnect(grid: BoardGrid, a: Cell, b: Cell): boolean {
   return false;
 }
 
-export function generateBoard(difficulty: Difficulty, level: ProfileLevel = 'L3'): { config: BoardConfig; grid: BoardGrid } {
-  const config = configFor(difficulty, level);
+export function generateBoard(
+  difficulty: Difficulty,
+  level: ProfileLevel = 'L3',
+  classLevel?: ClassLevel,
+): { config: BoardConfig; grid: BoardGrid } {
+  const config = configFor(difficulty, level, classLevel);
   const { pairs } = buildDominoTiling(config.rows, config.cols);
   const grid = fillGrid(config.rows, config.cols, pairs, config.sumOnly);
   return { config, grid };
@@ -139,22 +185,27 @@ function verifyBoard(grid: BoardGrid, pairs: [Cell, Cell][]): boolean {
   return g.every((row) => row.every((v) => v === null));
 }
 
-/** Швидкий фаззер-чек (dev-only): N полів на кожен GradeBand (D5: L0-L4, увесь
- *  спектр про запас, не лише сьогодні задіяні L2-L4) мають гарантовано розбиратись. */
-export function fuzzCheck(roundsPerBand = 60): boolean {
+/** Фаззер-чек довільного набору конфігів поля (dev/test): усі мають гарантовано розбиратись. */
+export function fuzzCheckConfigs(configs: BoardConfig[], roundsPerConfig = 60): boolean {
   let allOk = true;
-  for (const band of GRADE_BANDS) {
-    const config = CONFIG_BY_BAND[band];
-    for (let i = 0; i < roundsPerBand; i++) {
+  for (const config of configs) {
+    for (let i = 0; i < roundsPerConfig; i++) {
       const { pairs } = buildDominoTiling(config.rows, config.cols);
       const grid = fillGrid(config.rows, config.cols, pairs, config.sumOnly);
       if (!verifyBoard(grid, pairs)) {
         allOk = false;
         // eslint-disable-next-line no-console
-        console.error(`[number-tiles] fuzz FAIL: band=${band} board#${i}`);
+        console.error(`[number-tiles] fuzz FAIL: rows=${config.rows} cols=${config.cols} sumOnly=${config.sumOnly}`);
       }
     }
   }
+  return allOk;
+}
+
+/** Швидкий фаззер-чек (dev-only): N полів на кожен GradeBand (D5: L0-L4, увесь
+ *  спектр про запас, не лише сьогодні задіяні L2-L4) мають гарантовано розбиратись. */
+export function fuzzCheck(roundsPerBand = 60): boolean {
+  const allOk = fuzzCheckConfigs(GRADE_BANDS.map((band) => CONFIG_BY_BAND[band]), roundsPerBand);
   // eslint-disable-next-line no-console
   if (allOk) console.info(`[number-tiles] fuzz-check OK: ${roundsPerBand * GRADE_BANDS.length} полів розбираються.`);
   return allOk;
