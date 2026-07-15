@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useReducer, useCallback } from 'react';
+import { useEffect, useMemo, useReducer, useCallback, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { recordActivity } from '@/utils/activity';
 import { recordGameResult } from '@/school/mastery';
+import { fetchPrereqHint, type PrereqHint } from '@/school/hint';
+import { isWeakResult, buildPrereqHintMessage } from '@/school/hint-core';
 import {
   type GameDefinition,
   type ProfileLevel,
@@ -113,6 +115,11 @@ export default function GameShell({ game, level, classLevel, profileId, onExit }
     };
   });
 
+  // EP12: підказка про непокриту передумову (skill-graph A2 + mastery A4), коли
+  // результат слабкий. null поки не завантажено/не застосовно — екран результату
+  // рендериться без неї (не блокує).
+  const [prereqHint, setPrereqHint] = useState<PrereqHint | null>(null);
+
   const round = state.levelData.rounds[Math.min(state.roundIndex, state.levelData.rounds.length - 1)];
   const total = state.levelData.rounds.length;
 
@@ -179,6 +186,19 @@ export default function GameShell({ game, level, classLevel, profileId, onExit }
         correct: Math.max(0, total - state.mistakes),
         total,
       }).catch((e) => console.warn('[mastery] запис пропущено:', e));
+    }
+
+    // EP12: підказка про непокриту передумову. Скидаємо попередню одразу (щоб
+    // не лишити з минулого проходження на цьому ж екрані фінішу), тоді, якщо
+    // умови виконано, тягнемо нову fire-and-forget — так само не блокує екран
+    // результату й гейтиться на user.id, як recordGameResult (гість не має
+    // рядка в БД).
+    setPrereqHint(null);
+    const skillIds = game.skillIds?.[state.difficulty] ?? [];
+    if (user?.id && skillIds.length > 0 && isWeakResult(state.stars)) {
+      fetchPrereqHint(profileId, skillIds)
+        .then(setPrereqHint)
+        .catch((e) => console.warn('[hint] підказку пропущено:', e));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.finished]);
@@ -276,6 +296,25 @@ export default function GameShell({ game, level, classLevel, profileId, onExit }
             }}
           >
             🔓 Відкрито складність: {DIFFICULTY_LABEL[newUnlocked]}!
+          </div>
+        )}
+
+        {prereqHint && (
+          <div
+            style={{
+              background: 'rgba(59, 158, 240, 0.12)',
+              color: 'var(--c-blue)',
+              fontWeight: 700,
+              padding: '12px 18px',
+              borderRadius: 16,
+              fontSize: 14,
+              lineHeight: 1.4,
+              maxWidth: 300,
+              textAlign: 'center',
+              animation: 'fadeInUp .4s ease both',
+            }}
+          >
+            💡 {buildPrereqHintMessage(prereqHint.title)}
           </div>
         )}
 
