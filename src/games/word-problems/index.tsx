@@ -92,7 +92,9 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
           ? 'var(--c-primary)'
           : 'var(--c-mut)';
 
-  const feedbackColor = answerState === 'correct' ? 'var(--c-green)' : '#C0392B';
+  // Підказка «Правильно: X» показується лише при помилці. Це допомога, а не докір,
+  // тому зелена — як .reveal у ChoiceGrid. Червоним лишається тільки ввід дитини.
+  const revealColor = '#15803D';
 
   return (
     <>
@@ -141,7 +143,7 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
           fontWeight: 700,
           minHeight: 20,
           margin: '2px 0 12px',
-          color: feedbackColor,
+          color: revealColor,
         }}
       >
         {answerState === 'incorrect' ? `Правильно: ${round.answer}` : ' '}
