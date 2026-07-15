@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { GameDefinition, GameComponentProps, Difficulty, LevelData, Round } from '../types';
 import { PromptCard, ChoiceGrid, randInt, shuffle } from '../shared/ui';
 
@@ -54,7 +55,12 @@ function generate(difficulty: Difficulty): LevelData<Payload, string> {
 
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, string>) {
   const { emoji, state } = round.payload;
-  const options = shuffle((['solid', 'liquid', 'gas'] as StateId[]).map((s) => ({ value: STATE_LABEL[s] })));
+  // shuffle() кличе Math.random() — рахуємо один раз на round.id, щоб порядок варіантів
+  // не мінявся при кожному ре-рендері (напр. після невірної відповіді).
+  const options = useMemo(
+    () => shuffle((['solid', 'liquid', 'gas'] as StateId[]).map((s) => ({ value: STATE_LABEL[s] }))),
+    [round.id],
+  );
   return (
     <>
       <PromptCard question="Який це стан води?" answerState={answerState}>

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { GameDefinition, GameComponentProps, Difficulty, LevelData, Round } from '../types';
 import { PromptCard, ChoiceGrid, shuffle } from '../shared/ui';
 
@@ -50,7 +51,12 @@ function generate(difficulty: Difficulty): LevelData<Payload, string> {
 
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, string>) {
   const { emoji, behavior } = round.payload;
-  const options = shuffle((['sink', 'float'] as Behavior[]).map((b) => ({ value: BEHAVIOR_LABEL[b] })));
+  // shuffle() кличе Math.random() — рахуємо один раз на round.id, щоб порядок варіантів
+  // не мінявся при кожному ре-рендері (напр. після невірної відповіді).
+  const options = useMemo(
+    () => shuffle((['sink', 'float'] as Behavior[]).map((b) => ({ value: BEHAVIOR_LABEL[b] }))),
+    [round.id],
+  );
   return (
     <>
       <PromptCard question="Тоне чи плаває?" answerState={answerState}>

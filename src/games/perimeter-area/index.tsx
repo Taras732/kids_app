@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { GameDefinition, GameComponentProps } from '../types';
 import { PromptCard, ChoiceGrid, numberDecoys } from '../shared/ui';
 import { generate, type Payload } from './generate';
@@ -44,8 +45,13 @@ function GridFigure({ cells, width, height }: { cells: string[]; width: number; 
 
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, number>) {
   const { mode, cells, width, height, unit } = round.payload;
-  const decoys = numberDecoys(round.answer, 4, Math.max(2, Math.round(round.answer * 0.35)), 1);
-  const options = decoys.map((v) => ({ value: v }));
+  // numberDecoys() кличе Math.random() — рахуємо один раз на round.id, щоб варіанти
+  // не тасувались заново при кожному ре-рендері (напр. після невірної відповіді).
+  const options = useMemo(() => {
+    const decoys = numberDecoys(round.answer, 4, Math.max(2, Math.round(round.answer * 0.35)), 1);
+    return decoys.map((v) => ({ value: v }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [round.id]);
   const hint = mode === 'area' ? `1 клітинка = 1 ${unit}²` : `сторона клітинки = 1 ${unit}`;
 
   return (

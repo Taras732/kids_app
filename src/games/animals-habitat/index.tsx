@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { GameDefinition, GameComponentProps, Difficulty, LevelData, Round } from '../types';
 import { PromptCard, ChoiceGrid, shuffle } from '../shared/ui';
 
@@ -69,7 +70,12 @@ function generate(difficulty: Difficulty): LevelData<Payload, string> {
 
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, string>) {
   const { emoji, habitat } = round.payload;
-  const options = shuffle(HABITAT_ORDER.map((h) => ({ value: HABITAT_LABEL[h] })));
+  // shuffle() кличе Math.random() — рахуємо один раз на round.id, щоб порядок варіантів
+  // не мінявся при кожному ре-рендері (напр. після невірної відповіді).
+  const options = useMemo(
+    () => shuffle(HABITAT_ORDER.map((h) => ({ value: HABITAT_LABEL[h] }))),
+    [round.id],
+  );
   return (
     <>
       <PromptCard question="Де живе ця тварина?" answerState={answerState}>

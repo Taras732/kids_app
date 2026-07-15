@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { GameDefinition, GameComponentProps } from '../types';
 import { PromptCard, ChoiceGrid, numberDecoys } from '../shared/ui';
 import { generate, type Payload } from './generate';
@@ -17,7 +18,9 @@ function group(n: number, e: string) {
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, number>) {
   const { a, b } = round.payload;
   const sum = a + b;
-  const options = numberDecoys(sum, 4, 3, 1).map((v) => ({ value: v }));
+  // numberDecoys() кличе Math.random() — рахуємо один раз на round.id, щоб варіанти
+  // не тасувались заново при кожному ре-рендері (напр. після невірної відповіді).
+  const options = useMemo(() => numberDecoys(sum, 4, 3, 1).map((v) => ({ value: v })), [round.id]);
   return (
     <>
       <PromptCard question="Скільки разом?" answerState={answerState}>

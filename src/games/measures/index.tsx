@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { GameDefinition, GameComponentProps, Difficulty } from '../types';
 import { PromptCard, ChoiceGrid, numberDecoys } from '../shared/ui';
 import { unitByKey, type ObjectFact, type MeasureCategory } from './data';
@@ -43,6 +44,18 @@ function ObjectCard({ obj }: { obj: ObjectFact }) {
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, string>) {
   const { payload } = round;
 
+  // numberDecoys() кличе Math.random() — рахуємо один раз на round.id для гілок
+  // convert/multistep, інакше варіанти тасуються заново при кожному ре-рендері
+  // (напр. після невірної відповіді).
+  const numericOptions = useMemo(() => {
+    if (payload.mode === 'convert' || payload.mode === 'multistep') {
+      const decoys = numberDecoys(payload.result, 4, Math.max(2, Math.round(payload.result * 0.4)), 0);
+      return decoys.map((v) => ({ value: String(v) }));
+    }
+    return null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [round.id]);
+
   if (payload.mode === 'unit') {
     const { obj, options } = payload;
     const choices = options.map((label) => ({ value: label }));
@@ -68,8 +81,7 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
   if (payload.mode === 'convert') {
     const fromUnit = unitByKey(payload.fromKey);
     const toUnit = unitByKey(payload.toKey);
-    const decoys = numberDecoys(payload.result, 4, Math.max(2, Math.round(payload.result * 0.4)), 0);
-    const options = decoys.map((v) => ({ value: String(v) }));
+    const options = numericOptions!;
     return (
       <>
         <PromptCard question="Скільки це?" answerState={answerState}>
@@ -87,8 +99,7 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
     const noun = MULTISTEP_NOUNS[category];
     const smallUnit = unitByKey(smallKey);
     const bigUnit = unitByKey(bigKey);
-    const decoys = numberDecoys(payload.result, 4, Math.max(2, Math.round(payload.result * 0.4)), 0);
-    const options = decoys.map((v) => ({ value: String(v) }));
+    const options = numericOptions!;
     return (
       <>
         <PromptCard question={`Скільки всього ${bigUnit.label} ${noun.noun}?`} answerState={answerState}>

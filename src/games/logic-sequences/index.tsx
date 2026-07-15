@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import type { GameDefinition, GameComponentProps, Difficulty, LevelData, Round, ProfileLevel } from '../types';
 import { PromptCard, ChoiceGrid, randInt, numberDecoys } from '../shared/ui';
 
@@ -124,9 +124,14 @@ const hiddenCardStyle: CSSProperties = {
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, number>) {
   const { sequence, hidden } = round.payload;
   const answer = round.answer;
-  const lastDiff = hidden > 0 ? Math.abs(sequence[hidden] - sequence[hidden - 1]) : 1;
-  const spread = Math.max(3, lastDiff * 2);
-  const options = numberDecoys(answer, 4, spread, 0).map((v) => ({ value: v }));
+  // numberDecoys() кличе Math.random() — рахуємо один раз на round.id, щоб варіанти
+  // не тасувались заново при кожному ре-рендері (напр. після невірної відповіді).
+  const options = useMemo(() => {
+    const lastDiff = hidden > 0 ? Math.abs(sequence[hidden] - sequence[hidden - 1]) : 1;
+    const spread = Math.max(3, lastDiff * 2);
+    return numberDecoys(answer, 4, spread, 0).map((v) => ({ value: v }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [round.id]);
 
   return (
     <>

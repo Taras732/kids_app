@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { GameDefinition, GameComponentProps, Difficulty } from '../types';
 import { PromptCard, ChoiceGrid, shuffle, numberDecoys } from '../shared/ui';
 import { generate, correctFor, fmt, type Payload } from './generate';
@@ -89,10 +90,23 @@ function ClockFace({ h, m, size }: { h: number; m: number; size: number }) {
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, string>) {
   const { payload } = round;
 
+  // timeChoices()/numberDecoys() кличуть Math.random() — рахуємо один раз на round.id
+  // (для всіх гілок mode одразу), інакше варіанти тасуються заново при кожному
+  // ре-рендері (напр. після невірної відповіді).
+  const options = useMemo(() => {
+    if (payload.mode === 'convert') {
+      const decoys = numberDecoys(payload.result, 4, Math.max(2, Math.round(payload.result * 0.4)), 0);
+      return decoys.map((v) => ({ value: String(v) }));
+    }
+    if (payload.mode === 'elapsed') {
+      return timeChoices(payload.resultH, payload.resultM, 3).map((value) => ({ value }));
+    }
+    return timeChoices(payload.h, payload.m, 3).map((value) => ({ value }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [round.id]);
+
   if (payload.mode === 'convert') {
     const questionText = payload.kind === 'h2m' ? `${payload.value} год = ? хв` : `${payload.value} хв = ? год`;
-    const decoys = numberDecoys(payload.result, 4, Math.max(2, Math.round(payload.result * 0.4)), 0);
-    const options = decoys.map((v) => ({ value: String(v) }));
     return (
       <>
         <PromptCard question="Скільки це?" answerState={answerState}>
@@ -114,8 +128,7 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
   }
 
   if (payload.mode === 'elapsed') {
-    const { h, m, deltaMin, resultH, resultM } = payload;
-    const options = timeChoices(resultH, resultM, 3).map((value) => ({ value }));
+    const { h, m, deltaMin } = payload;
     return (
       <>
         <PromptCard question={`Зараз ${fmt(h, m)}. Котра буде через ${deltaMin} хв?`} answerState={answerState}>
@@ -129,7 +142,6 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
   }
 
   const { h, m } = payload;
-  const options = timeChoices(h, m, 3).map((value) => ({ value }));
   return (
     <>
       <PromptCard question="Котра година?" answerState={answerState}>

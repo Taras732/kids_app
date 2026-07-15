@@ -1,10 +1,13 @@
+import { useMemo } from 'react';
 import type { GameDefinition, GameComponentProps } from '../types';
 import { PromptCard, ChoiceGrid, numberDecoys } from '../shared/ui';
 import { generate, type Payload } from './generate';
 
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, number>) {
   const { n, emoji } = round.payload;
-  const options = numberDecoys(n, 4, 3, 1).map((v) => ({ value: v }));
+  // numberDecoys() кличе Math.random() — рахуємо один раз на round.id, щоб варіанти
+  // не тасувались заново при кожному ре-рендері (напр. після невірної відповіді).
+  const options = useMemo(() => numberDecoys(n, 4, 3, 1).map((v) => ({ value: v })), [round.id]);
   return (
     <>
       <PromptCard question="Скільки тут?" answerState={answerState}>

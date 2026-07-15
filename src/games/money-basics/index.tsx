@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { GameDefinition, GameComponentProps, Difficulty } from '../types';
 import { PromptCard, ChoiceGrid, numberDecoys } from '../shared/ui';
 import { generate, correctFor, type Payload, type Unit } from './generate';
@@ -67,12 +68,27 @@ function MoneyChip({ value, unit, size = 64 }: { value: number; unit: Unit; size
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, string>) {
   const { payload } = round;
 
+  // numberDecoys() кличе Math.random() — рахуємо один раз на round.id для гілок
+  // count/change, інакше варіанти тасуються заново при кожному ре-рендері
+  // (напр. після невірної відповіді).
+  const numericOptions = useMemo(() => {
+    if (payload.mode === 'count') {
+      const sum = payload.items.reduce((a, b) => a + b, 0);
+      const spread = Math.max(3, Math.round(sum * 0.25));
+      return numberDecoys(sum, 4, spread, 1).map((v) => ({ value: String(v) }));
+    }
+    if (payload.mode === 'change') {
+      const change = payload.paid - payload.cost;
+      const spread = Math.max(3, Math.round(change * 0.3));
+      return numberDecoys(change, 4, spread, 0).map((v) => ({ value: String(v) }));
+    }
+    return null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [round.id]);
+
   if (payload.mode === 'count') {
     const { items, unit } = payload;
-    const sum = items.reduce((a, b) => a + b, 0);
-    const spread = Math.max(3, Math.round(sum * 0.25));
-    const decoys = numberDecoys(sum, 4, spread, 1);
-    const options = decoys.map((v) => ({ value: String(v) }));
+    const options = numericOptions!;
     return (
       <>
         <PromptCard question="Порахуй, скільки тут грошей" answerState={answerState}>
@@ -114,10 +130,7 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
 
   if (payload.mode === 'change') {
     const { cost, paid } = payload;
-    const change = paid - cost;
-    const spread = Math.max(3, Math.round(change * 0.3));
-    const decoys = numberDecoys(change, 4, spread, 0);
-    const options = decoys.map((v) => ({ value: String(v) }));
+    const options = numericOptions!;
     return (
       <>
         <PromptCard question="Скільки решти дати?" answerState={answerState}>
