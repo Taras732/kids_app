@@ -95,6 +95,11 @@ body {
   background: var(--bg-gradient);
   min-height: 100vh;
   min-height: -webkit-fill-available;
+  /* dvh = динамічна висота видимої області: стискається під панелі
+     вбудованого браузера (Telegram in-app тощо), на відміну від 100vh,
+     який рахує так, ніби панелей нема. Останнє valid-оголошення виграє,
+     старі рушії без підтримки dvh просто ігнорують цей рядок. */
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -147,7 +152,9 @@ body {
   .app-container {
     max-width: 100%;
     height: 100vh;
+    height: 100dvh;
     min-height: 100vh;
+    min-height: 100dvh;
     border-radius: 0;
     border: none;
     box-shadow: none;
@@ -429,10 +436,20 @@ body {
    Web shell — повноцінний веб-застосунок (діти за комп'ютером),
    адаптивний під мобілку. Замінює телефонну рамку для ігор.
    ============================================================ */
-/* Повноекранний веб-застосунок — без «рамки», на весь екран. */
+/* Повноекранний веб-застосунок — без «рамки», на весь екран.
+   Q4-фікс: inset:0 на fixed-елементі раніше розтягувався на 100vh —
+   у вбудованому браузері (Telegram in-app тощо) це рахує висоту так,
+   ніби панелей (адресний рядок/навігація) нема, тому ігровий екран
+   виходив вищим за видиму область і вимагав скролу. 100dvh стискається
+   під ці панелі динамічно. top/left/right замість inset:0, бо height
+   явно заданий — уникаємо over-constrained top+height+bottom. */
 .web-shell {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  height: 100dvh;
   background: var(--c-bg);
   color: var(--c-ink);
   font-family: var(--font-round);
@@ -440,6 +457,11 @@ body {
   display: flex;
   flex-direction: column;
   z-index: 1;
+  /* safe-area: не дати контенту (топбар/кнопки) залізти під чубчик/home-indicator */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 /* ---- Hub dashboard ---- */
