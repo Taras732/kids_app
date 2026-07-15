@@ -11,6 +11,9 @@ interface Payload {
 
 const CYCLES = 4;
 const PHASE_MS = 4000;
+/** Діаметр кола у спокої та коефіцієнт росту на вдиху. */
+const CIRCLE_SIZE = 130;
+const INHALE_SCALE = 1.6;
 
 function generate(difficulty: Difficulty): LevelData<Payload, Answer> {
   const round: Round<Payload, Answer> = {
@@ -56,17 +59,27 @@ function Component({ round, answerState, onAnswer }: GameComponentProps<Payload,
   return (
     <PromptCard question="Дихаємо разом" answerState={answerState}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '18px 0' }}>
+        {/* Резервуємо місце під коло на вдиху (scale), інакше воно налазить на підпис. */}
         <div
           style={{
-            width: 130,
-            height: 130,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, var(--c-primary), var(--c-blue))',
-            boxShadow: 'var(--c-shadow)',
-            transform: `scale(${phase === 'inhale' ? 1.6 : 1})`,
-            transition: `transform ${PHASE_MS}ms ease-in-out`,
+            height: CIRCLE_SIZE * INHALE_SCALE,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
-        />
+        >
+          <div
+            style={{
+              width: CIRCLE_SIZE,
+              height: CIRCLE_SIZE,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, var(--c-primary), var(--c-blue))',
+              boxShadow: 'var(--c-shadow)',
+              transform: `scale(${phase === 'inhale' ? INHALE_SCALE : 1})`,
+              transition: `transform ${PHASE_MS}ms ease-in-out`,
+            }}
+          />
+        </div>
         <div style={{ fontFamily: 'var(--font-round)', fontWeight: 800, fontSize: 22, color: 'var(--c-mut)' }}>
           {phase === 'inhale' ? 'Вдих…' : 'Видих…'}
         </div>
