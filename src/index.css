@@ -328,24 +328,70 @@ body {
   margin-bottom: 10px;
 }
 
-.g-choices { display: grid; gap: 12px; margin-top: 18px; }
+.g-choices {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  /* minmax(0, 1fr) — інакше колонка не стискається нижче min-content і текст вилазить */
+  grid-template-columns: repeat(var(--g-cols, 2), minmax(0, 1fr));
+}
 .g-choice {
+  /* min-width:0 — інакше grid-колонка не стискається нижче min-content
+     і довге слово («Прикметник») вилазить за межі кнопки */
+  min-width: 0;
   border: 1.5px solid var(--c-line);
   background: var(--c-card);
   color: var(--c-ink);
   border-radius: var(--c-r-sm);
-  padding: 18px 8px;
+  padding: 18px 10px;
   font-family: var(--font-round);
   font-size: 22px; font-weight: 800;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
   cursor: pointer;
   box-shadow: var(--c-shadow);
   transition: transform .1s, border-color .15s, background .15s;
 }
-.g-choice:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--c-primary); }
+/* довгі текстові варіанти («Прикметник», «Гімн України») — менший шрифт на 320–412px */
+.g-choices--long .g-choice { font-size: clamp(14px, 4vw, 18px); padding: 14px 8px; }
+/* на телефоні (включно з 412px Android) 3 колонки не дають довгому слову
+   вміститись у рядок — «Прикметник» рвався посеред слова. Максимум 2 колонки. */
+@media (max-width: 480px) {
+  .g-choices--long { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* hover лише там, де є справжня мишка: на тачі :hover залипає після тапу
+   і виглядає як підказка «цей варіант обрано» */
+@media (hover: hover) and (pointer: fine) {
+  .g-choice:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--c-primary); }
+}
 .g-choice:active:not(:disabled) { transform: translateY(0); }
+/* рамка фокуса — лише для клавіатури, не після тапу пальцем */
+.g-choice:focus { outline: none; }
+.g-choice:focus-visible { outline: 3px solid var(--c-primary); outline-offset: 2px; }
 .g-choice:disabled { cursor: default; }
+
+/* вибір дитини */
 .g-choice.correct { background: var(--c-green); border-color: var(--c-green); color: #fff; }
 .g-choice.wrong { background: #FFE2E2; border-color: #FF6B6B; color: #C0392B; }
+/* підказка «ось правильна відповідь» — контурна, НЕ залита:
+   візуально не читається як вибір дитини */
+.g-choice.reveal {
+  background: var(--c-card);
+  border: 2px dashed var(--c-green);
+  color: #15803D;
+  box-shadow: none;
+}
+.g-choice-tag {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #15803D;
+}
 
 .g-btn {
   width: 100%;

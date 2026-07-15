@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { AnswerState } from '../types';
 
 /** Картка-завдання (canon): питання зверху + візуальний вміст. */
@@ -23,6 +23,17 @@ export interface Choice<T extends string | number = string | number> {
   value: T;
   /** Що показати на кнопці (за замовчуванням — value). */
   node?: ReactNode;
+}
+
+/**
+ * Довжина тексту варіанта — щоб зменшити шрифт для довгих слів («Прикметник»).
+ * Складний ReactNode має власні стилі — його не міряємо.
+ */
+function choiceTextLength<T extends string | number>(opt: Choice<T>): number {
+  if (opt.node === undefined || typeof opt.node === 'string' || typeof opt.node === 'number') {
+    return String(opt.node ?? opt.value).length;
+  }
+  return 0;
 }
 
 /**
@@ -51,28 +62,41 @@ export function ChoiceGrid<T extends string | number>({
   }, [answerState]);
 
   const cols = columns ?? (options.length === 3 ? 3 : 2);
+  // довгі текстові варіанти не влазять у базові 22px на вузьких екранах
+  const longText = options.reduce((m, o) => Math.max(m, choiceTextLength(o)), 0) > 7;
 
   return (
-    <div className="g-choices" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+    <div
+      className={`g-choices${longText ? ' g-choices--long' : ''}`}
+      // кількість колонок — через CSS-змінну, щоб медіазапит міг обмежити її
+      // до 2 на вузькому екрані (інлайн-стиль медіазапитом не перекриєш)
+      style={{ '--g-cols': cols } as CSSProperties}
+    >
       {options.map((opt, i) => {
         let cls = 'g-choice';
         const isSel = selected === opt.value;
+        // правильний варіант, який дитина НЕ обрала → це підказка, не її вибір
+        const reveal = answerState === 'incorrect' && opt.value === correct && !isSel;
         if (isSel && answerState === 'correct') cls += ' correct';
         else if (isSel && answerState === 'incorrect') cls += ' wrong';
-        // підсвітити правильний, якщо дитина обрала неправильний
-        else if (answerState === 'incorrect' && opt.value === correct) cls += ' correct';
+        else if (reveal) cls += ' reveal';
         return (
           <button
             key={i}
+            type="button"
             className={cls}
             disabled={disabled}
-            onClick={() => {
+            onClick={(e) => {
               if (disabled) return;
+              // раунд не перемонтовується при помилці → :focus/:hover залипає
+              // на натиснутій кнопці і читається дитиною як підказка
+              e.currentTarget.blur();
               setSelected(opt.value);
               onPick(opt.value);
             }}
           >
             {opt.node ?? opt.value}
+            {reveal && <span className="g-choice-tag">Правильна відповідь</span>}
           </button>
         );
       })}
