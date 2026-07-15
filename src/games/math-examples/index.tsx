@@ -39,6 +39,8 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
           ? 'var(--c-primary)'
           : 'var(--c-mut)';
 
+  const feedbackColor = answerState === 'correct' ? 'var(--c-green)' : '#C0392B';
+
   return (
     <>
       <PromptCard question="Розв'яжи приклад" answerState={answerState}>
@@ -59,6 +61,19 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
         }}
       >
         {entered || '—'}
+      </div>
+
+      <div
+        style={{
+          textAlign: 'center',
+          fontSize: 14,
+          fontWeight: 700,
+          minHeight: 20,
+          margin: '2px 0 12px',
+          color: feedbackColor,
+        }}
+      >
+        {answerState === 'incorrect' ? `Правильно: ${round.answer}` : ' '}
       </div>
 
       <Keypad
