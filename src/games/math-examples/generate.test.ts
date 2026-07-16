@@ -228,17 +228,40 @@ describe('math-examples: QA-фікс — монотонність складно
   });
 
   it('ClassLevel preschool→grade4 (найважча difficulty=3 кожного класу) — вага не спадає', () => {
-    const sequence = CLASS_LEVELS.map((cl) => observedMaxWeight(3, 'L3', cl));
-    for (let i = 1; i < sequence.length; i++) {
-      expect(sequence[i]).toBeGreaterThanOrEqual(sequence[i - 1]);
+    // Порівнюємо ОГОЛОШЕНІ межі конфігу, а не спостережений максимум випадкової
+    // вибірки. Чому: grade3 і grade4 мають однакову межу для +/− (свідоме рішення —
+    // grade4 важчий набором дій і ширшим tableMax), тож вибірковий максимум у них
+    // статистично рівний і коливається: тест бачив «999 проти 1000» і падав
+    // приблизно в 2 прогонах із 5. Flaky-тест гірший за відсутній — він привчає
+    // ігнорувати червоне.
+    const declared = CLASS_LEVELS.map((cl) => {
+      const c = classBandConfigFor(cl, 3);
+      return Math.max(c.max, c.tableMax * c.tableMax);
+    });
+    for (let i = 1; i < declared.length; i++) {
+      expect(declared[i], `${CLASS_LEVELS[i]} легший за ${CLASS_LEVELS[i - 1]}`).toBeGreaterThanOrEqual(declared[i - 1]);
+    }
+  });
+
+  it('спостережені приклади не виходять за оголошену межу класу (вибірка узгоджена з конфігом)', () => {
+    for (const cl of CLASS_LEVELS) {
+      const c = classBandConfigFor(cl, 3);
+      const ceiling = Math.max(c.max, c.tableMax * c.tableMax);
+      expect(observedMaxWeight(3, 'L3', cl), `${cl}: вибірка перевищила стелю конфігу`).toBeLessThanOrEqual(ceiling);
     }
   });
 
   it('у межах кожного класу difficulty 1→2→3 — вага не спадає', () => {
+    // Знову оголошені межі, а не вибірка: у деяких класах difficulty 2 і 3 мають
+    // однакову межу для +/− (важчає набір дій і tableMax), тож вибірковий максимум
+    // статистично рівний — тест бачив «999 проти 1000» і падав через раз.
     for (const classLevel of CLASS_LEVELS) {
-      const sequence = DIFFICULTIES.map((d) => observedMaxWeight(d, 'L3', classLevel));
-      for (let i = 1; i < sequence.length; i++) {
-        expect(sequence[i]).toBeGreaterThanOrEqual(sequence[i - 1]);
+      const declared = DIFFICULTIES.map((d) => {
+        const c = classBandConfigFor(classLevel, d);
+        return Math.max(c.max, c.tableMax * c.tableMax);
+      });
+      for (let i = 1; i < declared.length; i++) {
+        expect(declared[i], `${classLevel}: difficulty ${i + 1} легший за ${i}`).toBeGreaterThanOrEqual(declared[i - 1]);
       }
     }
   });

@@ -19,6 +19,7 @@ import numberTiles from './number-tiles';
 import wordProblems from './word-problems';
 import perimeterArea from './perimeter-area';
 import cubeNet from './cube-net';
+import gears from './gears';
 // --- Мова ---
 import lettersFind from './letters-find';
 import syllableBuild from './syllable-build';
@@ -66,7 +67,7 @@ export const GAMES: GameDefinition[] = [
   // Англійська
   lettersFindEn, englishWordPicture,
   // Наука
-  colorsFind, shapes, waterStates, sinkFloat, animalsHabitat, plantGrow, seasonsWeather,
+  colorsFind, shapes, waterStates, sinkFloat, animalsHabitat, plantGrow, seasonsWeather, gears,
   // Логіка
   logicSequences, sortingGame, sudoku, magicSquare,
   // Пам'ять
