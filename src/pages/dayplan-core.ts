@@ -2,6 +2,7 @@
 // ігор/повторень «зроблено». Без IO/React — юніт-тестується напряму (vitest).
 
 import type { DailyPlanItem, DailyPlanItemStatus, DailyPlanItemKind } from '@/school/types';
+import type { Subject } from '@/games/types';
 
 /**
  * Захисне сортування кроків плану за sort. Для щойно створеного плану
@@ -66,4 +67,43 @@ export function partitionPlanItems<T extends { kind: DailyPlanItemKind }>(
   const offline: T[] = [];
   for (const it of items) (isOfflinePlanItem(it.kind) ? offline : screen).push(it);
   return { screen, offline };
+}
+
+/** Секція розкладу — кроки одного предмета. subject=null → без предмета (в кінець). */
+export interface DaySubjectGroup<T> {
+  subject: Subject | null;
+  items: T[];
+}
+
+/**
+ * SD1 — згрупувати екранні кроки за предметом, щоб «Мій день» читався як школа
+ * («Математика: … · Читання: …»), а не плоский список ігор. Порядок груп —
+ * за `order` (SUBJECT_ORDER); кроки без визначеного предмета йдуть окремою
+ * групою в кінець. Порядок кроків усередині групи зберігається (вже відсортовані).
+ * `subjectOf` — колбек (DayPlan бере предмет із registry за ref_id), щоб core
+ * лишався незалежним від ігрового реєстру.
+ */
+export function groupBySubject<T>(
+  items: T[],
+  subjectOf: (item: T) => Subject | null,
+  order: readonly Subject[],
+): DaySubjectGroup<T>[] {
+  const map = new Map<Subject | null, T[]>();
+  for (const it of items) {
+    const s = subjectOf(it);
+    const bucket = map.get(s);
+    if (bucket) bucket.push(it);
+    else map.set(s, [it]);
+  }
+  const groups: DaySubjectGroup<T>[] = [];
+  for (const s of order) {
+    const bucket = map.get(s);
+    if (bucket) {
+      groups.push({ subject: s, items: bucket });
+      map.delete(s);
+    }
+  }
+  // решта (null або поза order) — стабільно в кінець
+  for (const [s, bucket] of map) groups.push({ subject: s, items: bucket });
+  return groups;
 }

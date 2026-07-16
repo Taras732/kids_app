@@ -2,11 +2,13 @@ import { describe, it, expect } from 'vitest';
 import {
   countCompleted,
   findAutoCompletableGameItemIds,
+  groupBySubject,
   isOfflinePlanItem,
   partitionPlanItems,
   sortPlanItems,
 } from './dayplan-core';
 import type { DailyPlanItem } from '@/school/types';
+import type { Subject } from '@/games/types';
 
 function item(over: Partial<DailyPlanItem> = {}): DailyPlanItem {
   return {
@@ -105,5 +107,37 @@ describe('partitionPlanItems (E2)', () => {
 
   it('порожній список → дві порожні групи', () => {
     expect(partitionPlanItems([])).toEqual({ screen: [], offline: [] });
+  });
+});
+
+describe('groupBySubject (SD1 — «Мій день» читається як школа)', () => {
+  const ORDER: Subject[] = ['math', 'language', 'english', 'science', 'logic', 'memory', 'world', 'life', 'attention'];
+  const bySubject = (map: Record<string, Subject | null>) => (i: DailyPlanItem) => map[i.id] ?? null;
+
+  it('групи в порядку SUBJECT_ORDER; без предмета — в кінець', () => {
+    const items = [
+      item({ id: 'a' }), item({ id: 'b' }), item({ id: 'c' }), item({ id: 'd' }), item({ id: 'e' }),
+    ];
+    const groups = groupBySubject(items, bySubject({ a: 'science', b: 'math', c: null, d: 'math', e: 'language' }), ORDER);
+    expect(groups.map((g) => g.subject)).toEqual(['math', 'language', 'science', null]);
+    expect(groups[0].items.map((i) => i.id)).toEqual(['b', 'd']); // внутрішній порядок збережено
+    expect(groups[3].items.map((i) => i.id)).toEqual(['c']);
+  });
+
+  it('порожній вхід → []', () => {
+    expect(groupBySubject([], () => null, ORDER)).toEqual([]);
+  });
+
+  it('один предмет → одна група', () => {
+    const items = [item({ id: 'a' }), item({ id: 'b' })];
+    const groups = groupBySubject(items, bySubject({ a: 'math', b: 'math' }), ORDER);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].items).toHaveLength(2);
+  });
+
+  it('не губить жодного кроку', () => {
+    const items = [item({ id: '1' }), item({ id: '2' }), item({ id: '3' }), item({ id: '4' })];
+    const groups = groupBySubject(items, bySubject({ '1': 'world', '2': 'math', '3': null, '4': 'world' }), ORDER);
+    expect(groups.reduce((n, g) => n + g.items.length, 0)).toBe(items.length);
   });
 });

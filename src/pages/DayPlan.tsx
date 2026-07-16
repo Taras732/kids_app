@@ -1,17 +1,78 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { getOrCreateTodayPlan } from '@/school/planner';
 import { fetchOfflineTasks, updateDailyPlanStatus, updatePlanItemStatus } from '@/school/db';
-import { getGame, profileClass, SUBJECT_META } from '@/games/registry';
+import { getGame, profileClass, SUBJECT_META, SUBJECT_ORDER } from '@/games/registry';
 import { classBand } from '@/games/types';
 import { ruleOfDay } from '@/rules/rules-math';
 import { scheduleForDay, isSchoolDay, weekdayName } from '@/school/schedule-core';
 import OfflineTaskCard from '@/components/OfflineTask';
 import type { DailyPlan, DailyPlanItem, OfflineTask } from '@/school/types';
-import { countCompleted, findAutoCompletableGameItemIds, sortPlanItems } from './dayplan-core';
+import {
+  countCompleted,
+  findAutoCompletableGameItemIds,
+  groupBySubject,
+  partitionPlanItems,
+  sortPlanItems,
+} from './dayplan-core';
+
+/** SD3 — пауза між предметами: у школі між уроками перерва. */
+function PauseDivider() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--c-mut)', fontWeight: 700, fontSize: 12.5, padding: '2px 0' }}>
+      <span style={{ flex: 1, height: 1, background: 'var(--c-line)' }} />
+      <span>☕ Пауза — відпочинь трохи</span>
+      <span style={{ flex: 1, height: 1, background: 'var(--c-line)' }} />
+    </div>
+  );
+}
+
+/** Крок-гра/повторення в розкладі дня. */
+function ScreenStepCard({ item, onPlay }: { item: DailyPlanItem; onPlay: (gameId: string) => void }) {
+  const game = item.ref_id ? getGame(item.ref_id) : undefined;
+  const isDone = item.status !== 'pending';
+  return (
+    <div className="panel">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div
+          style={{
+            width: 54, height: 54, flexShrink: 0, borderRadius: 16,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 28, overflow: 'hidden', background: game?.accent ?? 'var(--c-primary-soft)',
+          }}
+        >
+          {game?.image ? <img src={game.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (game?.icon ?? '📘')}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <h4 className="g-title" style={{ fontSize: 15.5, margin: 0 }}>{game?.title ?? 'Завдання'}</h4>
+            {item.kind === 'review' && <span className="g-diffbadge">🔁 Повторення</span>}
+            {isDone && (
+              <span style={{ background: 'var(--c-green)', color: '#fff', fontWeight: 800, fontSize: 12, borderRadius: 999, padding: '3px 9px' }}>
+                Зроблено ✅
+              </span>
+            )}
+          </div>
+          {game?.description && (
+            <div style={{ color: 'var(--c-mut)', fontWeight: 600, fontSize: 12.5, marginTop: 2 }}>{game.description}</div>
+          )}
+        </div>
+        {game && (
+          <button
+            className={`g-btn ${isDone ? 'soft' : 'primary'}`}
+            style={{ width: 'auto', flexShrink: 0, padding: '10px 18px' }}
+            onClick={() => onPlay(game.id)}
+          >
+            {isDone ? 'Ще раз ▶' : '▶'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 /** Локальна сьогоднішня дата (часовий пояс дитини) — план «на сьогодні», не UTC-доба. */
 function todayLocalDate(): string {
@@ -138,6 +199,13 @@ export default function DayPlan() {
   // «Правило дня» — перший крок розкладу (клієнтський RL1, під рівень дитини).
   const band = classBand(classLevel, 2);
   const dayRule = ruleOfDay(band, date);
+  // SD1 — екранні кроки за предметом, офлайн окремо в кінець.
+  const { screen: screenItems, offline: offlineItems } = partitionPlanItems(items);
+  const subjectGroups = groupBySubject(
+    screenItems,
+    (it) => (it.ref_id ? getGame(it.ref_id)?.subject ?? null : null),
+    SUBJECT_ORDER,
+  );
 
   return (
     <div className="hub">
@@ -237,78 +305,44 @@ export default function DayPlan() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {items.map((item) => {
-                if (item.kind === 'workbook' || item.kind === 'worksheet' || item.kind === 'activity') {
-                  const task = item.ref_id ? offlineTasks.get(item.ref_id) : undefined;
-                  if (!task) {
-                    return (
-                      <div key={item.id} className="panel">
-                        <p style={{ color: 'var(--c-mut)', fontWeight: 600, margin: 0 }}>Завдання тимчасово недоступне.</p>
-                      </div>
-                    );
-                  }
-                  return <OfflineTaskCard key={item.id} task={task} status={item.status} onDone={() => markOfflineDone(item)} />;
-                }
-
-                const game = item.ref_id ? getGame(item.ref_id) : undefined;
-                const isDone = item.status !== 'pending';
+              {/* SD1 — кроки згруповані за предметом: день читається як школа, не список ігор.
+                  SD3 — між предметами пауза (нагадування відпочити). */}
+              {subjectGroups.map((group, gi) => {
+                const meta = group.subject ? SUBJECT_META[group.subject] : null;
                 return (
-                  <div key={item.id} className="panel">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                      <div
-                        style={{
-                          width: 54,
-                          height: 54,
-                          flexShrink: 0,
-                          borderRadius: 16,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 28,
-                          overflow: 'hidden',
-                          background: game?.accent ?? 'var(--c-primary-soft)',
-                        }}
-                      >
-                        {game?.image ? <img src={game.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (game?.icon ?? '📘')}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                          <h4 className="g-title" style={{ fontSize: 15.5, margin: 0 }}>
-                            {game?.title ?? 'Завдання'}
-                          </h4>
-                          {item.kind === 'review' && <span className="g-diffbadge">🔁 Повторення</span>}
-                          {isDone && (
-                            <span
-                              style={{
-                                background: 'var(--c-green)',
-                                color: '#fff',
-                                fontWeight: 800,
-                                fontSize: 12,
-                                borderRadius: 999,
-                                padding: '3px 9px',
-                              }}
-                            >
-                              Зроблено ✅
-                            </span>
-                          )}
-                        </div>
-                        {game?.description && (
-                          <div style={{ color: 'var(--c-mut)', fontWeight: 600, fontSize: 12.5, marginTop: 2 }}>{game.description}</div>
-                        )}
-                      </div>
-                      {game && (
-                        <button
-                          className={`g-btn ${isDone ? 'soft' : 'primary'}`}
-                          style={{ width: 'auto', flexShrink: 0, padding: '10px 18px' }}
-                          onClick={() => navigate(`/game/${game.id}`)}
-                        >
-                          {isDone ? 'Ще раз ▶' : '▶'}
-                        </button>
-                      )}
+                  <Fragment key={group.subject ?? 'other'}>
+                    {gi > 0 && <PauseDivider />}
+                    <div className="section-h" style={{ marginTop: gi > 0 ? 0 : 4 }}>
+                      <span className="emo">{meta?.emoji ?? '📘'}</span>
+                      <h3>{meta?.title ?? 'Інше'}</h3>
                     </div>
-                  </div>
+                    {group.items.map((item) => (
+                      <ScreenStepCard key={item.id} item={item} onPlay={(id) => navigate(`/game/${id}`)} />
+                    ))}
+                  </Fragment>
                 );
               })}
+
+              {offlineItems.length > 0 && (
+                <>
+                  {subjectGroups.length > 0 && <PauseDivider />}
+                  <div className="section-h">
+                    <span className="emo">🏠</span>
+                    <h3>Без екрана</h3>
+                  </div>
+                  {offlineItems.map((item) => {
+                    const task = item.ref_id ? offlineTasks.get(item.ref_id) : undefined;
+                    if (!task) {
+                      return (
+                        <div key={item.id} className="panel">
+                          <p style={{ color: 'var(--c-mut)', fontWeight: 600, margin: 0 }}>Завдання тимчасово недоступне.</p>
+                        </div>
+                      );
+                    }
+                    return <OfflineTaskCard key={item.id} task={task} status={item.status} onDone={() => markOfflineDone(item)} />;
+                  })}
+                </>
+              )}
             </div>
           )}
         </div>
