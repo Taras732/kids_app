@@ -18,6 +18,7 @@ import measures from './measures';
 import numberTiles from './number-tiles';
 import wordProblems from './word-problems';
 import perimeterArea from './perimeter-area';
+import cubeNet from './cube-net';
 // --- Мова ---
 import lettersFind from './letters-find';
 import syllableBuild from './syllable-build';
@@ -59,7 +60,7 @@ import tapTheDot from './tap-the-dot';
 export const GAMES: GameDefinition[] = [
   // Математика
   counting, addition, compare, mathExamples, timesTables, mathCompare,
-  columnArithmetic, fractionsCompare, clockTime, moneyBasics, recognizeDigit, measures, numberTiles, wordProblems, perimeterArea,
+  columnArithmetic, fractionsCompare, clockTime, moneyBasics, recognizeDigit, measures, numberTiles, wordProblems, perimeterArea, cubeNet,
   // Мова
   lettersFind, syllableBuild, readingSpeed, grammarParts,
   // Англійська
@@ -128,6 +129,8 @@ const AVAILABLE_BY_CLASS: Record<string, ClassLevel[]> = {
   'column-arithmetic': ['grade1', 'grade2', 'grade3', 'grade4'],
   'perimeter-area': ['grade2', 'grade3', 'grade4'],
   'magic-square': ['grade3', 'grade4'],
+  // розгортки куба — просторова тема 3–4 класу
+  'cube-net': ['grade3', 'grade4'],
   // мова/світ для старших
   'reading-speed': ['grade2', 'grade3', 'grade4'],
   'grammar-parts': ['grade2', 'grade3', 'grade4'],
