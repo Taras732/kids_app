@@ -159,6 +159,67 @@ export function canConnect(grid: BoardGrid, a: Cell, b: Cell): boolean {
   return false;
 }
 
+function occupiedCells(grid: BoardGrid): Cell[] {
+  const cells: Cell[] = [];
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      if (grid[r][c] !== null) cells.push([r, c]);
+    }
+  }
+  return cells;
+}
+
+/**
+ * Чи є на полі БОДАЙ ОДИН валідний хід — для БУДЬ-ЯКОЇ пари зайнятих клітинок,
+ * не лише для "задуманої" генератором пари. Гравець вільний обирати пари в
+ * іншому порядку/складі, ніж домінo-замощення генератора (canConnect дозволяє
+ * і "чужі" збіги, якщо вони в одному рядку/стовпці й нічим не розділені) —
+ * тому реальна гра може дійти до стану, де решта плиток одна одну не б'ють.
+ * Використовується разом з `reshuffleStuck` (див. нижче), щоб таке "болото"
+ * не залишало гравця назавжди без ходу.
+ */
+export function hasValidMove(grid: BoardGrid): boolean {
+  const cells = occupiedCells(grid);
+  for (let i = 0; i < cells.length; i++) {
+    for (let j = i + 1; j < cells.length; j++) {
+      const [r1, c1] = cells[i];
+      const [r2, c2] = cells[j];
+      const v1 = grid[r1][c1];
+      const v2 = grid[r2][c2];
+      if (v1 !== null && v2 !== null && isValidPair(v1, v2) && canConnect(grid, cells[i], cells[j])) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * "Рятувальний" реміс: коли на полі лишились плитки, але жодну пару не можна
+ * забрати (canConnect звужує геометрію сильніше, ніж очікує дитина — живий
+ * фаззер підтвердив: ~15-45% партій доходять до 2-6 плиток без жодного
+ * ходу), перепаковує залишок у НОВЕ доміно-замощення того самого поля —
+ * тим самим гарантовано-розв'язним способом, що й початкова генерація
+ * (buildDominoTiling + fillGrid), лише беремо ПЕРШІ n/2 пар цього замощення
+ * (де n — кількість залишкових плиток) замість усіх. Кожна взята пара сама
+ * по собі СУСІДНЯ (клітинки впритул одна до одної), тож незалежно від решти
+ * поля (усе інше стає порожнім) вона гарантовано з'єднується — точно той
+ * самий інваріант, що вже підтверджує `fuzzCheck` для повного поля.
+ *
+ * Навмисно НЕ пробували "перемішати значення на тих самих клітинках": живий
+ * тест показав, що це не рятує, коли лишились рівно 2 плитки по діагоналі
+ * (різний рядок І стовпець) — жодна перестановка ЧИСЕЛ не з'єднає клітинки,
+ * які геометрично не в одному рядку/стовпці. Тут потрібна нова ГЕОМЕТРІЯ, а
+ * не нові числа на старих місцях — тому плитки можуть "переїхати".
+ */
+export function reshuffleStuck(grid: BoardGrid, sumOnly: boolean): BoardGrid {
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+  const n = occupiedCells(grid).length;
+  if (n === 0) return Array.from({ length: rows }, () => Array(cols).fill(null)) as BoardGrid;
+  const { pairs } = buildDominoTiling(rows, cols);
+  const chosen = pairs.slice(0, n / 2);
+  return fillGrid(rows, cols, chosen, sumOnly);
+}
+
 export function generateBoard(
   difficulty: Difficulty,
   level: ProfileLevel = 'L3',
