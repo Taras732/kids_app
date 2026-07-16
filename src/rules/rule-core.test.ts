@@ -449,6 +449,54 @@ describe('унікальність (баги «29,29» і «перше=трет�
   });
 });
 
+describe('прикидка — оцінка НЕ бреше (округлення = найближча сотня до точної відповіді)', () => {
+  const def = () => MATH_RULE_LESSONS.find((l) => l.id === 'math.estimation')!;
+
+  it('додавання: правильна відповідь = найближча сотня до ТОЧНОЇ суми, 200 seed', () => {
+    for (const band of ['L3', 'L4'] as const) {
+      for (let seed = 1; seed <= 200; seed++) {
+        const [addBlock] = def().build(band, createRng(seed));
+        for (const t of addBlock.tasks) {
+          const [a, b] = t.prompt.split('+').map((x) => Number(x.trim()));
+          const exact = a + b;
+          const nearestHundred = Math.round(exact / 100) * 100;
+          // якби доданки були далеко від сотень (напр. 249+249), оцінка розійшлася б
+          // з найближчою сотнею — і урок учив би хибного
+          expect(Number(t.correct), `${t.prompt}: оцінка ${t.correct}, а найближча сотня до ${exact} = ${nearestHundred}`).toBe(nearestHundred);
+        }
+      }
+    }
+  });
+
+  it('множення: оцінка близька до точного добутку (похибка < 15%), 200 seed', () => {
+    for (const band of ['L3', 'L4'] as const) {
+      for (let seed = 1; seed <= 200; seed++) {
+        const blocks = def().build(band, createRng(seed));
+        for (const t of blocks[1].tasks) {
+          const [a, b] = t.prompt.split('×').map((x) => Number(x.trim()));
+          const exact = a * b;
+          const est = Number(t.correct);
+          expect(Math.abs(est - exact) / exact, `${t.prompt}: оцінка ${est} проти точного ${exact}`).toBeLessThan(0.15);
+        }
+      }
+    }
+  });
+
+  it('обманки — сусідні оцінки, ніколи не збігаються з правильною', () => {
+    for (const band of ['L3', 'L4'] as const) {
+      for (let seed = 1; seed <= 100; seed++) {
+        for (const blk of def().build(band, createRng(seed))) {
+          for (const t of blk.tasks) {
+            const values = [t.correct, ...t.distractors.map((d) => d.value)];
+            expect(new Set(values).size).toBe(values.length);
+            expect(t.distractors.length).toBeGreaterThanOrEqual(1);
+          }
+        }
+      }
+    }
+  });
+});
+
 describe('через десяток — приклади реально через десяток', () => {
   it('додавання: одиниці доданків у сумі > 10 (є перехід)', () => {
     const def = MATH_RULE_LESSONS.find((l) => l.id === 'math.through-ten')!;

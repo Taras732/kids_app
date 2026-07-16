@@ -412,4 +412,152 @@ const THROUGH_TEN: RuleLessonDef = {
 
 // ============================================================
 
-export const MATH_RULE_LESSONS: RuleLessonDef[] = [THROUGH_TEN, ORDER_OF_OPERATIONS];
+// ============================================================
+// Прикидка — округлення й оцінка результату (3–4 клас)
+// ============================================================
+//
+// Парадигма Ballpark зі SkyTest: обери НАЙБЛИЖЧЕ, а не точне. У програмі НУШ
+// округлення є, а в нашому skill-графі відповідної навички ще немає — тож урок
+// поки без skillIds (працює, просто не живить mastery), як уроки мови до L1.
+// TODO: додати навичку «Округлення» у skills-math.ts разом із seed у prod.
+
+/** Округлення до найближчої сотні. */
+const round100 = (n: number): number => Math.round(n / 100) * 100;
+/** Округлення до найближчого десятка. */
+const round10 = (n: number): number => Math.round(n / 10) * 10;
+
+/**
+ * a + b, де обидва доданки близькі до сотень (похибка ≤ 20).
+ * Це не косметика, а МАТЕМАТИЧНА ГАРАНТІЯ: |da| + |db| ≤ 40 < 50, тож
+ * округлення доданків завжди дає саме найближчу сотню до точної суми.
+ * Інакше урок вчив би хибного: 249+249 → «200+200=400», хоча найближча сотня 500.
+ */
+function estimateAddTask(id: string, a: number, b: number): RuleTask {
+  const estimate = round100(a) + round100(b);
+  const candidates: Distractor[] = [
+    {
+      value: String(estimate - 100),
+      misconception: 'округлив числа вниз, хоч вони ближчі до більшої сотні',
+      explain: {
+        kind: 'visual-proof',
+        note: 'Дивись, до якої сотні число БЛИЖЧЕ:',
+        visual: { kind: 'steps', steps: [`${a} ≈ ${round100(a)}`, `${b} ≈ ${round100(b)}`, `${round100(a)} + ${round100(b)} = ${estimate}`] },
+      },
+    },
+    {
+      value: String(estimate + 100),
+      misconception: 'округлив числа вгору, хоч вони ближчі до меншої сотні',
+      explain: {
+        kind: 'rule-recall',
+        text: 'Округлюй до тієї сотні, до якої число ближче — а не завжди вгору.',
+      },
+    },
+  ];
+  return {
+    id,
+    prompt: `${a} + ${b}`,
+    correct: String(estimate),
+    correctSteps: [`${a} ≈ ${round100(a)}`, `${b} ≈ ${round100(b)}`, `${round100(a)} + ${round100(b)} = ${estimate}`],
+    distractors: dedupeDistractors(String(estimate), candidates),
+  };
+}
+
+/** a × b, де обидва множники близькі до десятків (похибка ≤ 2). */
+function estimateMultTask(id: string, a: number, b: number): RuleTask {
+  const ra = round10(a);
+  const rb = round10(b);
+  const estimate = ra * rb;
+  const candidates: Distractor[] = [
+    {
+      value: String(ra * b),
+      misconception: 'округлив лише перший множник, а другий лишив як є',
+      explain: {
+        kind: 'visual-proof',
+        note: 'Для прикидки округлюють ОБИДВА числа:',
+        visual: { kind: 'steps', steps: [`${a} ≈ ${ra}`, `${b} ≈ ${rb}`, `${ra} × ${rb} = ${estimate}`] },
+      },
+    },
+    {
+      value: String(estimate + ra * 10),
+      misconception: 'округлив другий множник на десяток більше, ніж треба',
+      explain: { kind: 'rule-recall', text: 'Округлюй до найближчого десятка — до того, який ближче.' },
+    },
+  ];
+  return {
+    id,
+    prompt: `${a} × ${b}`,
+    correct: String(estimate),
+    correctSteps: [`${a} ≈ ${ra}`, `${b} ≈ ${rb}`, `${ra} × ${rb} = ${estimate}`],
+    distractors: dedupeDistractors(String(estimate), candidates),
+  };
+}
+
+const ESTIMATION: RuleLessonDef = {
+  id: 'math.estimation',
+  title: 'Прикидка',
+  subject: 'math',
+  skillIds: [], // навички «Округлення» у графі ще немає — див. TODO вище
+  bands: ['L3', 'L4'],
+  build: (band, rng) => {
+    const n = taskCount(band);
+    /** Знак похибки — щоб число було то трохи менше, то трохи більше за кругле. */
+    const sign = (): number => (rng() < 0.5 ? -1 : 1);
+
+    /**
+     * Доданок біля сотні: 100k ± (3…20). Похибка НЕНУЛЬОВА (інакше «округлювати»
+     * нема чого) і ≤20, тож |da|+|db| ≤ 40 < 50 — округлення доданків гарантовано
+     * дає саме найближчу сотню до точної суми.
+     */
+    const nearHundred = (): number => {
+      const k = ri(rng, 1, band === 'L4' ? 8 : 5);
+      return k * 100 + sign() * ri(rng, 3, 20);
+    };
+
+    /**
+     * Множник біля десятка: 10k ± 1 (k ≥ 2). Похибка рівно 1, бо у множенні
+     * похибки ПЕРЕМНОЖУЮТЬСЯ: при ±2 прикидка 48×18 дала б 1000 проти точних 864
+     * (16%) — дитина побачила б, що прикидка бреше. При ±1 найгірший випадок
+     * 19×19 → 400 проти 361 (11%), і класичні приклади 19×21 ≈ 400 (точно 399).
+     * Ненульова похибка ще й гарантує, що обманка «округлив лише перший множник»
+     * ніколи не збігається з правильною відповіддю.
+     */
+    const nearTen = (): number => ri(rng, 2, band === 'L4' ? 9 : 6) * 10 + sign();
+
+    const first: RuleBlock = {
+      statement: {
+        text: 'Щоб швидко прикинути відповідь — округли числа до найближчої сотні, а тоді порахуй.',
+        visual: { kind: 'steps', steps: ['297 ≈ 300', '412 ≈ 400', '300 + 400 = 700'] },
+      },
+      worked: {
+        prompt: '297 + 412',
+        steps: [
+          '297 ближче до 300, ніж до 200 → округлюємо до 300',
+          '412 ближче до 400, ніж до 500 → округлюємо до 400',
+          '300 + 400 = 700. Точна відповідь 709 — прикидка майже влучила!',
+        ],
+        answer: '≈ 700',
+      },
+      tasks: uniqueTasks(n, (i) => estimateAddTask(`est-${i}`, nearHundred(), nearHundred())),
+    };
+
+    const second: RuleBlock = {
+      changeNote: 'А тепер те саме — з множенням.',
+      statement: {
+        text: 'Множення прикидають так само: округли обидва числа до найближчого десятка.',
+        visual: { kind: 'steps', steps: ['19 ≈ 20', '21 ≈ 20', '20 × 20 = 400'] },
+      },
+      worked: {
+        prompt: '19 × 21',
+        steps: ['19 ближче до 20 → округлюємо', '21 теж ближче до 20 → округлюємо', '20 × 20 = 400. Точна відповідь 399!'],
+        answer: '≈ 400',
+      },
+      tasks: uniqueTasks(n, (i) => estimateMultTask(`estm-${i}`, nearTen(), nearTen())),
+    };
+
+    return [first, second];
+  },
+};
+
+// ============================================================
+
+export const MATH_RULE_LESSONS: RuleLessonDef[] = [THROUGH_TEN, ORDER_OF_OPERATIONS, ESTIMATION];
