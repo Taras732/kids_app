@@ -169,12 +169,44 @@ export function genCompare(pool: ObjectFact[], categories: MeasureCategory[]): C
   return { mode: 'compare', left, right };
 }
 
+/**
+ * Дистрактори для 'unit' раунду: ЛИШЕ одиниці тієї самої величини (категорії),
+ * що й правильна одиниця — тонна ніколи не стане дистрактором для мілілітрів
+ * (раніше `otherCategory` домішувала будь-яку одиницю з іншої величини, звідси
+ * баг «т» як варіант для чайної ложки 5 мл).
+ *
+ * З-поміж одиниць тієї самої категорії беремо до 2 НАЙБЛИЖЧИХ за порядком
+ * величини (сусідні одиниці за позицією в `UNITS`, який задекларований по
+ * зростанню `inBase` в межах кожної категорії): для 5 мл коректний дистрактор —
+ * «л», а не щось довільне з 5 одиниць довжини.
+ *
+ * Якщо в категорії замало одиниць для 2 дистракторів (об'єм має лише 2
+ * одиниці — буде 1 дистрактор; температура має лише 1 — спершу пробуємо
+ * підібрати інший обʼєкт з пулу, а якщо не вдалось — краще менше варіантів,
+ * ніж абсурдний дистрактор з іншої величини).
+ */
 export function genUnit(pool: ObjectFact[]): UnitPayload {
-  const obj = pool[randInt(0, pool.length - 1)];
-  const correctUnit = unitByKey(obj.unitKey);
-  const sameCategory = shuffle(UNITS.filter((u) => u.category === correctUnit.category && u.key !== correctUnit.key));
-  const otherCategory = shuffle(UNITS.filter((u) => u.category !== correctUnit.category));
-  const decoys = [...sameCategory, ...otherCategory].slice(0, 2);
+  let obj = pool[randInt(0, pool.length - 1)];
+  let correctUnit = unitByKey(obj.unitKey);
+  let categoryUnits = UNITS.filter((u) => u.category === correctUnit.category);
+  let guard = 0;
+  while (categoryUnits.length < 2 && guard < 10) {
+    obj = pool[randInt(0, pool.length - 1)];
+    correctUnit = unitByKey(obj.unitKey);
+    categoryUnits = UNITS.filter((u) => u.category === correctUnit.category);
+    guard++;
+  }
+
+  const correctIdx = categoryUnits.findIndex((u) => u.key === correctUnit.key);
+  const decoys = categoryUnits
+    .filter((u) => u.key !== correctUnit.key)
+    .sort((a, b) => {
+      const da = Math.abs(categoryUnits.findIndex((u) => u.key === a.key) - correctIdx);
+      const db = Math.abs(categoryUnits.findIndex((u) => u.key === b.key) - correctIdx);
+      return da - db;
+    })
+    .slice(0, 2);
+
   const options = shuffle([correctUnit.label, ...decoys.map((u) => u.label)]);
   return { mode: 'unit', obj, options };
 }

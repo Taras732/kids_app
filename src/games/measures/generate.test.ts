@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { CONFIG_BY_BAND, CLASS_UNIT_KEYS, generate, correctFor } from './generate';
+import type { ProfileLevel } from '../types';
+import { OBJECTS, UNITS, unitByKey, type MeasureCategory } from './data';
+import { CONFIG_BY_BAND, CLASS_UNIT_KEYS, generate, correctFor, genUnit } from './generate';
+
+function categoryOfLabel(label: string): MeasureCategory {
+  const u = UNITS.find((x) => x.label === label);
+  if (!u) throw new Error(`Unknown unit label: ${label}`);
+  return u.category;
+}
 
 describe('measures: CONFIG_BY_BAND (D5 шкала L0-L4)', () => {
   it('кількість дозволених одиниць монотонно не спадає від L0 (найлегше) до L4 (найважче)', () => {
@@ -160,6 +168,117 @@ describe('measures: generate(difficulty, level, classLevel) — клас-віс�
         if (r.payload.mode === 'convert') {
           expect(['cm', 'm', 'kg']).toContain(r.payload.fromKey);
           expect(['cm', 'm', 'kg']).toContain(r.payload.toKey);
+        }
+      }
+    }
+  });
+});
+
+describe('measures: genUnit дистрактори не змішують величини (Q14 fix — «т» більше не варіант для чайної ложки 5 мл)', () => {
+  it('усі варіанти unit-раунду належать ТІЙ САМІЙ категорії, що й правильна одиниця — для кожного обʼєкта банку, багато ітерацій', () => {
+    for (const obj of OBJECTS) {
+      for (let i = 0; i < 20; i++) {
+        const payload = genUnit([obj]);
+        for (const label of payload.options) {
+          expect(categoryOfLabel(label)).toBe(obj.category);
+        }
+      }
+    }
+  });
+
+  it('варіанти unit-раунду унікальні (без дублів правильної відповіді чи одне одного)', () => {
+    for (const obj of OBJECTS) {
+      for (let i = 0; i < 20; i++) {
+        const payload = genUnit([obj]);
+        expect(new Set(payload.options).size).toBe(payload.options.length);
+      }
+    }
+  });
+
+  it('чайна ложка (5 мл): єдиний можливий дистрактор — «л» (обʼєм має лише 2 одиниці); ніколи т/кг/км/мм/см', () => {
+    const teaspoon = OBJECTS.find((o) => o.name === 'Чайна ложка')!;
+    for (let i = 0; i < 30; i++) {
+      const payload = genUnit([teaspoon]);
+      expect(payload.options).toHaveLength(2);
+      expect(payload.options).toContain('мл');
+      expect(payload.options).toContain('л');
+    }
+  });
+
+  it('крапля (1 мл): дистрактор — теж лише «л», ніколи одиниця іншої величини', () => {
+    const drop = OBJECTS.find((o) => o.name === 'Крапля')!;
+    for (let i = 0; i < 30; i++) {
+      const payload = genUnit([drop]);
+      expect(payload.options.sort()).toEqual(['л', 'мл']);
+    }
+  });
+
+  it('довжина (5 обʼєктів mm/cm/dm/m/km): дистрактори — 2 НАЙБЛИЖЧІ за порядком величини, завжди тієї самої категорії', () => {
+    const pencil = OBJECTS.find((o) => o.name === 'Олівець')!; // 15 см
+    for (let i = 0; i < 30; i++) {
+      const payload = genUnit([pencil]);
+      expect(payload.options).toHaveLength(3);
+      expect(payload.options).toContain('см');
+      // найближчі до "см" за позицією в UNITS: мм (сусід зліва) і дм (сусід справа);
+      // "км" (найдальша величина) ніколи не має зʼявитись як дистрактор для олівця
+      expect(payload.options).not.toContain('км');
+      for (const label of payload.options) expect(categoryOfLabel(label)).toBe('length');
+    }
+  });
+
+  it('пул лише з одним temp-обʼєктом (немає з чим утворити дистрактор тієї самої категорії) — деградує безпечно, без крос-категорійних дистракторів', () => {
+    const ice = OBJECTS.find((o) => o.name === 'Лід')!;
+    const payload = genUnit([ice]);
+    expect(payload.options.every((label) => categoryOfLabel(label) === 'temp')).toBe(true);
+  });
+
+  it('temp-обʼєкт у мішаному пулі (є з чого обрати іншого обʼєкта) — genUnit ретраїть і теж не змішує величини', () => {
+    const ice = OBJECTS.find((o) => o.name === 'Лід')!;
+    const mixedPool = [ice, ...OBJECTS.filter((o) => o.category !== 'temp')];
+    for (let i = 0; i < 40; i++) {
+      const payload = genUnit(mixedPool);
+      // усі варіанти в одному раунді повинні належати ОДНІЙ і тій самій категорії
+      const categories = new Set(payload.options.map(categoryOfLabel));
+      expect(categories.size).toBe(1);
+      expect(payload.options).toContain(unitByKey(payload.obj.unitKey).label);
+    }
+  });
+});
+
+describe('measures: generate() integration — unit-раунди ніколи не змішують величини (усі difficulty × ProfileLevel × багато прогонів)', () => {
+  it('ProfileLevel L0 та L3, difficulty 1/2/3 — options unit-раунду завжди тієї самої категорії, що й обʼєкт, і унікальні', () => {
+    const levels: ProfileLevel[] = ['L0', 'L3'];
+    for (const level of levels) {
+      for (const difficulty of [1, 2, 3] as const) {
+        for (let i = 0; i < 25; i++) {
+          const { rounds } = generate(difficulty, level);
+          for (const r of rounds) {
+            if (r.payload.mode === 'unit') {
+              for (const label of r.payload.options) {
+                expect(categoryOfLabel(label)).toBe(r.payload.obj.category);
+              }
+              expect(new Set(r.payload.options).size).toBe(r.payload.options.length);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it('усі 4 класи (grade1..grade4) × difficulty 1/2/3 — unit-раунди без крос-категорійних дистракторів', () => {
+    const classes = ['grade1', 'grade2', 'grade3', 'grade4'] as const;
+    for (const classLevel of classes) {
+      for (const difficulty of [1, 2, 3] as const) {
+        for (let i = 0; i < 15; i++) {
+          const { rounds } = generate(difficulty, 'L3', classLevel);
+          for (const r of rounds) {
+            if (r.payload.mode === 'unit') {
+              for (const label of r.payload.options) {
+                expect(categoryOfLabel(label)).toBe(r.payload.obj.category);
+              }
+              expect(new Set(r.payload.options).size).toBe(r.payload.options.length);
+            }
+          }
         }
       }
     }
