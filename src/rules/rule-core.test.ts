@@ -67,6 +67,25 @@ function playThrough(state: LessonState): LessonState['phase'][] {
   return seen;
 }
 
+describe('джерело істини — приклади живуть у стані машини (не розходяться з UI)', () => {
+  it('startLesson зберігає САМ масив blocks; state.blocks === переданий', () => {
+    const blocks = fixtureBlocks();
+    const s = startLesson(blocks, 0);
+    // машина тримає той самий масив, який далі читає й UI (через state.blocks) —
+    // тож перевірка correctness у reducer і показ у рендері завжди про один приклад
+    expect(s.blocks).toBe(blocks);
+  });
+
+  it('advance не мутує blocks (probe безпечний для UI-перевірки)', () => {
+    const blocks = fixtureBlocks();
+    const s0 = startLesson(blocks, 0.9);
+    const s1 = advance(s0, { type: 'NEXT' }); // rule -> apply
+    const probe = advance(s1, { type: 'ANSWER', value: '999' }); // навмисно хибна
+    expect(s1.blocks).toBe(blocks); // probe не змінив стан-джерело
+    expect(probe.blocks).toBe(blocks);
+  });
+});
+
 describe('EP2 — перша фаза завжди правило', () => {
   it('стартує з rule навіть при високому mastery', () => {
     expect(startLesson(fixtureBlocks(), 0).phase).toEqual({ kind: 'rule', block: 0 });

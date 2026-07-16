@@ -72,7 +72,9 @@ export default function RuleLessonPlayer() {
 
   return (
     <RuleLesson
-      key={`${def.id}-${seedNonce}`}
+      // key включає профіль: коли activeProfile довантажиться (band/seed зміняться),
+      // урок перемонтується й машина стартує з правильними числами, а не «під ним».
+      key={`${def.id}-${activeProfile?.id ?? 'demo'}-${seedNonce}`}
       def={def}
       band={band}
       seed={seed}

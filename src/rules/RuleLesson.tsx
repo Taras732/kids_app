@@ -119,19 +119,22 @@ interface Props {
 }
 
 export default function RuleLesson({ def, band, mastery = 0, seed, onExit, onDone, onReplay }: Props) {
-  const blocks = useMemo(() => def.build(band, createRng(seed)), [def, band, seed]);
-
   const [state, dispatch] = useReducer(
     (s: LessonState, ev: Parameters<typeof advance>[1]) => advance(s, ev),
     undefined,
-    () => startLesson(blocks, mastery),
+    // Приклади будуються РАЗ, усередині машини. Читати їх у рендері треба
+    // теж зі state.blocks — інакше окремий useMemo(blocks) міг би розійтися з
+    // машиною, якщо seed/band зміняться після старту (напр. довантаження
+    // профілю): UI показав би один приклад, а машина перевіряла б інший →
+    // «правильна = помилка». Тепер джерело єдине.
+    () => startLesson(def.build(band, createRng(seed)), mastery),
   );
 
-  const { phase } = state;
+  const { phase, blocks } = state;
   const total = totalTasks(blocks);
   const done = tasksDone(state);
 
-  // Поточне завдання (лише у фазі apply) — для детермінованих варіантів і фідбеку.
+  // Поточне завдання (лише у фазі apply) — з ТОГО САМОГО state.blocks, що й машина.
   const currentTask = phase.kind === 'apply' ? blocks[phase.block].tasks[phase.task] : null;
 
   // Короткий зелений фідбек на правильну відповідь ПЕРЕД переходом (як у GameShell):
@@ -142,7 +145,10 @@ export default function RuleLesson({ def, band, mastery = 0, seed, onExit, onDon
 
   function pickAnswer(value: string) {
     if (flash || state.explain || !currentTask) return;
-    if (value === currentTask.correct) {
+    // Питаємо саму машину (probe), а не дублюємо перевірку correctness в UI:
+    // так салют і рішення машини не можуть розійтися. advance чистий — не мутує стан.
+    const isCorrect = advance(state, { type: 'ANSWER', value }).explain === null;
+    if (isCorrect) {
       setFlash('correct');
       confetti({ particleCount: 40, spread: 42, origin: { y: 0.7 }, disableForReducedMotion: true });
       flashTimer.current = window.setTimeout(() => {
