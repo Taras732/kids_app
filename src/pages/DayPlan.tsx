@@ -5,14 +5,13 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { getOrCreateTodayPlan } from '@/school/planner';
 import { fetchOfflineTasks, updateDailyPlanStatus, updatePlanItemStatus } from '@/school/db';
-import { getGame, profileClass } from '@/games/registry';
+import { getGame, profileClass, SUBJECT_META } from '@/games/registry';
 import { classBand } from '@/games/types';
 import { ruleOfDay } from '@/rules/rules-math';
+import { scheduleForDay, isSchoolDay, weekdayName } from '@/school/schedule-core';
 import OfflineTaskCard from '@/components/OfflineTask';
 import type { DailyPlan, DailyPlanItem, OfflineTask } from '@/school/types';
 import { countCompleted, findAutoCompletableGameItemIds, sortPlanItems } from './dayplan-core';
-
-const WEEKDAYS = ['неділя', 'понеділок', 'вівторок', 'середа', 'четвер', "п'ятниця", 'субота'];
 
 /** Локальна сьогоднішня дата (часовий пояс дитини) — план «на сьогодні», не UTC-доба. */
 function todayLocalDate(): string {
@@ -131,9 +130,13 @@ export default function DayPlan() {
   if (!activeProfile) return <Centered>Завантаження…</Centered>;
 
   const goalPct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
-  const weekday = WEEKDAYS[new Date().getDay()];
+  const weekdayIdx = new Date().getDay();
+  const weekday = weekdayName(weekdayIdx);
+  const classLevel = profileClass(activeProfile);
+  const schedule = scheduleForDay(classLevel, weekdayIdx); // SD2 — предмети дня
+  const schoolDay = isSchoolDay(weekdayIdx);
   // «Правило дня» — перший крок розкладу (клієнтський RL1, під рівень дитини).
-  const band = classBand(profileClass(activeProfile), 2);
+  const band = classBand(classLevel, 2);
   const dayRule = ruleOfDay(band, date);
 
   return (
@@ -162,6 +165,31 @@ export default function DayPlan() {
           {error && (
             <div className="panel" style={{ background: '#FFF7E6', border: '1px solid #FCEFC7', color: '#8A5A00', marginBottom: 16 }}>
               ⚠️ {error}
+            </div>
+          )}
+
+          {/* SD2 — розклад дня: предмети сьогодні (рамка школи). Вихідний = відпочинок без боргу. */}
+          {schoolDay ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+              {schedule.map((s) => (
+                <span
+                  key={s}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    background: 'var(--c-card)', border: '1px solid var(--c-line)', borderRadius: 999,
+                    padding: '7px 13px', fontSize: 13, fontWeight: 800, color: 'var(--c-ink)', boxShadow: 'var(--c-shadow)',
+                  }}
+                >
+                  <span>{SUBJECT_META[s].emoji}</span>
+                  {SUBJECT_META[s].title}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div className="panel" style={{ marginBottom: 16, textAlign: 'center', background: 'var(--c-primary-soft)' }}>
+              <div style={{ fontSize: 32, marginBottom: 4 }}>🌤️</div>
+              <p style={{ color: 'var(--c-primary)', fontWeight: 800, margin: 0 }}>Сьогодні вихідний — можна відпочити або погратися вільно.</p>
+              <p style={{ color: 'var(--c-mut)', fontWeight: 600, fontSize: 13, margin: '4px 0 0' }}>Пропущений день — це нормально, борг не накопичується.</p>
             </div>
           )}
 
