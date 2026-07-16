@@ -7,6 +7,7 @@ import RoleSelect from '@/pages/RoleSelect';
 import Hub from '@/pages/Hub';
 import ParentDashboard from '@/pages/ParentDashboard';
 import GamePlayer from '@/pages/GamePlayer';
+import RuleLessonPlayer from '@/pages/RuleLessonPlayer';
 import Placement from '@/pages/Placement';
 import DayPlan from '@/pages/DayPlan';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -44,6 +45,8 @@ export default function App() {
         <Route path="/placement" element={<WebShell><Placement /></WebShell>} />
         <Route path="/day" element={<WebShell><DayPlan /></WebShell>} />
         <Route path="/game/:id" element={<WebShell><GamePlayer /></WebShell>} />
+        {/* RL1 — движок «Правило» (Direct Instruction). Крок «Правило дня» у /day прийде окремо (Фаза 2). */}
+        <Route path="/rule/:id" element={<WebShell><RuleLessonPlayer /></WebShell>} />
         {/* Невідомий URL → на головну (без білого екрана). */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
