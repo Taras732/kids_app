@@ -51,7 +51,13 @@ export function bandConfigFor(level: ProfileLevel, difficulty: Difficulty): Band
 }
 
 interface ClassBandConfig extends BandConfig {
-  /** Верхня межа таблиці множення/ділення (за замовч. 10, як в оригінальній грі). */
+  /**
+   * Нижня межа доданків/зменшуваного для +/− (QA-фікс дисонансу: без floor
+   * генератор дозволяв "3 + 5" поруч із "482 + 317" в одному class-band —
+   * тепер + і − завжди в межах, які відповідають заявленому "розряду" класу).
+   */
+  min: number;
+  /** Верхня межа множників для ×/÷ (множник завжди від MULT_MIN_FACTOR, див. нижче). */
   tableMax: number;
 }
 
@@ -66,34 +72,48 @@ interface ClassBandConfig extends BandConfig {
  *
  * grade4 «складніші» (той самий max=1000, що й grade3, орієнтир з ТЗ):
  * з першої ж складності всі 4 дії одразу (grade3 стартує без ÷), і ширша
- * таблиця множення/ділення (до 12, а не до 10) — власне рішення поверх
- * старих даних, щоб 4 клас відчутно відрізнявся від 3-го при однаковому max.
+ * таблиця множення/ділення — власне рішення поверх старих даних, щоб 4 клас
+ * відчутно відрізнявся від 3-го при однаковому max.
+ *
+ * QA-фікс дисонансу (жива скарга з телефона: "× на 1" поруч із "3-цифрові
+ * +/−" в одному рівні): корінь був подвійний — (1) `genMultiplication`
+ * дозволяв множник=1 (тривіально), і (2) `tableMax` був майже пласким (10,
+ * зрідка 12) для grade2..grade4, тоді як `max` для +/− стрибав 100→1000, а
+ * нижньої межі (`min`) для +/− не було взагалі (могло випасти "3+5" в класі,
+ * де очікується "3-цифрові числа"). Тепер (а) множник ніколи не 1
+ * (MULT_MIN_FACTOR=2, як у сусідній times-tables/generate.ts), (б) `tableMax`
+ * зростає з класом/difficulty за тією ж шкалою, що й `MAX_BY_CLASS` у
+ * times-tables (навмисно ті самі числа — узгодженість між іграми одного
+ * класу), (в) `min` прив'язує +/− до розрядності класу (grade2 ⇒ завжди
+ * 2-значні 10-99, grade3/grade4 ⇒ завжди 3-значні 100-999), тож жодна дія
+ * всередині одного band не випадає ані в "трivial", ані в "надскладне" на тлі
+ * сусідніх раундів.
  */
 const CLASS_BAND: Record<ClassLevel, Record<Difficulty, ClassBandConfig>> = {
   preschool: {
-    1: { ops: ['+'], max: 10, tableMax: 10 },
-    2: { ops: ['+', '−'], max: 10, tableMax: 10 },
-    3: { ops: ['+', '−'], max: 10, tableMax: 10 },
+    1: { ops: ['+'], min: 1, max: 10, tableMax: 10 },
+    2: { ops: ['+', '−'], min: 1, max: 10, tableMax: 10 },
+    3: { ops: ['+', '−'], min: 1, max: 10, tableMax: 10 },
   },
   grade1: {
-    1: { ops: ['+'], max: 20, tableMax: 10 },
-    2: { ops: ['+', '−'], max: 20, tableMax: 10 },
-    3: { ops: ['+', '−'], max: 20, tableMax: 10 },
+    1: { ops: ['+'], min: 1, max: 20, tableMax: 10 },
+    2: { ops: ['+', '−'], min: 1, max: 20, tableMax: 10 },
+    3: { ops: ['+', '−'], min: 1, max: 20, tableMax: 10 },
   },
   grade2: {
-    1: { ops: ['+', '−'], max: 100, tableMax: 10 },
-    2: { ops: ['×', '+', '−'], max: 100, tableMax: 10 },
-    3: { ops: ['×', '÷', '+', '−'], max: 100, tableMax: 10 },
+    1: { ops: ['+', '−'], min: 10, max: 100, tableMax: 7 },
+    2: { ops: ['×', '+', '−'], min: 10, max: 100, tableMax: 9 },
+    3: { ops: ['×', '÷', '+', '−'], min: 10, max: 100, tableMax: 10 },
   },
   grade3: {
-    1: { ops: ['×', '+', '−'], max: 1000, tableMax: 10 },
-    2: { ops: ['×', '÷', '+', '−'], max: 1000, tableMax: 10 },
-    3: { ops: ['×', '÷', '+', '−'], max: 1000, tableMax: 10 },
+    1: { ops: ['×', '+', '−'], min: 100, max: 1000, tableMax: 9 },
+    2: { ops: ['×', '÷', '+', '−'], min: 100, max: 1000, tableMax: 10 },
+    3: { ops: ['×', '÷', '+', '−'], min: 100, max: 1000, tableMax: 11 },
   },
   grade4: {
-    1: { ops: ['×', '÷', '+', '−'], max: 1000, tableMax: 12 },
-    2: { ops: ['×', '÷', '+', '−'], max: 1000, tableMax: 12 },
-    3: { ops: ['×', '÷', '+', '−'], max: 1000, tableMax: 12 },
+    1: { ops: ['×', '÷', '+', '−'], min: 100, max: 1000, tableMax: 9 },
+    2: { ops: ['×', '÷', '+', '−'], min: 100, max: 1000, tableMax: 12 },
+    3: { ops: ['×', '÷', '+', '−'], min: 100, max: 1000, tableMax: 12 },
   },
 };
 
@@ -103,31 +123,38 @@ export function classBandConfigFor(classLevel: ClassLevel, difficulty: Difficult
 
 // --- генерація пар операндів для кожної дії ---
 
-/** Додавання в межах max, обидва операнди >= 1 (без тривіальних "0 + x"). */
-function genAddition(max: number): { a: number; b: number } {
-  const a = randInt(1, max - 1);
-  const b = randInt(1, max - a);
+/**
+ * Нижня межа множників ×/÷ (QA-фікс: множення на 1 — вироджений приклад, не
+ * тренує навичку; той самий поріг, що й `MIN_FACTOR` у сусідній
+ * times-tables/generate.ts).
+ */
+const MULT_MIN_FACTOR = 2;
+
+/** Додавання в межах [min, max], обидва операнди >= min (без тривіальних "0 + x" і без "дрібних" чисел поза розрядом класу). */
+function genAddition(min: number, max: number): { a: number; b: number } {
+  const a = randInt(min, max - min);
+  const b = randInt(min, max - a);
   return { a, b };
 }
 
-/** Віднімання в межах max, результат завжди >= 1 (без "x - 0" / "x - x"). */
-function genSubtraction(max: number): { a: number; b: number } {
-  const a = randInt(2, max);
-  const b = randInt(1, a - 1);
+/** Віднімання в межах [min, max], результат завжди >= 1 (без "x - 0" / "x - x", без чисел поза розрядом класу). */
+function genSubtraction(min: number, max: number): { a: number; b: number } {
+  const a = randInt(min + 1, max);
+  const b = randInt(min, a - 1);
   return { a, b };
 }
 
-/** Таблиця множення 1..tableMax × 1..tableMax. */
+/** Таблиця множення MULT_MIN_FACTOR..tableMax × MULT_MIN_FACTOR..tableMax (без тривіального ×1/×0). */
 function genMultiplication(tableMax: number): { a: number; b: number } {
-  const a = randInt(1, tableMax);
-  const b = randInt(1, tableMax);
+  const a = randInt(MULT_MIN_FACTOR, tableMax);
+  const b = randInt(MULT_MIN_FACTOR, tableMax);
   return { a, b };
 }
 
-/** Ділення націло: дільник 2..tableMax, частка 1..tableMax. */
+/** Ділення націло: дільник і частка обидва MULT_MIN_FACTOR..tableMax (без ÷1 і без тривіального "x÷x=1"). */
 function genDivision(tableMax: number): { a: number; b: number } {
-  const divisor = randInt(2, tableMax);
-  const quotient = randInt(1, tableMax);
+  const divisor = randInt(MULT_MIN_FACTOR, tableMax);
+  const quotient = randInt(MULT_MIN_FACTOR, tableMax);
   return { a: divisor * quotient, b: divisor };
 }
 
@@ -142,7 +169,7 @@ function buildOpSequence(pool: Op[]): Op[] {
   return shuffle(seq);
 }
 
-function genPair(op: Op, max: number, tableMax: number): { a: number; b: number; correct: number } {
+function genPair(op: Op, min: number, max: number, tableMax: number): { a: number; b: number; correct: number } {
   if (op === '×') {
     const { a, b } = genMultiplication(tableMax);
     return { a, b, correct: a * b };
@@ -152,10 +179,10 @@ function genPair(op: Op, max: number, tableMax: number): { a: number; b: number;
     return { a, b, correct: a / b };
   }
   if (op === '+') {
-    const { a, b } = genAddition(max);
+    const { a, b } = genAddition(min, max);
     return { a, b, correct: a + b };
   }
-  const { a, b } = genSubtraction(max);
+  const { a, b } = genSubtraction(min, max);
   return { a, b, correct: a - b };
 }
 
@@ -164,12 +191,15 @@ export function generate(
   level: ProfileLevel,
   classLevel?: ClassLevel,
 ): LevelData<Payload, number> {
-  const { ops: pool, max, tableMax } = classLevel
+  // Fallback (без classLevel, G2b): min=1 зберігає стару поведінку профільного
+  // TRACK_BY_LEVEL один-в-один — цей шлях мертвий у проді (GameShell завжди
+  // передає classLevel), тримається лише заради зворотної сумісності API/тестів.
+  const { ops: pool, min, max, tableMax } = classLevel
     ? classBandConfigFor(classLevel, difficulty)
-    : { ...bandConfigFor(level, difficulty), tableMax: 10 };
+    : { ...bandConfigFor(level, difficulty), min: 1, tableMax: 10 };
   const sequence = buildOpSequence(pool);
   const rounds: Round<Payload, number>[] = sequence.map((op, i) => {
-    const { a, b, correct } = genPair(op, max, tableMax);
+    const { a, b, correct } = genPair(op, min, max, tableMax);
     return { id: `r${i}`, payload: { a, b, op, correct }, answer: correct };
   });
   return { difficulty, rounds };
