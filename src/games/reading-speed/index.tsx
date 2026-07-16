@@ -4,18 +4,18 @@ import { generate, type Payload } from './generate';
 
 function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, string>) {
   const { mode, text, question, options } = round.payload;
-  const promptQuestion = mode === 'word' ? 'Прочитай і обери слово' : question;
+  const isPicture = mode === 'picture';
   const choices = options.map((o) => ({
     value: o,
-    node: <span style={{ fontSize: 18, fontWeight: 700 }}>{o}</span>,
+    node: <span style={{ fontSize: isPicture ? 40 : 18, fontWeight: isPicture ? 400 : 700 }}>{o}</span>,
   }));
 
   return (
     <>
-      <PromptCard question={promptQuestion} answerState={answerState}>
+      <PromptCard question={question} answerState={answerState}>
         <div
           style={{
-            fontSize: mode === 'word' ? 40 : 22,
+            fontSize: isPicture ? 40 : 22,
             fontWeight: 800,
             color: 'var(--c-primary)',
             textAlign: 'center',
@@ -41,11 +41,11 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
 
 const readingSpeed: GameDefinition<Payload, string> = {
   id: 'reading-speed',
-  title: 'Швидке читання',
+  title: 'Читаю і розумію',
   subject: 'language',
   levels: ['L3'],
-  icon: '👀',
-  description: 'Читай уважно і швидко: слово чи речення — і дай відповідь.',
+  icon: '📖',
+  description: 'Читай уважно і розумій зміст: обери слово чи картинку за змістом, а не за схожістю літер.',
   accent: '#EEEBFF',
   // TODO: мапінг на мовні skills коли зʼявляться
   generate,

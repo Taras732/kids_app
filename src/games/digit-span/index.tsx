@@ -19,6 +19,13 @@ const ROUNDS_PER_LEVEL = 5;
 const MIN_SHOW_MS = 1500;
 const MS_PER_DIGIT = 700;
 
+/**
+ * Скільки показувати ряд: довший ряд — довше. Чиста функція (тестується напряму).
+ */
+export function showDurationMs(digitCount: number): number {
+  return Math.max(MIN_SHOW_MS, digitCount * MS_PER_DIGIT);
+}
+
 /** Довжина ряду цифр за рівнем профілю та складністю. */
 function lengthFor(level: ProfileLevel, difficulty: Difficulty): number {
   if (level === 'L0') {
@@ -52,13 +59,13 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
   const [phase, setPhase] = useState<Phase>('show');
   const [entered, setEntered] = useState('');
 
-  // Показ ряду: через розрахований час переходимо до вводу.
+  // Показ ряду: через розрахований час переходимо до вводу. Залежність від phase —
+  // щоб «Показати ще раз» (Q22) теж запускав відлік, а не лише перше монтування.
   useEffect(() => {
-    const showMs = Math.max(MIN_SHOW_MS, digits.length * MS_PER_DIGIT);
-    const timer = setTimeout(() => setPhase('input'), showMs);
+    if (phase !== 'show') return;
+    const timer = setTimeout(() => setPhase('input'), showDurationMs(digits.length));
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [phase, digits.length]);
 
   // Скидаємо ввід, коли фідбек повертається в idle (повтор після помилки).
   useEffect(() => {
@@ -78,6 +85,14 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
   const handleSubmit = () => {
     if (disabled || phase !== 'input' || entered === '') return;
     onAnswer(entered);
+  };
+
+  // Q22 — вихід із глухого кута: забула ряд → може подивитись знову, а не вгадувати.
+  // Ми вчимо, а не міряємо памʼять: дитині без виходу лишалась тільки фрустрація.
+  const handleShowAgain = () => {
+    if (disabled || phase !== 'input') return;
+    setEntered('');
+    setPhase('show');
   };
 
   if (phase === 'show') {
@@ -150,6 +165,15 @@ function Component({ round, disabled, answerState, onAnswer }: GameComponentProp
         onBackspace={handleBackspace}
         onSubmit={handleSubmit}
       />
+
+      <button
+        className="g-btn ghost"
+        style={{ marginTop: 10 }}
+        disabled={disabled}
+        onClick={handleShowAgain}
+      >
+        👀 Показати ще раз
+      </button>
     </>
   );
 }

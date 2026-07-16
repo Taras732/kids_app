@@ -3,113 +3,135 @@ import { gradeBandFor } from '../types';
 import { shuffle } from '../shared/ui';
 
 /**
- * Техніка читання (D6): два режими залежно від GradeBand (D5 шкала).
- *  - 'word' (band L2, ~2 клас): дитина читає одне слово і серед схожих
- *    за виглядом/довжиною слів обирає те, яке щойно прочитала.
- *  - 'comprehension' (band L3-L4, ~3-4 клас): дитина читає фразу/речення і
- *    відповідає на просте питання щодо прочитаного (перевірка розуміння).
+ * Читання з розумінням (D6, перероблено після Q15): два режими залежно від
+ * GradeBand (D5 шкала). Головний інваріант обох режимів — правильну відповідь
+ * НЕ можна отримати простим звірянням символів із показаним текстом (стара
+ * версія показувала слово «зима» і серед варіантів саме слово «зима» —
+ * тавтологія, дитина нічого не читала, лише порівнювала форму).
+ *  - 'picture' (band L2, ~2 клас): дитина читає слово і серед emoji-картинок
+ *    обирає ту, що відповідає ЗНАЧЕННЮ слова (інша модальність відповіді —
+ *    картинка, а не копія слова).
+ *  - 'riddle' (band L3-L4, ~3-4 клас): дитина читає короткий опис-загадку
+ *    («Він падає взимку і білий») і обирає слово, яке підходить за ЗМІСТОМ;
+ *    саме слово-відповідь ніколи не зустрічається у тексті загадки.
  */
-export type Mode = 'word' | 'comprehension';
+export type Mode = 'picture' | 'riddle';
 
 export interface Payload {
   mode: Mode;
-  /** Слово (word) або речення (comprehension) для читання. */
+  /** Слово для читання (picture) або текст загадки-опису (riddle). */
   text: string;
-  /** Питання під текстом (для word — інструкція "яке слово ти прочитав"). */
+  /** Інструкція під текстом. */
   question: string;
+  /** Варіанти відповіді: emoji (picture) або слова (riddle). */
   options: string[];
 }
 
 const ROUNDS_PER_LEVEL = 5;
 
 interface WordEntry {
-  target: string;
-  distractors: string[];
+  word: string;
+  emoji: string;
 }
 
-interface CompEntry {
-  text: string;
-  question: string;
+interface RiddleEntry {
+  riddle: string;
   answer: string;
   distractors: string[];
 }
 
-// Band L2 (~2 клас): слова, схожі за довжиною/закінченням — тренування
-// уважного читання (не вгадування за формою слова).
+// Band L2 (~2 клас): слово → картинка, що йому відповідає. Відповідь
+// (emoji) не збігається символьно зі словом — потрібно зрозуміти значення.
 const L2_WORDS: WordEntry[] = [
-  { target: 'кіт', distractors: ['лев', 'віл', 'жук'] },
-  { target: 'сонце', distractors: ['серце', 'кільце', 'озеро'] },
-  { target: 'книга', distractors: ['ріка', 'нога', 'рука'] },
-  { target: 'зима', distractors: ['весна', 'літо', 'осінь'] },
-  { target: 'ліс', distractors: ['лист', 'лис', 'лід'] },
-  { target: 'риба', distractors: ['жаба', 'липа', 'лапа'] },
-  { target: 'мама', distractors: ['тато', 'баба', 'няня'] },
-  { target: 'квітка', distractors: ['клітка', 'плівка', 'нитка'] },
-  { target: 'школа', distractors: ['парта', 'дошка', 'сумка'] },
-  { target: 'сонях', distractors: ['гриб', 'дуб', 'кущ'] },
+  { word: 'кіт', emoji: '🐱' },
+  { word: 'собака', emoji: '🐶' },
+  { word: 'сонце', emoji: '☀️' },
+  { word: 'книга', emoji: '📖' },
+  { word: 'риба', emoji: '🐟' },
+  { word: 'яблуко', emoji: '🍎' },
+  { word: 'квітка', emoji: '🌸' },
+  { word: 'дерево', emoji: '🌳' },
+  { word: 'зірка', emoji: '⭐' },
+  { word: 'будинок', emoji: '🏠' },
+  { word: 'машина', emoji: '🚗' },
+  { word: 'пташка', emoji: '🐦' },
+  { word: 'гриб', emoji: '🍄' },
+  { word: 'зайчик', emoji: '🐰' },
 ];
 
-// Band L3 (~3 клас): короткі фрази + просте питання на розуміння.
-const L3_PHRASES: CompEntry[] = [
-  { text: "Кіт п'є молоко.", question: 'Що п\'є кіт?', answer: 'Молоко', distractors: ['Воду', 'Сік', 'Чай'] },
-  { text: 'Дівчинка малює сонце.', question: 'Що малює дівчинка?', answer: 'Сонце', distractors: ['Квітку', 'Будинок', 'Машину'] },
-  { text: 'Хлопчик читає книжку.', question: 'Що читає хлопчик?', answer: 'Книжку', distractors: ['Газету', 'Листа', 'Журнал'] },
-  { text: 'Пес біжить у двір.', question: 'Куди біжить пес?', answer: 'У двір', distractors: ['У ліс', 'У школу', 'У парк'] },
-  { text: 'Бабуся пече пиріг.', question: 'Що пече бабуся?', answer: 'Пиріг', distractors: ['Хліб', 'Торт', 'Млинці'] },
-  { text: 'Учень пише вправу.', question: 'Що пише учень?', answer: 'Вправу', distractors: ['Лист', 'Диктант', 'Твір'] },
-  { text: 'Пташка сидить на гілці.', question: 'Де сидить пташка?', answer: 'На гілці', distractors: ['На даху', 'На землі', 'На паркані'] },
-  { text: 'Мама варить суп.', question: 'Що варить мама?', answer: 'Суп', distractors: ['Кашу', 'Компот', 'Борщ'] },
+// Band L3 (~3 клас): короткі загадки-описи. Слово-відповідь навмисно
+// відсутнє в тексті загадки — дитина мусить зрозуміти зміст, а не звірити літери.
+const L3_RIDDLES: RiddleEntry[] = [
+  { riddle: 'Він падає взимку і білий.', answer: 'Сніг', distractors: ['Дощ', 'Пісок', 'Листок'] },
+  // без займенника: «Вона» вказувало на жіночий рід (Зірка/Свічка), хоч відповідь — Сонце (воно)
+  { riddle: 'Світить удень і зігріває всю землю.', answer: 'Сонце', distractors: ['Місяць', 'Зірка', 'Свічка'] },
+  { riddle: 'Цей звір нявкає і ловить мишей.', answer: 'Кіт', distractors: ['Собака', 'Кінь', 'Корова'] },
+  {
+    riddle: "У цій будівлі діти вчаться читати й рахувати.",
+    answer: 'Школа',
+    distractors: ['Лікарня', 'Магазин', 'Бібліотека'],
+  },
+  {
+    riddle: "Ця пташка живе на подвір'ї і будить усіх вранці.",
+    answer: 'Півень',
+    distractors: ['Горобець', 'Ворона', 'Голуб'],
+  },
+  // без займенника: «У ній» вказувало на жіночий рід (Нора), хоч відповідь — Вулик (він)
+  { riddle: 'Тут живуть бджоли і зберігають мед.', answer: 'Вулик', distractors: ['Нора', 'Гніздо', 'Дупло'] },
+  {
+    // без слова «фрукт»: воно одразу відсікало овочі-дистрактори → завдання ставало тривіальним
+    riddle: 'Росте на дереві, буває червоне або зелене, дуже хрумке.',
+    answer: 'Яблуко',
+    distractors: ['Огірок', 'Морква', 'Картопля'],
+  },
+  {
+    riddle: 'Ця пора року, коли на деревах жовте й червоне листя.',
+    answer: 'Осінь',
+    distractors: ['Весна', 'Літо', 'Зима'],
+  },
 ];
 
-// Band L4 (~4 клас): довші речення + питання на розуміння деталей.
-const L4_SENTENCES: CompEntry[] = [
+// Band L4 (~4 клас): довші загадки, складніший словниковий запас.
+const L4_RIDDLES: RiddleEntry[] = [
   {
-    text: 'Маленька дівчинка читала цікаву книжку у бібліотеці.',
-    question: 'Де дівчинка читала книжку?',
-    answer: 'У бібліотеці',
-    distractors: ['Вдома', 'У школі', 'У парку'],
+    riddle: 'Ця планета обертається навколо Сонця, і на ній живуть люди.',
+    answer: 'Земля',
+    distractors: ['Місяць', 'Марс', 'Зірка'],
   },
   {
-    text: 'Хлопці грали у футбол на шкільному стадіоні.',
-    question: 'У що грали хлопці?',
-    answer: 'У футбол',
-    distractors: ['У баскетбол', 'У теніс', 'У волейбол'],
+    riddle: 'У цій країні є Карпати, Дніпро і столиця Київ.',
+    answer: 'Україна',
+    distractors: ['Польща', 'Франція', 'Німеччина'],
   },
   {
-    text: 'Восени листя на деревах стає жовтим і червоним.',
-    question: 'Якого кольору стає листя восени?',
-    answer: 'Жовтим і червоним',
-    distractors: ['Зеленим і синім', 'Білим і чорним', 'Фіолетовим і рожевим'],
+    riddle: 'Це дерево прикрашають іграшками та вогниками взимку на свято.',
+    answer: 'Ялинка',
+    distractors: ['Дуб', 'Береза', 'Тополя'],
   },
   {
-    text: 'Тато відремонтував старий велосипед у гаражі.',
-    question: 'Що відремонтував тато?',
-    answer: 'Велосипед',
-    distractors: ['Машину', 'Драбину', 'Стілець'],
+    riddle: 'Цей орган у людини перекачує кров по тілу.',
+    answer: 'Серце',
+    distractors: ['Мозок', 'Шлунок', 'Легені'],
   },
   {
-    text: 'Учні писали контрольну роботу з математики.',
-    question: 'З якого предмету була контрольна робота?',
-    answer: 'З математики',
-    distractors: ['З мови', 'З природознавства', 'З малювання'],
+    riddle: 'Цей письмовий прилад використовують, щоб стирати олівець.',
+    answer: 'Гумка',
+    distractors: ['Лінійка', 'Циркуль', 'Транспортир'],
   },
   {
-    text: 'Бабуся розповіла онукам казку про хороброго лицаря.',
-    question: 'Про кого була казка?',
-    answer: 'Про лицаря',
-    distractors: ['Про принцесу', 'Про дракона', 'Про короля'],
+    riddle: 'У цій установі можна взяти книжки додому безкоштовно.',
+    answer: 'Бібліотека',
+    distractors: ['Школа', 'Магазин', 'Пошта'],
   },
   {
-    text: 'Родина поїхала на відпочинок до моря влітку.',
-    question: 'Куди поїхала родина?',
-    answer: 'До моря',
-    distractors: ['У гори', 'До лісу', 'У село'],
+    riddle: "Цей яскравий спалах світла з'являється в небі під час грози.",
+    answer: 'Блискавка',
+    distractors: ['Веселка', 'Хмара', 'Туман'],
   },
   {
-    text: 'Вчителька похвалила учня за акуратний почерк.',
-    question: 'За що вчителька похвалила учня?',
-    answer: 'За почерк',
-    distractors: ['За малюнок', 'За відповідь', 'За поведінку'],
+    riddle: 'Ця пора року найтепліша, і діти відпочивають від школи.',
+    answer: 'Літо',
+    distractors: ['Осінь', 'Зима', 'Весна'],
   },
 ];
 
@@ -117,40 +139,43 @@ function optionsCountFor(d: Difficulty): number {
   return d === 1 ? 3 : 4;
 }
 
-function buildWordRounds(optCount: number): Round<Payload, string>[] {
+function buildPictureRounds(optCount: number): Round<Payload, string>[] {
   const chosen = shuffle(L2_WORDS).slice(0, ROUNDS_PER_LEVEL);
   return chosen.map((entry, i) => {
-    const distractors = shuffle(entry.distractors).slice(0, optCount - 1);
-    const options = shuffle([entry.target, ...distractors]);
+    const distractors = shuffle(L2_WORDS.filter((w) => w.word !== entry.word))
+      .slice(0, optCount - 1)
+      .map((w) => w.emoji);
+    const options = shuffle([entry.emoji, ...distractors]);
     return {
       id: `r${i}`,
-      payload: { mode: 'word', text: entry.target, question: 'Яке слово ти прочитав?', options },
-      answer: entry.target,
+      payload: { mode: 'picture', text: entry.word, question: 'Прочитай слово і обери картинку', options },
+      answer: entry.emoji,
     };
   });
 }
 
-function buildCompRounds(pool: CompEntry[], optCount: number): Round<Payload, string>[] {
+function buildRiddleRounds(pool: RiddleEntry[], optCount: number): Round<Payload, string>[] {
   const chosen = shuffle(pool).slice(0, ROUNDS_PER_LEVEL);
   return chosen.map((entry, i) => {
     const distractors = shuffle(entry.distractors).slice(0, optCount - 1);
     const options = shuffle([entry.answer, ...distractors]);
     return {
       id: `r${i}`,
-      payload: { mode: 'comprehension', text: entry.text, question: entry.question, options },
+      payload: { mode: 'riddle', text: entry.riddle, question: 'Про що йдеться? Обери слово', options },
       answer: entry.answer,
     };
   });
 }
 
-const POOL_BY_BAND: Partial<Record<GradeBand, CompEntry[]>> = {
-  L3: L3_PHRASES,
-  L4: L4_SENTENCES,
+const POOL_BY_BAND: Partial<Record<GradeBand, RiddleEntry[]>> = {
+  L3: L3_RIDDLES,
+  L4: L4_RIDDLES,
 };
 
 export function generate(difficulty: Difficulty, level: ProfileLevel = 'L3'): LevelData<Payload, string> {
   const band = gradeBandFor(level, difficulty);
   const optCount = optionsCountFor(difficulty);
-  const rounds = band === 'L2' ? buildWordRounds(optCount) : buildCompRounds(POOL_BY_BAND[band] ?? L4_SENTENCES, optCount);
+  const rounds =
+    band === 'L2' ? buildPictureRounds(optCount) : buildRiddleRounds(POOL_BY_BAND[band] ?? L4_RIDDLES, optCount);
   return { difficulty, rounds };
 }
