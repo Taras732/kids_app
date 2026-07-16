@@ -11,6 +11,8 @@ import {
   tasksDone,
   summaryRules,
   validateLesson,
+  encouragementFor,
+  ENCOURAGEMENTS,
   type RuleBlock,
   type LessonState,
 } from './rule-core';
@@ -167,12 +169,35 @@ describe('фаза apply — відповіді, помилки, пояснен�
 });
 
 describe('explainFor', () => {
-  it('обманка → її пояснення; невідоме → rule-recall', () => {
+  it('обманка → її пояснення + причина; невідоме → rule-recall без причини', () => {
     const task = fixtureBlocks()[0].tasks[0];
     const st = fixtureBlocks()[0].statement;
-    expect(explainFor(task, '11', st).kind).toBe('rule-recall');
+    const known = explainFor(task, '11', st);
+    expect(known.explain.kind).toBe('rule-recall');
+    expect(known.misconception).toBe('склеїв цифри');
     const unknown = explainFor(task, '999', st);
-    expect(unknown).toEqual({ kind: 'rule-recall', text: 'Правило один.' });
+    expect(unknown.explain).toEqual({ kind: 'rule-recall', text: 'Правило один.' });
+    expect(unknown.misconception).toBeNull();
+  });
+});
+
+describe('growth mindset + причина помилки в стані', () => {
+  it('encouragementFor детермінований і в межах банку', () => {
+    for (let m = 1; m <= 12; m++) {
+      expect(ENCOURAGEMENTS).toContain(encouragementFor(m));
+    }
+    expect(encouragementFor(1)).toBe(encouragementFor(1));
+  });
+
+  it('помилка зберігає wrongMisconception, правильна/NEXT скидають', () => {
+    let s = startLesson(fixtureBlocks(), 0.9);
+    s = advance(s, { type: 'NEXT' }); // apply
+    const wrong = advance(s, { type: 'ANSWER', value: '11' });
+    expect(wrong.wrongMisconception).toBe('склеїв цифри');
+    const cleared = advance(wrong, { type: 'NEXT' });
+    expect(cleared.wrongMisconception).toBeNull();
+    const correct = advance(s, { type: 'ANSWER', value: '2' });
+    expect(correct.wrongMisconception).toBeNull();
   });
 });
 

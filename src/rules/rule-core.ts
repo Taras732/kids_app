@@ -182,7 +182,29 @@ export interface LessonState {
   mistakes: number;
   /** Пояснення поточної помилки; null — можна відповідати. */
   explain: Explain | null;
+  /** Причина помилки (misconception обраної обманки) — дрібним нейтральним підписом. */
+  wrongMisconception: string | null;
   scaffold: ScaffoldLevel;
+}
+
+/**
+ * Growth-mindset фрази при помилці (Двек): помилятися — нормально, це частина
+ * навчання. Показуємо ЗАМІСТЬ акценту на «що ти зробив не так» — для дитини
+ * червоний докір демотивує й запам'ятовується сильніше за правильну відповідь.
+ * Без обіцянок «розум/IQ» (far transfer не існує) — лише про процес спроби.
+ */
+export const ENCOURAGEMENTS: readonly string[] = [
+  'Помилка — це сходинка до нового 🌱',
+  'Помилятися — це нормально. Так вчаться всі!',
+  'Коли складно — саме тоді ти вчишся 💪',
+  'Ще трохи — і вийде. Спробуймо разом!',
+  'Не вийшло зараз — вийде за мить ✨',
+  'Кожна спроба наближає до відповіді',
+];
+
+/** Детермінована фраза за номером помилки (щоб не стрибала між ре-рендерами). */
+export function encouragementFor(mistakes: number): string {
+  return ENCOURAGEMENTS[Math.max(0, mistakes - 1) % ENCOURAGEMENTS.length];
 }
 
 export type LessonEvent =
@@ -197,14 +219,21 @@ export function startLesson(blocks: RuleBlock[], mastery = 0): LessonState {
     phase: { kind: 'rule', block: 0 },
     mistakes: 0,
     explain: null,
+    wrongMisconception: null,
     scaffold: scaffoldFor(mastery),
   };
 }
 
-/** Пояснення для обраної відповіді. Невідома обманка → не вигадуємо реплей. */
-export function explainFor(task: RuleTask, picked: string, statement: RuleStatement): Explain {
+/** Пояснення + причина для обраної відповіді. Невідома обманка → не вигадуємо реплей. */
+export function explainFor(
+  task: RuleTask,
+  picked: string,
+  statement: RuleStatement,
+): { explain: Explain; misconception: string | null } {
   const d = task.distractors.find((x) => x.value === picked);
-  return d ? d.explain : { kind: 'rule-recall', text: statement.text };
+  return d
+    ? { explain: d.explain, misconception: d.misconception }
+    : { explain: { kind: 'rule-recall', text: statement.text }, misconception: null };
 }
 
 /**
@@ -291,20 +320,22 @@ export function advance(state: LessonState, ev: LessonEvent): LessonState {
 
   if (ev.type === 'NEXT') {
     // «Зрозуміло» після пояснення → та сама задача, ще спроба.
-    return state.explain ? { ...state, explain: null } : state;
+    return state.explain ? { ...state, explain: null, wrongMisconception: null } : state;
   }
 
   // Поки показане пояснення — відповіді заблоковані (дитина має його прочитати).
   if (state.explain) return state;
 
   if (ev.value === task.correct) {
-    return { ...state, phase: afterTask(blocks, phase.block, phase.task), explain: null };
+    return { ...state, phase: afterTask(blocks, phase.block, phase.task), explain: null, wrongMisconception: null };
   }
 
+  const { explain, misconception } = explainFor(task, ev.value, blocks[phase.block].statement);
   return {
     ...state,
     mistakes: state.mistakes + 1,
-    explain: explainFor(task, ev.value, blocks[phase.block].statement),
+    explain,
+    wrongMisconception: misconception,
   };
 }
 
