@@ -315,6 +315,37 @@ describe('банк правил математики — структурна г
   });
 });
 
+describe('унікальність (баги «29,29» і «перше=третє»)', () => {
+  it('варіанти кожного завдання унікальні (правильна + обманки, без дублів), 300 seed', () => {
+    for (const def of MATH_RULE_LESSONS) {
+      for (const band of def.bands) {
+        for (let seed = 1; seed <= 300; seed++) {
+          for (const blk of def.build(band, createRng(seed))) {
+            for (const t of blk.tasks) {
+              const values = [t.correct, ...t.distractors.map((d) => d.value)];
+              expect(new Set(values).size, `${def.id}/${band}/seed${seed}/${t.prompt}: дублі варіантів ${values}`).toBe(values.length);
+              expect(t.distractors.length, `${def.id}/${t.prompt}: замало обманок`).toBeGreaterThanOrEqual(2);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it('завдання в блоці мають різні формулювання, 300 seed', () => {
+    for (const def of MATH_RULE_LESSONS) {
+      for (const band of def.bands) {
+        for (let seed = 1; seed <= 300; seed++) {
+          for (const blk of def.build(band, createRng(seed))) {
+            const prompts = blk.tasks.map((t) => t.prompt);
+            expect(new Set(prompts).size, `${def.id}/${band}/seed${seed}: дублі завдань ${prompts}`).toBe(prompts.length);
+          }
+        }
+      }
+    }
+  });
+});
+
 describe('через десяток — приклади реально через десяток', () => {
   it('додавання: одиниці доданків у сумі > 10 (є перехід)', () => {
     const def = MATH_RULE_LESSONS.find((l) => l.id === 'math.through-ten')!;

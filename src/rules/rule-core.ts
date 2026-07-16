@@ -219,6 +219,46 @@ export function buildOptions(task: RuleTask, seed: number): string[] {
   return shuffleWith([task.correct, ...task.distractors.map((d) => d.value)], rng);
 }
 
+/**
+ * Відсіяти обманки, що збігаються з правильною відповіддю або одна з одною.
+ * Кандидатів дають із запасом (більше, ніж max) — тож при колізії беремо
+ * наступну змістовну помилку, а не випадкове число. Так у варіантах ніколи
+ * не буде двох однакових (баг `5×5+2×2` → «29, 29»).
+ */
+export function dedupeDistractors(correct: string, candidates: Distractor[], max = 2): Distractor[] {
+  const seen = new Set<string>([correct]);
+  const out: Distractor[] = [];
+  for (const d of candidates) {
+    if (seen.has(d.value)) continue;
+    seen.add(d.value);
+    out.push(d);
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
+/**
+ * Набрати `count` завдань з унікальним prompt. `gen(i)` викликається доти, доки
+ * не набереться потрібна кількість різних (щоб перше й третє завдання не вийшли
+ * однакові). `seedPrompts` — вже зайняті формулювання (напр. перше завдання
+ * блоку, зафіксоване окремо для дзеркала).
+ */
+export function uniqueTasks(
+  count: number,
+  gen: (i: number) => RuleTask,
+  seedPrompts: string[] = [],
+): RuleTask[] {
+  const seen = new Set(seedPrompts);
+  const out: RuleTask[] = [];
+  for (let i = 0, guard = 0; out.length < count && guard < count * 30 + 30; i++, guard++) {
+    const t = gen(i);
+    if (seen.has(t.prompt)) continue;
+    seen.add(t.prompt);
+    out.push(t);
+  }
+  return out;
+}
+
 /** Наступна фаза після завершення завдання `task` у блоці `block`. */
 function afterTask(blocks: RuleBlock[], block: number, task: number): LessonPhase {
   if (task + 1 < blocks[block].tasks.length) return { kind: 'apply', block, task: task + 1 };

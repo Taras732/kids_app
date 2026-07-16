@@ -2,13 +2,19 @@
 //
 // Обманки тут НЕ випадкові числа поруч із правильним: кожна — результат
 // конкретної хибної стратегії, яку діти реально застосовують («порахував зліва
-// направо», «доповнив до 10 і забув, що взяв двійку з п'ятірки»). Тільки так
-// можливий consequence-replay: щоб програти хід дитини, треба заздалегідь
-// знати, який хід привів до цієї відповіді.
+// направо», «доповнив до 10 і забув, що частину вже витратив»). Тільки так
+// можливий consequence-replay: щоб програти хід дитини, треба заздалегідь знати,
+// який хід привів до цієї відповіді.
+//
+// Кандидати-обманки даються З ЗАПАСОМ і проходять dedupeDistractors: якщо якась
+// збіглася з правильною відповіддю (напр. 5×5+2×2: «прочитав × як +» дає теж 29)
+// або з іншою — вона відсіюється, і береться наступна змістовна. Завдання в блоці
+// набираються через uniqueTasks — тож перше й третє не вийдуть однакові.
 //
 // Прив'язка до реальних вузлів skill-graph (A2), не до вигаданих id.
 
 import type { GradeBand } from '@/games/types';
+import { dedupeDistractors, uniqueTasks } from './rule-core';
 import type { Distractor, RuleBlock, RuleLessonDef, RuleTask, Rng } from './rule-core';
 
 const ri = (rng: Rng, min: number, max: number): number => min + Math.floor(rng() * (max - min + 1));
@@ -25,7 +31,7 @@ function orderTask(id: string, a: number, b: number, c: number): RuleTask {
   const correct = a + b * c;
   const leftToRight = (a + b) * c;
 
-  const distractors: Distractor[] = [
+  const candidates: Distractor[] = [
     {
       value: String(leftToRight),
       misconception: 'порахував зліва направо, як читають текст',
@@ -53,6 +59,14 @@ function orderTask(id: string, a: number, b: number, c: number): RuleTask {
         correctTail: [`Лишилось додати ${a}: ${a} + ${b * c} = ${correct}`],
       },
     },
+    {
+      value: String(a + b + c),
+      misconception: 'додав усі числа, множення не помітив',
+      explain: {
+        kind: 'rule-recall',
+        text: 'Спочатку множимо, і тільки потім додаємо.',
+      },
+    },
   ];
 
   return {
@@ -60,7 +74,7 @@ function orderTask(id: string, a: number, b: number, c: number): RuleTask {
     prompt: `${a} + ${b} × ${c}`,
     correct: String(correct),
     correctSteps: [`Спочатку множення: ${b} × ${c} = ${b * c}`, `Потім додавання: ${a} + ${b * c} = ${correct}`],
-    distractors,
+    distractors: dedupeDistractors(String(correct), candidates),
   };
 }
 
@@ -68,6 +82,42 @@ function orderTask(id: string, a: number, b: number, c: number): RuleTask {
 function twoMultTask(id: string, a: number, b: number, c: number, d: number): RuleTask {
   const correct = a * b + c * d;
   const leftToRight = (a * b + c) * d;
+
+  const candidates: Distractor[] = [
+    {
+      value: String(leftToRight),
+      misconception: 'перше множення зробив, далі пішов зліва направо',
+      explain: {
+        kind: 'consequence-replay',
+        steps: [
+          { text: `Перше множення — правильно: ${a} × ${b} = ${a * b}`, ok: true },
+          { text: `Але потім ${a * b} + ${c} = ${a * b + c}`, ok: false },
+          { text: `І ${a * b + c} × ${d} = ${leftToRight}`, ok: false },
+        ],
+        correctTail: [
+          `Друге множення теж іде спочатку: ${c} × ${d} = ${c * d}`,
+          `Аж тоді ${a * b} + ${c * d} = ${correct}`,
+        ],
+      },
+    },
+    {
+      value: String(a * b + c + d),
+      misconception: 'друге множення прочитав як додавання',
+      explain: {
+        kind: 'visual-proof',
+        note: 'Подивись на знак між останніми числами — там ×, а не +.',
+        visual: { kind: 'steps', steps: [`${c} × ${d} = ${c * d}`, `${a * b} + ${c * d} = ${correct}`] },
+      },
+    },
+    {
+      value: String(a * b + c),
+      misconception: 'зробив перше множення, друге забув',
+      explain: {
+        kind: 'rule-recall',
+        text: 'Обидва множення — спочатку, аж тоді додаємо.',
+      },
+    },
+  ];
 
   return {
     id,
@@ -77,33 +127,7 @@ function twoMultTask(id: string, a: number, b: number, c: number, d: number): Ru
       `Обидва множення спочатку: ${a} × ${b} = ${a * b} і ${c} × ${d} = ${c * d}`,
       `Тоді додавання: ${a * b} + ${c * d} = ${correct}`,
     ],
-    distractors: [
-      {
-        value: String(leftToRight),
-        misconception: 'перше множення зробив, далі пішов зліва направо',
-        explain: {
-          kind: 'consequence-replay',
-          steps: [
-            { text: `Перше множення — правильно: ${a} × ${b} = ${a * b}`, ok: true },
-            { text: `Але потім ${a * b} + ${c} = ${a * b + c}`, ok: false },
-            { text: `І ${a * b + c} × ${d} = ${leftToRight}`, ok: false },
-          ],
-          correctTail: [
-            `Друге множення теж іде спочатку: ${c} × ${d} = ${c * d}`,
-            `Аж тоді ${a * b} + ${c * d} = ${correct}`,
-          ],
-        },
-      },
-      {
-        value: String(a * b + c + d),
-        misconception: 'друге множення прочитав як додавання',
-        explain: {
-          kind: 'visual-proof',
-          note: 'Подивись на знак між останніми числами — там ×, а не +.',
-          visual: { kind: 'steps', steps: [`${c} × ${d} = ${c * d}`, `${a * b} + ${c * d} = ${correct}`] },
-        },
-      },
-    ],
+    distractors: dedupeDistractors(String(correct), candidates),
   };
 }
 
@@ -112,37 +136,47 @@ function bracketTask(id: string, a: number, b: number, c: number): RuleTask {
   const correct = (a + b) * c;
   const ignoredBrackets = a + b * c;
 
+  const candidates: Distractor[] = [
+    {
+      value: String(ignoredBrackets),
+      misconception: 'не побачив дужок, помножив за старим правилом',
+      explain: {
+        kind: 'consequence-replay',
+        steps: [
+          { text: `Ти помножив спершу: ${b} × ${c} = ${b * c}`, ok: false },
+          { text: `Потім ${a} + ${b * c} = ${ignoredBrackets}`, ok: false },
+        ],
+        correctTail: [
+          `Але дужки — найперші: ${a} + ${b} = ${a + b}`,
+          `Аж тоді ${a + b} × ${c} = ${correct}`,
+        ],
+      },
+    },
+    {
+      value: String(a + b + c),
+      misconception: 'усе додав, множення не помітив',
+      explain: {
+        kind: 'visual-proof',
+        note: 'Дужки порахували правильно — але за ними стоїть ×.',
+        visual: { kind: 'steps', steps: [`(${a} + ${b}) = ${a + b}`, `${a + b} × ${c} = ${correct}`] },
+      },
+    },
+    {
+      value: String(a + b),
+      misconception: 'порахував дужку і забув помножити',
+      explain: {
+        kind: 'rule-recall',
+        text: 'Після дужок не забувай про множення.',
+      },
+    },
+  ];
+
   return {
     id,
     prompt: `(${a} + ${b}) × ${c}`,
     correct: String(correct),
     correctSteps: [`Спочатку дужки: ${a} + ${b} = ${a + b}`, `Потім множення: ${a + b} × ${c} = ${correct}`],
-    distractors: [
-      {
-        value: String(ignoredBrackets),
-        misconception: 'не побачив дужок, помножив за старим правилом',
-        explain: {
-          kind: 'consequence-replay',
-          steps: [
-            { text: `Ти помножив спершу: ${b} × ${c} = ${b * c}`, ok: false },
-            { text: `Потім ${a} + ${b * c} = ${ignoredBrackets}`, ok: false },
-          ],
-          correctTail: [
-            `Але дужки — найперші: ${a} + ${b} = ${a + b}`,
-            `Аж тоді ${a + b} × ${c} = ${correct}`,
-          ],
-        },
-      },
-      {
-        value: String(a + b + c),
-        misconception: 'усе додав, множення не помітив',
-        explain: {
-          kind: 'visual-proof',
-          note: 'Дужки порахували правильно — але за ними стоїть ×.',
-          visual: { kind: 'steps', steps: [`(${a} + ${b}) = ${a + b}`, `${a + b} × ${c} = ${correct}`] },
-        },
-      },
-    ],
+    distractors: dedupeDistractors(String(correct), candidates),
   };
 }
 
@@ -161,6 +195,17 @@ const ORDER_OF_OPERATIONS: RuleLessonDef = {
     const b = ri(rng, 2, top);
     const c = ri(rng, 2, 5);
 
+    const firstTask = orderTask('ord-1', a, b, c);
+    // решта завдань блоку — унікальні за формулюванням і різні від першого
+    const restFirst = uniqueTasks(
+      n - 1,
+      (i) =>
+        i === 0 && n > 2
+          ? twoMultTask('ord-m', ri(rng, 2, 5), ri(rng, 2, 5), ri(rng, 2, 5), ri(rng, 2, 5))
+          : orderTask(`ord-${i + 2}`, ri(rng, 2, top), ri(rng, 2, top), ri(rng, 2, 5)),
+      [firstTask.prompt],
+    );
+
     const first: RuleBlock = {
       statement: {
         text: 'Спочатку множимо і ділимо. Аж потім додаємо і віднімаємо.',
@@ -171,12 +216,15 @@ const ORDER_OF_OPERATIONS: RuleLessonDef = {
         steps: ['Дивимось на знаки: тут є × і +.', 'Правило: спочатку множення → 3 × 4 = 12', 'Тепер додаємо: 12 + 2 = 14'],
         answer: '14',
       },
-      tasks: [
-        orderTask('ord-1', a, b, c),
-        ...(n > 2 ? [twoMultTask('ord-2', ri(rng, 2, 5), ri(rng, 2, 5), ri(rng, 2, 5), ri(rng, 2, 5))] : []),
-        orderTask('ord-3', ri(rng, 2, top), ri(rng, 2, top), ri(rng, 2, 5)),
-      ],
+      tasks: [firstTask, ...restFirst],
     };
+
+    const bracketFirst = bracketTask('brk-1', a, b, c);
+    const restSecond = uniqueTasks(
+      (n > 2 ? 2 : 1) - 1,
+      (i) => bracketTask(`brk-${i + 2}`, ri(rng, 2, top), ri(rng, 2, top), ri(rng, 2, 5)),
+      [bracketFirst.prompt],
+    );
 
     const second: RuleBlock = {
       changeNote: 'А тепер правило доповнюється.',
@@ -196,11 +244,8 @@ const ORDER_OF_OPERATIONS: RuleLessonDef = {
         steps: ['Спочатку дужки: 2 + 5 = 7', 'Тепер множення: 7 × 3 = 21'],
         answer: '21',
       },
-      tasks: [
-        // навмисно ті самі a, b, c, що й у першому завданні блоку 1
-        bracketTask('brk-1', a, b, c),
-        ...(n > 2 ? [bracketTask('brk-2', ri(rng, 2, top), ri(rng, 2, top), ri(rng, 2, 5))] : []),
-      ],
+      // перше завдання — дзеркало на тих самих a,b,c, далі унікальні
+      tasks: [bracketFirst, ...restSecond],
     };
 
     return [first, second];
@@ -217,6 +262,38 @@ function carryAddTask(id: string, a: number, b: number): RuleTask {
   const toTen = 10 - a;
   const rest = b - toTen;
 
+  const candidates: Distractor[] = [
+    {
+      value: String(10 + b),
+      misconception: `доповнив ${a} до 10, але потім додав усі ${b}, хоч ${toTen} уже витратив`,
+      explain: {
+        kind: 'consequence-replay',
+        steps: [
+          { text: `До 10 ти дійшов правильно: ${a} + ${toTen} = 10`, ok: true },
+          { text: `Але далі додав усі ${b}: 10 + ${b} = ${10 + b}`, ok: false },
+        ],
+        correctTail: [
+          `${toTen} з ${b} вже пішло на десяток`,
+          `Лишилось тільки ${rest}: 10 + ${rest} = ${correct}`,
+        ],
+      },
+    },
+    {
+      value: String(correct - 1),
+      misconception: 'лічив по одному і збився на одиницю',
+      explain: {
+        kind: 'visual-proof',
+        note: 'Порахуймо разом, десятком:',
+        visual: { kind: 'steps', steps: [`${a} + ${toTen} = 10`, `10 + ${rest} = ${correct}`] },
+      },
+    },
+    {
+      value: String(correct + 1),
+      misconception: 'перелічив на одиницю',
+      explain: { kind: 'rule-recall', text: 'Доповни до 10, а решту додай зверху.' },
+    },
+  ];
+
   return {
     id,
     prompt: `${a} + ${b}`,
@@ -226,32 +303,7 @@ function carryAddTask(id: string, a: number, b: number): RuleTask {
       `${b} — це ${toTen} і ще ${rest}`,
       `10 + ${rest} = ${correct}`,
     ],
-    distractors: [
-      {
-        value: String(10 + b),
-        misconception: `доповнив ${a} до 10, але потім додав усі ${b}, хоч ${toTen} уже витратив`,
-        explain: {
-          kind: 'consequence-replay',
-          steps: [
-            { text: `До 10 ти дійшов правильно: ${a} + ${toTen} = 10`, ok: true },
-            { text: `Але далі додав усі ${b}: 10 + ${b} = ${10 + b}`, ok: false },
-          ],
-          correctTail: [
-            `${toTen} з ${b} вже пішло на десяток`,
-            `Лишилось тільки ${rest}: 10 + ${rest} = ${correct}`,
-          ],
-        },
-      },
-      {
-        value: String(correct - 1),
-        misconception: 'лічив по одному і збився на одиницю',
-        explain: {
-          kind: 'visual-proof',
-          note: 'Порахуймо разом, десятком:',
-          visual: { kind: 'steps', steps: [`${a} + ${toTen} = 10`, `10 + ${rest} = ${correct}`] },
-        },
-      },
-    ],
+    distractors: dedupeDistractors(String(correct), candidates),
   };
 }
 
@@ -260,6 +312,38 @@ function carrySubTask(id: string, m: number, n: number): RuleTask {
   const correct = m - n;
   const toTen = m - 10;
   const rest = n - toTen;
+
+  const candidates: Distractor[] = [
+    {
+      value: String(10 - n),
+      misconception: `дійшов до 10, а тоді відняв усі ${n} ще раз`,
+      explain: {
+        kind: 'consequence-replay',
+        steps: [
+          { text: `До 10 ти дійшов правильно: ${m} − ${toTen} = 10`, ok: true },
+          { text: `Але далі відняв усі ${n}: 10 − ${n} = ${10 - n}`, ok: false },
+        ],
+        correctTail: [
+          `${toTen} з ${n} вже відняли`,
+          `Лишилось тільки ${rest}: 10 − ${rest} = ${correct}`,
+        ],
+      },
+    },
+    {
+      value: String(correct + 1),
+      misconception: 'лічив назад по одному і збився на одиницю',
+      explain: {
+        kind: 'visual-proof',
+        note: 'Порахуймо разом, від десятка:',
+        visual: { kind: 'steps', steps: [`${m} − ${toTen} = 10`, `10 − ${rest} = ${correct}`] },
+      },
+    },
+    {
+      value: String(correct - 1),
+      misconception: 'перелічив назад на одиницю',
+      explain: { kind: 'rule-recall', text: 'Дійди до 10, а решту відніми від нього.' },
+    },
+  ];
 
   return {
     id,
@@ -270,32 +354,7 @@ function carrySubTask(id: string, m: number, n: number): RuleTask {
       `${n} — це ${toTen} і ще ${rest}`,
       `10 − ${rest} = ${correct}`,
     ],
-    distractors: [
-      {
-        value: String(10 - n),
-        misconception: `дійшов до 10, а тоді відняв усі ${n} ще раз`,
-        explain: {
-          kind: 'consequence-replay',
-          steps: [
-            { text: `До 10 ти дійшов правильно: ${m} − ${toTen} = 10`, ok: true },
-            { text: `Але далі відняв усі ${n}: 10 − ${n} = ${10 - n}`, ok: false },
-          ],
-          correctTail: [
-            `${toTen} з ${n} вже відняли`,
-            `Лишилось тільки ${rest}: 10 − ${rest} = ${correct}`,
-          ],
-        },
-      },
-      {
-        value: String(correct + 1),
-        misconception: 'лічив назад по одному і збився на одиницю',
-        explain: {
-          kind: 'visual-proof',
-          note: 'Порахуймо разом, від десятка:',
-          visual: { kind: 'steps', steps: [`${m} − ${toTen} = 10`, `10 − ${rest} = ${correct}`] },
-        },
-      },
-    ],
+    distractors: dedupeDistractors(String(correct), candidates),
   };
 }
 
@@ -328,7 +387,7 @@ const THROUGH_TEN: RuleLessonDef = {
         steps: ['8 треба доповнити до 10 — це ще 2', '5 — це 2 і ще 3', '8 + 2 = 10, а 10 + 3 = 13'],
         answer: '13',
       },
-      tasks: Array.from({ length: n }, (_, i) => carryAddTask(`add-${i + 1}`, ...addPair())),
+      tasks: uniqueTasks(n, (i) => carryAddTask(`add-${i}`, ...addPair())),
     };
 
     const second: RuleBlock = {
@@ -342,7 +401,7 @@ const THROUGH_TEN: RuleLessonDef = {
         steps: ['13 зменшуємо до 10 — це 3', '5 — це 3 і ще 2', '13 − 3 = 10, а 10 − 2 = 8'],
         answer: '8',
       },
-      tasks: Array.from({ length: n }, (_, i) => carrySubTask(`sub-${i + 1}`, ...subPair())),
+      tasks: uniqueTasks(n, (i) => carrySubTask(`sub-${i}`, ...subPair())),
     };
 
     return [first, second];
