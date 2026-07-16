@@ -303,12 +303,28 @@ describe('банк правил математики — структурна г
     }
   });
 
-  it('усі skillIds уроків існують у графі математики', async () => {
+  it('усі skillIds уроків (ОБОХ предметів) існують у своєму skill-графі', async () => {
     const { MATH_SKILLS } = await import('@/school/skills-math');
-    const ids = new Set(MATH_SKILLS.map((s) => s.id));
-    for (const def of MATH_RULE_LESSONS) {
+    const { LANGUAGE_SKILLS } = await import('@/school/skills-language');
+    const ids = new Set([...MATH_SKILLS.map((s) => s.id), ...LANGUAGE_SKILLS.map((s) => s.id)]);
+    // гвардія проти висячих посилань: урок не може тренувати неіснуючу навичку
+    for (const def of ALL_RULE_LESSONS) {
       for (const sid of def.skillIds) {
         expect(ids.has(sid), `${def.id}: невідомий skill ${sid}`).toBe(true);
+      }
+    }
+  });
+
+  it('skillIds уроку належать ЙОГО предмету (мовний урок не тренує math-навичку)', async () => {
+    const { MATH_SKILLS } = await import('@/school/skills-math');
+    const { LANGUAGE_SKILLS } = await import('@/school/skills-language');
+    const subjectById = new Map<string, string>([
+      ...MATH_SKILLS.map((s) => [s.id, 'math'] as const),
+      ...LANGUAGE_SKILLS.map((s) => [s.id, 'language'] as const),
+    ]);
+    for (const def of ALL_RULE_LESSONS) {
+      for (const sid of def.skillIds) {
+        expect(subjectById.get(sid), `${def.id} (${def.subject}) тренує чужий предмет: ${sid}`).toBe(def.subject);
       }
     }
   });

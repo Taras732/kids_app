@@ -64,7 +64,8 @@ const CAPITAL_LETTER: RuleLessonDef = {
   id: 'language.capital-letter',
   title: 'Велика літера',
   subject: 'language',
-  skillIds: [], // L1 — skill-граф мови ще не заseedено
+  // Вузли графа мови (L1): імена/клички → доповнення географічними назвами.
+  skillIds: ['language.orth.l1.capital-names', 'language.orth.l2.capital-geo-names'],
   bands: ['L1', 'L2', 'L3'],
   build: (band, rng) => {
     const n = taskCount(band);
@@ -151,7 +152,7 @@ const CHA_SHCHA: RuleLessonDef = {
   id: 'language.cha-shcha',
   title: 'ЧА і ЩА',
   subject: 'language',
-  skillIds: [],
+  skillIds: ['language.orth.l2.zhy-shy-cha-shcha'],
   bands: ['L1', 'L2'],
   build: (band, rng) => {
     const n = taskCount(band);
