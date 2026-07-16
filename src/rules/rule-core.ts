@@ -136,6 +136,16 @@ export function shuffleWith<T>(arr: T[], rng: Rng): T[] {
   return a;
 }
 
+/** FNV-1a хеш рядка → детермінований seed з id завдання. */
+export function hashString(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
 // ---------- PD3: скаффолд згасає за mastery, не за difficulty ----------
 
 export type ScaffoldLevel = 'full' | 'short' | 'none';
@@ -197,8 +207,15 @@ export function explainFor(task: RuleTask, picked: string, statement: RuleStatem
   return d ? d.explain : { kind: 'rule-recall', text: statement.text };
 }
 
-/** Варіанти для ChoiceGrid: правильна + обманки, перемішані ДЕТЕРМІНОВАНО (Q2). */
-export function buildOptions(task: RuleTask, rng: Rng): string[] {
+/**
+ * Варіанти для ChoiceGrid: правильна + обманки, перемішані ДЕТЕРМІНОВАНО (Q2).
+ * Приймає ЧИСЛОВИЙ seed, а не готовий Rng: rng будується всередині з seed ^ hash(id),
+ * тож повторний виклик у тілі рендеру дає ТОЙ САМИЙ порядок. Раніше сюди
+ * передавали спільний stateful-Rng, і кожен React-рендер мутував його стан →
+ * варіанти стрибали між показом і кліком (та сама пастка, що Q2 у Фазі 0).
+ */
+export function buildOptions(task: RuleTask, seed: number): string[] {
+  const rng = createRng((seed >>> 0) ^ hashString(task.id));
   return shuffleWith([task.correct, ...task.distractors.map((d) => d.value)], rng);
 }
 

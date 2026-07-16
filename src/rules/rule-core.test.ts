@@ -157,16 +157,69 @@ describe('explainFor', () => {
   });
 });
 
-describe('детермінізм (Q2 — варіанти не стрибають)', () => {
-  it('той самий seed → той самий порядок варіантів', () => {
+describe('детермінізм (Q2 — варіанти не стрибають між ре-рендерами)', () => {
+  it('той самий seed → той самий порядок варіантів (повторний виклик стабільний)', () => {
     const task = fixtureBlocks()[0].tasks[0];
-    expect(buildOptions(task, createRng(42))).toEqual(buildOptions(task, createRng(42)));
+    // саме цей інваріант ламався: повторний виклик у тілі рендеру давав інший порядок
+    expect(buildOptions(task, 42)).toEqual(buildOptions(task, 42));
+    expect(buildOptions(task, 42)).toEqual(buildOptions(task, 42));
+  });
+
+  it('містить рівно правильну + усі обманки, без втрат', () => {
+    const task = fixtureBlocks()[0].tasks[0];
+    const opts = buildOptions(task, 42);
+    expect([...opts].sort()).toEqual([task.correct, ...task.distractors.map((d) => d.value)].sort());
   });
 
   it('shuffleWith детермінований за seed і не втрачає елементів', () => {
     const src = [1, 2, 3, 4, 5];
     expect(shuffleWith(src, createRng(7))).toEqual(shuffleWith(src, createRng(7)));
     expect([...shuffleWith(src, createRng(7))].sort()).toEqual(src);
+  });
+});
+
+describe('коректність відповідей — правильна НЕ помилка, кожна обманка → пояснення', () => {
+  it('для КОЖНОГО завдання КОЖНОГО уроку × усі bands × кілька seed', () => {
+    for (const def of MATH_RULE_LESSONS) {
+      for (const band of def.bands) {
+        for (const seed of [1, 42, 12345, 999]) {
+          const blocks = def.build(band, createRng(seed));
+          blocks.forEach((blk, bi) => {
+            blk.tasks.forEach((t) => {
+              // правильна відповідь має бути серед варіантів і НЕ давати помилку
+              const opts = buildOptions(t, seed);
+              expect(opts, `${def.id}/${band}/${t.id}: correct поза варіантами`).toContain(t.correct);
+
+              // проганяємо машину до цього завдання і тиснемо правильну
+              let s = startLesson(blocks, 0.9); // scaffold none → одразу apply
+              // дійти до блоку bi
+              let guard = 0;
+              while (!(s.phase.kind === 'apply' && s.phase.block === bi && s.phase.task === blk.tasks.indexOf(t)) && guard++ < 100) {
+                if (s.phase.kind === 'apply') {
+                  const cur = s.blocks[s.phase.block].tasks[s.phase.task];
+                  s = advance(s, { type: 'ANSWER', value: cur.correct });
+                } else if (s.phase.kind === 'summary') {
+                  break;
+                } else {
+                  s = advance(s, { type: 'NEXT' });
+                }
+              }
+              if (s.phase.kind !== 'apply') return;
+              const afterCorrect = advance(s, { type: 'ANSWER', value: t.correct });
+              expect(afterCorrect.explain, `${def.id}/${t.id}: правильна ${t.correct} дала explain`).toBeNull();
+              expect(afterCorrect.mistakes).toBe(s.mistakes);
+
+              // кожна обманка → помилка + пояснення саме її типу
+              for (const d of t.distractors) {
+                const afterWrong = advance(s, { type: 'ANSWER', value: d.value });
+                expect(afterWrong.explain, `${def.id}/${t.id}: обманка ${d.value} без explain`).not.toBeNull();
+                expect(afterWrong.explain).toEqual(d.explain);
+              }
+            });
+          });
+        }
+      }
+    }
   });
 });
 

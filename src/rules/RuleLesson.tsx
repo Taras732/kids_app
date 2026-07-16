@@ -1,6 +1,7 @@
-import { useMemo, useReducer } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import confetti from 'canvas-confetti';
 import { ChoiceGrid } from '@/games/shared/ui';
-import type { GradeBand } from '@/games/types';
+import type { AnswerState, GradeBand } from '@/games/types';
 import {
   advance,
   startLesson,
@@ -12,6 +13,7 @@ import {
   type Explain,
   type LessonState,
   type RuleLessonDef,
+  type RuleTask,
   type RuleVisual,
 } from './rule-core';
 
@@ -118,7 +120,6 @@ interface Props {
 
 export default function RuleLesson({ def, band, mastery = 0, seed, onExit, onDone, onReplay }: Props) {
   const blocks = useMemo(() => def.build(band, createRng(seed)), [def, band, seed]);
-  const optRng = useMemo(() => createRng(seed ^ 0x9e3779b9), [seed]);
 
   const [state, dispatch] = useReducer(
     (s: LessonState, ev: Parameters<typeof advance>[1]) => advance(s, ev),
@@ -129,6 +130,29 @@ export default function RuleLesson({ def, band, mastery = 0, seed, onExit, onDon
   const { phase } = state;
   const total = totalTasks(blocks);
   const done = tasksDone(state);
+
+  // Поточне завдання (лише у фазі apply) — для детермінованих варіантів і фідбеку.
+  const currentTask = phase.kind === 'apply' ? blocks[phase.block].tasks[phase.task] : null;
+
+  // Короткий зелений фідбек на правильну відповідь ПЕРЕД переходом (як у GameShell):
+  // без нього правильний вибір не підсвічувався й одразу стрибав далі.
+  const [flash, setFlash] = useState<'correct' | null>(null);
+  const flashTimer = useRef<number | null>(null);
+  useEffect(() => () => { if (flashTimer.current) window.clearTimeout(flashTimer.current); }, []);
+
+  function pickAnswer(value: string) {
+    if (flash || state.explain || !currentTask) return;
+    if (value === currentTask.correct) {
+      setFlash('correct');
+      confetti({ particleCount: 40, spread: 42, origin: { y: 0.7 }, disableForReducedMotion: true });
+      flashTimer.current = window.setTimeout(() => {
+        setFlash(null);
+        dispatch({ type: 'ANSWER', value });
+      }, 700);
+    } else {
+      dispatch({ type: 'ANSWER', value });
+    }
+  }
 
   const topbar = (
     <div className="g-topbar">
@@ -242,22 +266,23 @@ export default function RuleLesson({ def, band, mastery = 0, seed, onExit, onDon
 
   // ---- Apply ----
   const task = block.tasks[phase.task];
-  const options = buildOptions(task, optRng).map((v) => ({ value: v }));
   const showingExplain = state.explain !== null;
+  const answerState = flash === 'correct' ? 'correct' : showingExplain ? 'incorrect' : 'idle';
 
   return (
     <Screen topbar={topbar}>
-      <div className={`g-card${showingExplain ? '' : ''}`}>
+      <div className="g-card">
         <div className="g-question">Застосуй правило</div>
         <div style={{ fontSize: 30, fontWeight: 900, color: 'var(--c-ink)', textAlign: 'center', margin: '8px 0' }}>{task.prompt}</div>
       </div>
-      <ChoiceGrid
+      <ApplyChoices
         key={`${phase.block}-${phase.task}`}
-        options={options}
+        task={task}
+        seed={seed}
         correct={task.correct}
-        disabled={showingExplain}
-        answerState={showingExplain ? 'incorrect' : 'idle'}
-        onPick={(v) => dispatch({ type: 'ANSWER', value: String(v) })}
+        disabled={showingExplain || flash !== null}
+        answerState={answerState}
+        onPick={pickAnswer}
       />
       {state.explain && (
         <>
@@ -266,6 +291,39 @@ export default function RuleLesson({ def, band, mastery = 0, seed, onExit, onDon
         </>
       )}
     </Screen>
+  );
+}
+
+/**
+ * Варіанти фази apply. Порядок обчислюється ДЕТЕРМІНОВАНО в useMemo із seed+id
+ * завдання — не залежить від кількості ре-рендерів, тож не стрибає між показом
+ * і кліком (корінь скарги «правильна = помилка»). key={block-task} у батька
+ * перемонтовує компонент на новому завданні.
+ */
+function ApplyChoices({
+  task,
+  seed,
+  correct,
+  disabled,
+  answerState,
+  onPick,
+}: {
+  task: RuleTask;
+  seed: number;
+  correct: string;
+  disabled: boolean;
+  answerState: AnswerState;
+  onPick: (value: string) => void;
+}) {
+  const options = useMemo(() => buildOptions(task, seed).map((v) => ({ value: v })), [task.id, seed]);
+  return (
+    <ChoiceGrid
+      options={options}
+      correct={correct}
+      disabled={disabled}
+      answerState={answerState}
+      onPick={(v) => onPick(String(v))}
+    />
   );
 }
 
