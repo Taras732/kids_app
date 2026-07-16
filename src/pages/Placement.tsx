@@ -55,7 +55,7 @@ export default function Placement() {
   const strand = PLACEMENT_STRANDS[strandIdx];
   const isSynced = Boolean(user?.id && profileId);
 
-  const goHub = () => navigate('/hub');
+  const goDay = () => navigate('/day');
 
   const begin = () => {
     resultsRef.current = {};
@@ -138,7 +138,7 @@ export default function Placement() {
           )}
           <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 10, marginTop: 6 }}>
             <button className="g-btn primary" onClick={begin}>Почати 🚀</button>
-            <button className="g-btn ghost" onClick={goHub}>Пропустити</button>
+            <button className="g-btn ghost" onClick={goDay}>Пропустити</button>
           </div>
         </div>
       </div>
@@ -174,7 +174,7 @@ export default function Placement() {
             {saving ? 'Зберігаємо…' : isSynced ? 'Рівень збережено ✓' : 'Гостьовий режим — рівень не збережено'}
           </p>
 
-          <button className="g-btn primary" style={{ maxWidth: 320, margin: '0 auto', width: '100%' }} onClick={goHub}>
+          <button className="g-btn primary" style={{ maxWidth: 320, margin: '0 auto', width: '100%' }} onClick={goDay}>
             До навчання 🚀
           </button>
         </div>
@@ -190,7 +190,7 @@ export default function Placement() {
     <div className="g-screen">
       <div className="play-col">
         <div className="g-topbar">
-          <button className="g-iconbtn" aria-label="Пропустити діагностику" onClick={goHub}>✕</button>
+          <button className="g-iconbtn" aria-label="Пропустити діагностику" onClick={goDay}>✕</button>
           <div className="g-progress">
             <span style={{ width: `${strandProgress}%` }} />
           </div>

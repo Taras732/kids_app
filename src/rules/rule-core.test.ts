@@ -16,7 +16,7 @@ import {
   type RuleBlock,
   type LessonState,
 } from './rule-core';
-import { MATH_RULE_LESSONS, lessonsForBand } from './rules-math';
+import { MATH_RULE_LESSONS, lessonsForBand, ruleOfDay } from './rules-math';
 import { GRADE_BANDS } from '@/games/types';
 
 // --- невеликий фікстур-урок: 2 блоки, обманки з поясненнями ---
@@ -328,6 +328,18 @@ describe('банк правил математики — структурна г
     // «зліва направо» в першому = (a+b)*c = правильна відповідь у другому
     const leftToRight = ordTask.distractors[0].value;
     expect(brkTask.correct).toBe(leftToRight);
+  });
+
+  it('ruleOfDay: детермінований у межах доби, під рівень, null де уроків нема', () => {
+    // стабільний у межах дати
+    expect(ruleOfDay('L3', '2026-07-16')).toBe(ruleOfDay('L3', '2026-07-16'));
+    // повертає урок, доречний для band
+    const r = ruleOfDay('L3', '2026-07-16');
+    expect(r && r.bands.includes('L3')).toBe(true);
+    const r1 = ruleOfDay('L1', '2026-07-16');
+    expect(r1 && r1.bands.includes('L1')).toBe(true);
+    // для L0 уроків-правил ще нема
+    expect(ruleOfDay('L0', '2026-07-16')).toBeNull();
   });
 
   it('lessonsForBand фільтрує коректно', () => {

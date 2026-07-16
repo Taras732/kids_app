@@ -5,10 +5,14 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { getOrCreateTodayPlan } from '@/school/planner';
 import { fetchOfflineTasks, updateDailyPlanStatus, updatePlanItemStatus } from '@/school/db';
-import { getGame } from '@/games/registry';
+import { getGame, profileClass } from '@/games/registry';
+import { classBand } from '@/games/types';
+import { ruleOfDay } from '@/rules/rules-math';
 import OfflineTaskCard from '@/components/OfflineTask';
 import type { DailyPlan, DailyPlanItem, OfflineTask } from '@/school/types';
 import { countCompleted, findAutoCompletableGameItemIds, sortPlanItems } from './dayplan-core';
+
+const WEEKDAYS = ['неділя', 'понеділок', 'вівторок', 'середа', 'четвер', "п'ятниця", 'субота'];
 
 /** Локальна сьогоднішня дата (часовий пояс дитини) — план «на сьогодні», не UTC-доба. */
 function todayLocalDate(): string {
@@ -127,6 +131,10 @@ export default function DayPlan() {
   if (!activeProfile) return <Centered>Завантаження…</Centered>;
 
   const goalPct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+  const weekday = WEEKDAYS[new Date().getDay()];
+  // «Правило дня» — перший крок розкладу (клієнтський RL1, під рівень дитини).
+  const band = classBand(profileClass(activeProfile), 2);
+  const dayRule = ruleOfDay(band, date);
 
   return (
     <div className="hub">
@@ -138,8 +146,8 @@ export default function DayPlan() {
                 ←
               </button>
               <div style={{ minWidth: 0 }}>
-                <h1>Мій план на сьогодні 🗓️</h1>
-                <p className="sub">{total > 0 ? `${doneCount}/${total} виконано` : 'Готуємо завдання…'}</p>
+                <h1>Мій день · {weekday} 🗓️</h1>
+                <p className="sub">{total > 0 ? `${doneCount}/${total} виконано` : 'Сьогоднішній розклад'}</p>
               </div>
             </div>
             {total > 0 && (
@@ -155,6 +163,29 @@ export default function DayPlan() {
             <div className="panel" style={{ background: '#FFF7E6', border: '1px solid #FCEFC7', color: '#8A5A00', marginBottom: 16 }}>
               ⚠️ {error}
             </div>
+          )}
+
+          {/* Правило дня — перший крок розкладу: спершу урок, потім закріплення (RL1). */}
+          {!loading && dayRule && (
+            <button
+              onClick={() => navigate(`/rule/${dayRule.id}`)}
+              style={{
+                width: '100%', textAlign: 'left', cursor: 'pointer', marginBottom: 14,
+                background: 'linear-gradient(120deg, #6C5CE7, #A29BFE)', color: '#fff',
+                border: 'none', borderRadius: 'var(--c-r)', padding: '16px 18px',
+                boxShadow: 'var(--c-shadow)', display: 'flex', alignItems: 'center', gap: 14,
+              }}
+            >
+              <div style={{ fontSize: 30, flexShrink: 0 }}>📏</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                  Математика · Правило дня
+                </div>
+                <div style={{ fontSize: 16.5, fontWeight: 900, margin: '2px 0' }}>{dayRule.title}</div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, opacity: 0.9 }}>Спершу вивчи правило — потім закріпи у грі</div>
+              </div>
+              <div style={{ fontSize: 22, flexShrink: 0 }}>▶</div>
+            </button>
           )}
 
           {loading ? (

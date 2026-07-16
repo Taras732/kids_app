@@ -14,7 +14,7 @@
 // Прив'язка до реальних вузлів skill-graph (A2), не до вигаданих id.
 
 import type { GradeBand } from '@/games/types';
-import { dedupeDistractors, uniqueTasks } from './rule-core';
+import { dedupeDistractors, uniqueTasks, hashString } from './rule-core';
 import type { Distractor, RuleBlock, RuleLessonDef, RuleTask, Rng } from './rule-core';
 
 const ri = (rng: Rng, min: number, max: number): number => min + Math.floor(rng() * (max - min + 1));
@@ -419,4 +419,15 @@ export function lessonsForBand(band: GradeBand): RuleLessonDef[] {
 
 export function getRuleLesson(id: string): RuleLessonDef | undefined {
   return MATH_RULE_LESSONS.find((l) => l.id === id);
+}
+
+/**
+ * «Правило дня» для розкладу: детермінований урок під рівень дитини, стабільний
+ * у межах доби (щоб не мінявся при кожному відкритті /day), але різний по днях.
+ * null — для цього band ще немає уроків-правил.
+ */
+export function ruleOfDay(band: GradeBand, dateStr: string): RuleLessonDef | null {
+  const lessons = lessonsForBand(band);
+  if (lessons.length === 0) return null;
+  return lessons[hashString(dateStr) % lessons.length];
 }

@@ -85,7 +85,8 @@ export default function Onboarding() {
 
   const handleSelect = (id: string) => {
     selectProfile(id);
-    navigate('/hub');
+    // Головна після входу — розклад «Мій день», а не список ігор (концепція школи).
+    navigate('/day');
   };
 
   const handleParentAction = (action: 'parent_panel' | 'logout') => {
