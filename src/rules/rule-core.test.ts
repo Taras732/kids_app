@@ -16,7 +16,8 @@ import {
   type RuleBlock,
   type LessonState,
 } from './rule-core';
-import { MATH_RULE_LESSONS, lessonsForBand, ruleOfDay } from './rules-math';
+import { MATH_RULE_LESSONS } from './rules-math';
+import { ALL_RULE_LESSONS, lessonsFor, ruleOfDay, getRuleLesson } from './registry';
 import { GRADE_BANDS } from '@/games/types';
 
 // --- невеликий фікстур-урок: 2 блоки, обманки з поясненнями ---
@@ -342,12 +343,61 @@ describe('банк правил математики — структурна г
     expect(ruleOfDay('L0', '2026-07-16')).toBeNull();
   });
 
-  it('lessonsForBand фільтрує коректно', () => {
-    expect(lessonsForBand('L1').every((l) => l.bands.includes('L1'))).toBe(true);
-    expect(lessonsForBand('L3').some((l) => l.id === 'math.order-of-operations')).toBe(true);
-    // на band поза діапазоном усіх уроків — порожньо або лише відповідні
+  it('lessonsFor фільтрує за рівнем і предметом', () => {
+    expect(lessonsFor('L1').every((l) => l.bands.includes('L1'))).toBe(true);
+    expect(lessonsFor('L3').some((l) => l.id === 'math.order-of-operations')).toBe(true);
     for (const band of GRADE_BANDS) {
-      lessonsForBand(band).forEach((l) => expect(l.bands).toContain(band));
+      lessonsFor(band).forEach((l) => expect(l.bands).toContain(band));
+    }
+    // фільтр за предметом
+    expect(lessonsFor('L1', 'math').every((l) => l.subject === 'math')).toBe(true);
+    expect(lessonsFor('L1', 'language').every((l) => l.subject === 'language')).toBe(true);
+  });
+
+  it('ruleOfDay для предмета: правило дня є і для мови (розклад має math+language щодня)', () => {
+    const lang = ruleOfDay('L1', '2026-07-16', 'language');
+    expect(lang?.subject).toBe('language');
+    const math = ruleOfDay('L1', '2026-07-16', 'math');
+    expect(math?.subject).toBe('math');
+    // предмет без уроків-правил → null (не падає)
+    expect(ruleOfDay('L1', '2026-07-16', 'memory')).toBeNull();
+  });
+
+  it('getRuleLesson знаходить уроки обох предметів; id унікальні в реєстрі', () => {
+    expect(getRuleLesson('math.through-ten')?.subject).toBe('math');
+    expect(getRuleLesson('language.capital-letter')?.subject).toBe('language');
+    expect(getRuleLesson('немає-такого')).toBeUndefined();
+    const ids = ALL_RULE_LESSONS.map((l) => l.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe('банк УКРАЇНСЬКОЇ — та сама структурна гвардія (EP2/PD2)', () => {
+  it('кожен урок мови валідний на кожному band × кілька seed', () => {
+    const langLessons = ALL_RULE_LESSONS.filter((l) => l.subject === 'language');
+    expect(langLessons.length).toBeGreaterThan(0);
+    for (const def of langLessons) {
+      for (const band of def.bands) {
+        for (const seed of [1, 7, 42, 999]) {
+          expect(validateLesson(def, band, createRng(seed)), `${def.id}/${band}/seed${seed}`).toEqual([]);
+        }
+      }
+    }
+  });
+
+  it('варіанти мовних завдань унікальні, 200 seed', () => {
+    const langLessons = ALL_RULE_LESSONS.filter((l) => l.subject === 'language');
+    for (const def of langLessons) {
+      for (const band of def.bands) {
+        for (let seed = 1; seed <= 200; seed++) {
+          for (const blk of def.build(band, createRng(seed))) {
+            for (const t of blk.tasks) {
+              const values = [t.correct, ...t.distractors.map((d) => d.value)];
+              expect(new Set(values).size, `${def.id}/${t.prompt}: дублі ${values}`).toBe(values.length);
+            }
+          }
+        }
+      }
     }
   });
 });

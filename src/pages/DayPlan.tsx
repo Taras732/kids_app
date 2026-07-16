@@ -7,7 +7,7 @@ import { getOrCreateTodayPlan } from '@/school/planner';
 import { fetchOfflineTasks, updateDailyPlanStatus, updatePlanItemStatus } from '@/school/db';
 import { getGame, profileClass, SUBJECT_META, SUBJECT_ORDER } from '@/games/registry';
 import { classBand } from '@/games/types';
-import { ruleOfDay } from '@/rules/rules-math';
+import { ruleOfDay } from '@/rules/registry';
 import { scheduleForDay, isSchoolDay, weekdayName } from '@/school/schedule-core';
 import OfflineTaskCard from '@/components/OfflineTask';
 import type { DailyPlan, DailyPlanItem, OfflineTask } from '@/school/types';
@@ -196,9 +196,12 @@ export default function DayPlan() {
   const classLevel = profileClass(activeProfile);
   const schedule = scheduleForDay(classLevel, weekdayIdx); // SD2 — предмети дня
   const schoolDay = isSchoolDay(weekdayIdx);
-  // «Правило дня» — перший крок розкладу (клієнтський RL1, під рівень дитини).
+  // «Правило дня» кожного предмета розкладу (клієнтський RL1, під рівень дитини).
+  // Предмет без уроків-правил просто не дає картки — не падає.
   const band = classBand(classLevel, 2);
-  const dayRule = ruleOfDay(band, date);
+  const dayRules = schedule
+    .map((s) => ({ subject: s, lesson: ruleOfDay(band, date, s) }))
+    .filter((r): r is { subject: typeof r.subject; lesson: NonNullable<typeof r.lesson> } => r.lesson !== null);
   // SD1 — екранні кроки за предметом, офлайн окремо в кінець.
   const { screen: screenItems, offline: offlineItems } = partitionPlanItems(items);
   const subjectGroups = groupBySubject(
@@ -261,27 +264,32 @@ export default function DayPlan() {
             </div>
           )}
 
-          {/* Правило дня — перший крок розкладу: спершу урок, потім закріплення (RL1). */}
-          {!loading && dayRule && (
-            <button
-              onClick={() => navigate(`/rule/${dayRule.id}`)}
-              style={{
-                width: '100%', textAlign: 'left', cursor: 'pointer', marginBottom: 14,
-                background: 'linear-gradient(120deg, #6C5CE7, #A29BFE)', color: '#fff',
-                border: 'none', borderRadius: 'var(--c-r)', padding: '16px 18px',
-                boxShadow: 'var(--c-shadow)', display: 'flex', alignItems: 'center', gap: 14,
-              }}
-            >
-              <div style={{ fontSize: 30, flexShrink: 0 }}>📏</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '.04em' }}>
-                  Математика · Правило дня
-                </div>
-                <div style={{ fontSize: 16.5, fontWeight: 900, margin: '2px 0' }}>{dayRule.title}</div>
-                <div style={{ fontSize: 12.5, fontWeight: 600, opacity: 0.9 }}>Спершу вивчи правило — потім закріпи у грі</div>
-              </div>
-              <div style={{ fontSize: 22, flexShrink: 0 }}>▶</div>
-            </button>
+          {/* Правило дня кожного предмета — перший крок уроку: спершу правило, потім закріплення (RL1). */}
+          {!loading && dayRules.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
+              {dayRules.map(({ subject, lesson }) => (
+                <button
+                  key={lesson.id}
+                  onClick={() => navigate(`/rule/${lesson.id}`)}
+                  style={{
+                    width: '100%', textAlign: 'left', cursor: 'pointer',
+                    background: 'linear-gradient(120deg, #6C5CE7, #A29BFE)', color: '#fff',
+                    border: 'none', borderRadius: 'var(--c-r)', padding: '16px 18px',
+                    boxShadow: 'var(--c-shadow)', display: 'flex', alignItems: 'center', gap: 14,
+                  }}
+                >
+                  <div style={{ fontSize: 30, flexShrink: 0 }}>📏</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                      {SUBJECT_META[subject].title} · Правило дня
+                    </div>
+                    <div style={{ fontSize: 16.5, fontWeight: 900, margin: '2px 0' }}>{lesson.title}</div>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, opacity: 0.9 }}>Спершу вивчи правило — потім закріпи у грі</div>
+                  </div>
+                  <div style={{ fontSize: 22, flexShrink: 0 }}>▶</div>
+                </button>
+              ))}
+            </div>
           )}
 
           {loading ? (

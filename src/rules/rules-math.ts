@@ -14,7 +14,7 @@
 // Прив'язка до реальних вузлів skill-graph (A2), не до вигаданих id.
 
 import type { GradeBand } from '@/games/types';
-import { dedupeDistractors, uniqueTasks, hashString } from './rule-core';
+import { dedupeDistractors, uniqueTasks } from './rule-core';
 import type { Distractor, RuleBlock, RuleLessonDef, RuleTask, Rng } from './rule-core';
 
 const ri = (rng: Rng, min: number, max: number): number => min + Math.floor(rng() * (max - min + 1));
@@ -183,6 +183,7 @@ function bracketTask(id: string, a: number, b: number, c: number): RuleTask {
 const ORDER_OF_OPERATIONS: RuleLessonDef = {
   id: 'math.order-of-operations',
   title: 'Порядок дій',
+  subject: 'math',
   skillIds: ['math.ops.l3.order-of-operations'],
   bands: ['L3', 'L4'],
   build: (band, rng) => {
@@ -361,6 +362,7 @@ function carrySubTask(id: string, m: number, n: number): RuleTask {
 const THROUGH_TEN: RuleLessonDef = {
   id: 'math.through-ten',
   title: 'Через десяток',
+  subject: 'math',
   skillIds: ['math.ops.l1.add-sub-carry-20'],
   bands: ['L1', 'L2'],
   build: (band, rng) => {
@@ -411,23 +413,3 @@ const THROUGH_TEN: RuleLessonDef = {
 // ============================================================
 
 export const MATH_RULE_LESSONS: RuleLessonDef[] = [THROUGH_TEN, ORDER_OF_OPERATIONS];
-
-/** Уроки, доречні для рівня дитини. */
-export function lessonsForBand(band: GradeBand): RuleLessonDef[] {
-  return MATH_RULE_LESSONS.filter((l) => l.bands.includes(band));
-}
-
-export function getRuleLesson(id: string): RuleLessonDef | undefined {
-  return MATH_RULE_LESSONS.find((l) => l.id === id);
-}
-
-/**
- * «Правило дня» для розкладу: детермінований урок під рівень дитини, стабільний
- * у межах доби (щоб не мінявся при кожному відкритті /day), але різний по днях.
- * null — для цього band ще немає уроків-правил.
- */
-export function ruleOfDay(band: GradeBand, dateStr: string): RuleLessonDef | null {
-  const lessons = lessonsForBand(band);
-  if (lessons.length === 0) return null;
-  return lessons[hashString(dateStr) % lessons.length];
-}

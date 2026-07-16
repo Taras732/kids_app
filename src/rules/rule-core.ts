@@ -16,7 +16,7 @@
 // Без Math.random()/Date.now(): усе, що варіюється, іде через переданий Rng —
 // інакше повторюється Q2 (варіанти стрибали, бо перемішувались у рендері).
 
-import type { GradeBand } from '@/games/types';
+import type { GradeBand, Subject } from '@/games/types';
 
 // ---------- Візуальна опора ----------
 
@@ -100,7 +100,12 @@ export interface RuleBlock {
 export interface RuleLessonDef {
   id: string;
   title: string;
-  /** Вузли skill-graph, які урок тренує (для mastery/PD3 і підбору в план дня). */
+  /** Предмет розкладу, до якого належить урок (math, language, …). */
+  subject: Subject;
+  /**
+   * Вузли skill-graph, які урок тренує (для mastery/PD3 і підбору в план дня).
+   * Порожньо — предмет ще не має seed skill-графа (напр. мова до L1).
+   */
   skillIds: string[];
   /** Для яких рівнів урок доречний. */
   bands: GradeBand[];

@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { profileClass } from '@/games/registry';
 import { classBand, GRADE_BANDS, type GradeBand } from '@/games/types';
-import { getRuleLesson } from '@/rules/rules-math';
+import { getRuleLesson } from '@/rules/registry';
 import RuleLesson from '@/rules/RuleLesson';
 
 function Centered({ children }: { children: React.ReactNode }) {
