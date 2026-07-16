@@ -2,18 +2,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useProfileStore } from '@/stores/useProfileStore';
-import { fetchAttempts, fetchDailyPlan, fetchMastery, fetchOfflineTasks, fetchSkills } from '@/school/db';
+import { fetchAttempts, fetchDailyPlan, fetchMastery, fetchOfflineTasks, fetchSkills, fetchSkillPrerequisites } from '@/school/db';
 import { computeStreakDays, groupProgressBySubject, recentActivities } from '@/school/progress-core';
+import { buildParentInsight } from '@/school/insights-core';
 import { getWeeklyReport } from '@/school/report';
 import { getOrCreateTodayPlan } from '@/school/planner';
 import { completeOfflineTask } from '@/school/offline';
 import { describeOfflineTask } from '@/school/offline-core';
 import { countCompleted, partitionPlanItems, sortPlanItems } from '@/pages/dayplan-core';
-import { getGame, profileClass } from '@/games/registry';
+import { GAMES, getGame, profileClass } from '@/games/registry';
 import { CLASS_META } from '@/games/types';
 import type { WeeklyReport as WeeklyReportData } from '@/school/report-core';
 import WeeklyReportCard from '@/components/WeeklyReport';
-import type { Attempt, DailyPlan, DailyPlanItem, OfflineTask, Skill, SkillMastery } from '@/school/types';
+import type { Attempt, DailyPlan, DailyPlanItem, OfflineTask, Skill, SkillMastery, SkillPrerequisite } from '@/school/types';
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ export default function ParentDashboard() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [masteryRows, setMasteryRows] = useState<SkillMastery[]>([]);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [prereqs, setPrereqs] = useState<SkillPrerequisite[]>([]);
   const [weekly, setWeekly] = useState<WeeklyReportData | null>(null);
   const [todayPlan, setTodayPlan] = useState<{ plan: DailyPlan; items: DailyPlanItem[] } | null>(null);
   const [offlineById, setOfflineById] = useState<Record<string, OfflineTask>>({});
@@ -54,8 +56,9 @@ export default function ParentDashboard() {
       getWeeklyReport(selectedProfileId, today),
       fetchDailyPlan(selectedProfileId, today),
       fetchOfflineTasks(),
+      fetchSkillPrerequisites(), // P1: без DAG не побачити, що затик — у передумові
     ])
-      .then(([skillsRes, masteryRes, attemptsRes, weeklyRes, planRes, offlineRes]) => {
+      .then(([skillsRes, masteryRes, attemptsRes, weeklyRes, planRes, offlineRes, prereqRes]) => {
         if (cancelled) return;
         setSkills(skillsRes);
         setMasteryRows(masteryRes);
@@ -63,6 +66,7 @@ export default function ParentDashboard() {
         setWeekly(weeklyRes);
         setTodayPlan(planRes);
         setOfflineById(Object.fromEntries(offlineRes.map((t) => [t.id, t])));
+        setPrereqs(prereqRes);
       })
       .catch(() => {
         if (!cancelled) setProgressError('Не вдалося завантажити прогрес.');
@@ -78,6 +82,22 @@ export default function ParentDashboard() {
   const subjectsProgress = useMemo(() => groupProgressBySubject(skills, masteryRows), [skills, masteryRows]);
   const recent = useMemo(() => recentActivities(attempts, 5), [attempts]);
   const streak = useMemo(() => computeStreakDays(attempts, new Date().toISOString().slice(0, 10)), [attempts]);
+
+  // P1 — головна відповідь батькові: не «60% прогресу», а «де затик і що робити».
+  // skillId → ігри, що тренують навичку (беремо з реєстру: та сама прив'язка, що живить mastery).
+  const gamesBySkill = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const g of GAMES) {
+      const ids = new Set(Object.values(g.skillIds ?? {}).flat());
+      for (const sid of ids) map.set(sid, [...(map.get(sid) ?? []), g.id]);
+    }
+    return map;
+  }, []);
+
+  const insight = useMemo(
+    () => buildParentInsight({ skills, mastery: masteryRows, prereqs, attempts, gamesBySkill }),
+    [skills, masteryRows, prereqs, attempts, gamesBySkill],
+  );
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId) ?? null;
 
   const formatGameLabel = (gameId: string | null) => {
@@ -181,6 +201,55 @@ export default function ParentDashboard() {
                 {progressError && (
                   <div className="card-clay" style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--secondary-dark)', fontWeight: 700 }}>
                     {progressError}
+                  </div>
+                )}
+
+                {/* P1 — інсайт: перше, що бачить батько. Не цифра прогресу, а що робити. */}
+                {!progressLoading && !progressError && (
+                  <div
+                    className="card-clay"
+                    style={{
+                      padding: '16px 18px',
+                      marginBottom: '12px',
+                      background: insight.kind === 'prerequisite-gap' ? '#FFF7E6' : 'var(--c-primary-soft, #EEEBFF)',
+                      border: `1px solid ${insight.kind === 'prerequisite-gap' ? '#FCEFC7' : '#DAD3FF'}`,
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: '20px', flexShrink: 0, lineHeight: 1.2 }}>
+                        {insight.kind === 'prerequisite-gap' ? '🎯' : insight.kind === 'struggling-skill' ? '💡' : insight.kind === 'not-enough-data' ? '⏳' : '✅'}
+                      </span>
+                      <div style={{ minWidth: 0 }}>
+                        <div className="font-display" style={{ fontSize: '14px', color: 'var(--text-dark)', marginBottom: '4px' }}>
+                          {insight.title}
+                        </div>
+                        <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                          {insight.why}
+                        </div>
+                      </div>
+                    </div>
+
+                    {insight.actions.length > 0 && (
+                      <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {insight.actions.map((a, i) => (
+                          <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--text-muted)', flexShrink: 0 }}>→</span>
+                            <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-dark)', flex: 1, minWidth: 0 }}>
+                              {a.label}
+                            </span>
+                            {a.gameId && (
+                              <button
+                                className="pd-profile-tab"
+                                style={{ flexShrink: 0, fontSize: '11px', padding: '4px 10px' }}
+                                onClick={() => navigate(`/game/${a.gameId}`)}
+                              >
+                                Відкрити ▶
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
