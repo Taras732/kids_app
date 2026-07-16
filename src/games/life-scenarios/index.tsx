@@ -1,164 +1,155 @@
+import { useEffect, useState } from 'react';
 import type { GameDefinition, GameComponentProps, Difficulty, ProfileLevel, LevelData, Round } from '../types';
-import { PromptCard, ChoiceGrid, shuffle } from '../shared/ui';
+import { PromptCard, ChoiceGrid } from '../shared/ui';
+import { pickScenarios, createRng, type ScenarioAction } from './core';
 
-interface ScenarioAction {
-  label: string;
-  isBest: boolean;
-}
+const ROUNDS_PER_LEVEL = 5;
 
-interface Scenario {
-  level: ProfileLevel;
+interface Payload {
   situation: string;
   icon: string;
   actions: ScenarioAction[];
 }
 
-interface Payload {
-  situation: string;
-  icon: string;
-  actions: string[];
-}
-
-const ROUNDS_PER_LEVEL = 5;
-
-const SCENARIOS: Scenario[] = [
-  {
-    level: 'L0',
-    situation: 'У друга в садочку впала іграшка. Він сидить і плаче.',
-    icon: '😢',
-    actions: [
-      { label: 'Підняти іграшку і віддати йому', isBest: true },
-      { label: 'Піти гратися в інше місце', isBest: false },
-      { label: 'Посміятися з нього', isBest: false },
-    ],
-  },
-  {
-    level: 'L0',
-    situation: 'Ти випадково розбив мамину улюблену чашку. Нікого поруч нема.',
-    icon: '☕',
-    actions: [
-      { label: 'Розповісти мамі і вибачитись', isBest: true },
-      { label: 'Сховати уламки', isBest: false },
-      { label: 'Сказати, що це кіт', isBest: false },
-    ],
-  },
-  {
-    level: 'L0',
-    situation: 'На вулиці сидить маленьке кошеня. Воно мокре і виглядає зголоднілим.',
-    icon: '🐱',
-    actions: [
-      { label: 'Сказати мамі чи татові', isBest: true },
-      { label: 'Взяти додому без дозволу', isBest: false },
-      { label: 'Пройти мимо', isBest: false },
-    ],
-  },
-  {
-    level: 'L0',
-    situation: 'У класі новенька дитина. На перерві вона стоїть сама біля вікна.',
-    icon: '👋',
-    actions: [
-      { label: 'Підійти і покликати гратися з вами', isBest: true },
-      { label: 'Подивитися здалеку', isBest: false },
-      { label: 'Сказати, що він дивний', isBest: false },
-    ],
-  },
-  {
-    level: 'L3',
-    situation: 'Ти забув зробити домашню. Вчителька зараз перевіряє зошити.',
-    icon: '📚',
-    actions: [
-      { label: 'Чесно сказати: «Я забув»', isBest: true },
-      { label: 'Сказати, що забув зошит удома', isBest: false },
-      { label: 'Швидко списати у сусіда', isBest: false },
-    ],
-  },
-  {
-    level: 'L3',
-    situation: 'Під час самостійної однокласник списує з твого зошита.',
-    icon: '📖',
-    actions: [
-      { label: 'Тихо закрити зошит рукою', isBest: true },
-      { label: 'Дати списати все', isBest: false },
-      { label: 'Голосно сказати: «Ти списуєш!»', isBest: false },
-    ],
-  },
-  {
-    level: 'L3',
-    situation: 'Ти знайшов гаманець на лавці. Всередині — гроші і документи.',
-    icon: '👛',
-    actions: [
-      { label: 'Віддати дорослому, щоб знайти власника', isBest: true },
-      { label: 'Залишити гроші собі', isBest: false },
-      { label: 'Залишити на місці', isBest: false },
-    ],
-  },
-  {
-    level: 'L3',
-    situation: 'Однокласника дражнять кілька дітей. Він стоїть мовчки і дивиться вниз.',
-    icon: '😔',
-    actions: [
-      { label: 'Підійти і стати поруч з ним', isBest: true },
-      { label: 'Дивитись мовчки', isBest: false },
-      { label: 'Посміятись разом з іншими', isBest: false },
-    ],
-  },
-];
-
-function poolFor(level: ProfileLevel): Scenario[] {
-  return SCENARIOS.filter((s) => s.level === level);
-}
-
-function pickScenarios(level: ProfileLevel, count: number): Scenario[] {
-  const pool = poolFor(level);
-  const picked = shuffle(pool).slice(0, count);
-  while (picked.length < count && pool.length > 0) {
-    picked.push(pool[picked.length % pool.length]);
-  }
-  return picked;
-}
-
+/**
+ * Уся випадковість — тут. difficulty банк поки не розрізняє: соціальні ситуації
+ * не мають природної шкали складності в межах віку, а вигадувати її «щоб було» —
+ * гірше, ніж чесно лишити. Зʼявиться разом із ширшим банком (поле tier).
+ */
 function generate(difficulty: Difficulty, level: ProfileLevel): LevelData<Payload, string> {
-  const scenarios = pickScenarios(level, ROUNDS_PER_LEVEL);
-  const rounds: Round<Payload, string>[] = scenarios.map((s, i) => {
-    const best = s.actions.find((a) => a.isBest)!;
-    return {
-      id: `r${i}`,
-      payload: { situation: s.situation, icon: s.icon, actions: shuffle(s.actions.map((a) => a.label)) },
-      answer: best.label,
-    };
-  });
+  const rng = createRng(0xbeef ^ (difficulty * 7919) ^ (level === 'L0' ? 17 : 31));
+  const scenarios = pickScenarios(level, ROUNDS_PER_LEVEL, rng);
+  const rounds: Round<Payload, string>[] = scenarios.map((s, i) => ({
+    id: `${s.id}-${i}`,
+    payload: { situation: s.situation, icon: s.icon, actions: shuffleActions(s.actions, rng) },
+    answer: s.actions.find((a) => a.isBest)!.label,
+  }));
   return { difficulty, rounds };
 }
 
-function Component({ round, disabled, answerState, onAnswer }: GameComponentProps<Payload, string>) {
+function shuffleActions(actions: readonly ScenarioAction[], rng: () => number): ScenarioAction[] {
+  const a = actions.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** Breathe-Think-Do: спершу заспокойся, потім подумай, і лише тоді дій. */
+function RulesIntro({ onStart }: { onStart: () => void }) {
+  const step = (n: string, title: string, text: string) => (
+    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', textAlign: 'left', marginBottom: 8 }}>
+      <span style={{ fontSize: 22, flexShrink: 0 }}>{n}</span>
+      <div>
+        <b style={{ fontSize: 14 }}>{title}</b>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--c-mut)', lineHeight: 1.4 }}>{text}</div>
+      </div>
+    </div>
+  );
+  return (
+    <div className="g-card" style={{ maxWidth: 360, margin: '0 auto' }}>
+      <div style={{ fontSize: 34, marginBottom: 4 }}>🫧</div>
+      <h2 className="g-title" style={{ fontSize: 19, margin: '0 0 10px' }}>Що буде далі?</h2>
+      {step('🫁', 'Вдихни', 'Коли непросто — спершу зроби повільний вдих і видих.')}
+      {step('🤔', 'Подумай', 'Що станеться після кожного вибору? Уяви це.')}
+      {step('👋', 'Зроби', 'Обери — і побачиш, що сталося далі.')}
+      <p style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--c-mut)', lineHeight: 1.45, margin: '10px 0 14px' }}>
+        Тут немає «двійок». Є вибір — і те, що після нього стається 🎯
+      </p>
+      <button type="button" className="g-btn primary" onClick={onStart}>
+        Почати 🫧
+      </button>
+    </div>
+  );
+}
+
+/** Наслідок ВИБОРУ дитини — подія, а не оцінка. Найкращий вибір підсвічений зеленим. */
+function ConsequenceView({ action, onNext }: { action: ScenarioAction; onNext: () => void }) {
+  return (
+    <div style={{ animation: 'fadeInUp .3s ease both' }}>
+      <div
+        style={{
+          background: action.isBest ? '#F0FBF4' : 'var(--c-primary-soft)',
+          border: `1px solid ${action.isBest ? '#C6EFD4' : '#DAD3FF'}`,
+          borderRadius: 'var(--c-r-sm)',
+          padding: '16px 18px',
+          marginTop: 16,
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ fontSize: 40, lineHeight: 1, marginBottom: 8 }}>{action.mood}</div>
+        <div style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.04em', color: 'var(--c-mut)', marginBottom: 6 }}>
+          Що сталося далі
+        </div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--c-ink)', lineHeight: 1.45 }}>{action.consequence}</div>
+      </div>
+      <button className="g-btn primary" style={{ marginTop: 14 }} onClick={onNext}>
+        {action.isBest ? 'Далі →' : 'Спробувати інакше →'}
+      </button>
+    </div>
+  );
+}
+
+function Component({ round, disabled, answerState, onAnswer, onMistake }: GameComponentProps<Payload, string>) {
   const { situation, icon, actions } = round.payload;
-  const options = actions.map((label) => ({ value: label }));
+  const [showIntro, setShowIntro] = useState(true);
+  const [chosen, setChosen] = useState<ScenarioAction | null>(null);
+
+  // новий раунд — скидаємо показаний наслідок
+  useEffect(() => {
+    if (answerState === 'idle') setChosen(null);
+  }, [answerState]);
+
+  if (showIntro) return <RulesIntro onStart={() => setShowIntro(false)} />;
+
+  const pick = (label: string | number) => {
+    if (disabled || chosen) return;
+    setChosen(actions.find((a) => a.label === label) ?? null);
+  };
+
+  // Наслідок показує САМ компонент, тому GameShell дізнається про вибір лише
+  // після «Далі». Не найкращий вибір не фарбується червоним: у вчинках немає
+  // «помилки» — є наслідок, а червона рамка запам'яталась би замість уроку.
+  const next = () => {
+    if (!chosen) return;
+    if (chosen.isBest) onAnswer(chosen.label);
+    else {
+      onMistake();
+      setChosen(null);
+    }
+  };
+
   return (
     <>
-      <PromptCard question={situation} answerState={answerState}>
+      <PromptCard question={situation} answerState="idle">
         <div style={{ textAlign: 'center', margin: '8px auto' }}>
           <span style={{ fontSize: 56, lineHeight: 1 }}>{icon}</span>
         </div>
       </PromptCard>
-      <ChoiceGrid
-        options={options}
-        correct={round.answer}
-        disabled={disabled}
-        answerState={answerState}
-        onPick={onAnswer}
-        columns={1}
-      />
+      {chosen ? (
+        <ConsequenceView action={chosen} onNext={next} />
+      ) : (
+        <ChoiceGrid
+          options={actions.map((a) => ({ value: a.label }))}
+          correct={round.answer}
+          disabled={disabled}
+          answerState="idle"
+          onPick={pick}
+          columns={1}
+        />
+      )}
     </>
   );
 }
 
 const lifeScenarios: GameDefinition<Payload, string> = {
   id: 'life-scenarios',
-  title: 'Життєві ситуації',
+  title: 'Що буде далі?',
   subject: 'life',
   levels: ['L0', 'L3'],
-  icon: '💡',
-  description: 'Як правильно вчинити?',
+  icon: '🫧',
+  description: 'Обери вчинок — і побач, що станеться після нього.',
   accent: '#FEF3C7',
   generate,
   Component,
