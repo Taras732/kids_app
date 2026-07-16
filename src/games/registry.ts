@@ -20,6 +20,7 @@ import wordProblems from './word-problems';
 import perimeterArea from './perimeter-area';
 import cubeNet from './cube-net';
 import gears from './gears';
+import commandMachine from './command-machine';
 // --- Мова ---
 import lettersFind from './letters-find';
 import syllableBuild from './syllable-build';
@@ -69,7 +70,7 @@ export const GAMES: GameDefinition[] = [
   // Наука
   colorsFind, shapes, waterStates, sinkFloat, animalsHabitat, plantGrow, seasonsWeather, gears,
   // Логіка
-  logicSequences, sortingGame, sudoku, magicSquare,
+  logicSequences, sortingGame, sudoku, magicSquare, commandMachine,
   // Пам'ять
   memoryPairs, whatsChanged, digitSpan, reverseSequence, memoryAssociations,
   // Світ
