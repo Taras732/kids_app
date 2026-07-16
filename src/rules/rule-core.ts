@@ -192,25 +192,10 @@ export interface LessonState {
   scaffold: ScaffoldLevel;
 }
 
-/**
- * Growth-mindset фрази при помилці (Двек): помилятися — нормально, це частина
- * навчання. Показуємо ЗАМІСТЬ акценту на «що ти зробив не так» — для дитини
- * червоний докір демотивує й запам'ятовується сильніше за правильну відповідь.
- * Без обіцянок «розум/IQ» (far transfer не існує) — лише про процес спроби.
- */
-export const ENCOURAGEMENTS: readonly string[] = [
-  'Помилка — це сходинка до нового 🌱',
-  'Помилятися — це нормально. Так вчаться всі!',
-  'Коли складно — саме тоді ти вчишся 💪',
-  'Ще трохи — і вийде. Спробуймо разом!',
-  'Не вийшло зараз — вийде за мить ✨',
-  'Кожна спроба наближає до відповіді',
-];
-
-/** Детермінована фраза за номером помилки (щоб не стрибала між ре-рендерами). */
-export function encouragementFor(mistakes: number): string {
-  return ENCOURAGEMENTS[Math.max(0, mistakes - 1) % ENCOURAGEMENTS.length];
-}
+// Growth-mindset фрази живуть у games/shared/encouragement — вони потрібні і
+// звичайним іграм (EP1), і цьому движку. Ре-експорт, щоб не було двох копій
+// банку, які розійдуться (rules/ імпортує games/, не навпаки).
+export { ENCOURAGEMENTS, encouragementFor } from '@/games/shared/encouragement';
 
 export type LessonEvent =
   | { type: 'NEXT' }

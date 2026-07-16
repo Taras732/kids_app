@@ -155,6 +155,24 @@ export interface GameComponentProps<TPayload = unknown, TAnswer = unknown> {
   onMistake: () => void;
 }
 
+/**
+ * EP1 — пояснення «чому», а не лише «правильна відповідь: X».
+ *
+ * Навіщо: показ правильної відповіді (PD0) — це фідбек типу KCR, d≈0.32. Додати
+ * «чому саме так» → elaborated feedback, d≈0.49. Це топ-фікс #1 з аудиту: одна
+ * зміна в ядрі підіймає всі ігри, які його реалізують.
+ *
+ * Форма свідомо перевернута (фідбек Тараса): головне — ЗЕЛЕНЕ «як правильно»,
+ * а причина помилки — дрібним і нейтрально. Червоний покроковий докір дитина
+ * запам'ятовує замість самого уроку.
+ */
+export interface GameExplain {
+  /** Головне: як правильно — покроково. Кожен крок = один рядок. */
+  steps: string[];
+  /** Дрібним, нейтрально: типова причина цієї помилки. Не обов'язково. */
+  why?: string;
+}
+
 /** Контракт гри-плагіна. Додати гру = папка src/games/<id>/ + рядок у registry. */
 export interface GameDefinition<TPayload = any, TAnswer = any> {
   id: string;
@@ -184,6 +202,14 @@ export interface GameDefinition<TPayload = any, TAnswer = any> {
   generate: (difficulty: Difficulty, level: ProfileLevel, classLevel?: ClassLevel) => LevelData<TPayload, TAnswer>;
   /** Перевірити відповідь. Якщо не задано — порівняння з round.answer. */
   isCorrect?: (round: Round<TPayload, TAnswer>, answer: TAnswer) => boolean;
+  /**
+   * EP1: чому саме так. Викликається при помилці; отримує відповідь дитини, тож
+   * може розпізнати КОНКРЕТНУ хибну стратегію. Повертає null — пояснення нема
+   * (тоді фідбек лишається як був: показ правильної відповіді).
+   *
+   * Опційне: гра без нього працює точно як раніше — жодна з наявних не зачеплена.
+   */
+  explain?: (round: Round<TPayload, TAnswer>, answer: TAnswer) => GameExplain | null;
   Component: ComponentType<GameComponentProps<TPayload, TAnswer>>;
 }
 

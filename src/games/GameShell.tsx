@@ -6,6 +6,7 @@ import { recordActivity } from '@/utils/activity';
 import { recordGameResult } from '@/school/mastery';
 import { fetchPrereqHint, type PrereqHint } from '@/school/hint';
 import { isWeakResult, buildPrereqHintMessage } from '@/school/hint-core';
+import { encouragementFor } from './shared/encouragement';
 import {
   type GameDefinition,
   type ProfileLevel,
@@ -17,6 +18,7 @@ import {
   computeStars,
   unlockedAfter,
   DIFFICULTY_LABEL,
+  type GameExplain,
 } from './types';
 
 const FEEDBACK_CORRECT_MS = 850;
@@ -120,6 +122,9 @@ export default function GameShell({ game, level, classLevel, profileId, onExit }
   // рендериться без неї (не блокує).
   const [prereqHint, setPrereqHint] = useState<PrereqHint | null>(null);
 
+  // EP1: пояснення «чому» для поточної помилки (null — гра його не дає).
+  const [explain, setExplain] = useState<GameExplain | null>(null);
+
   const round = state.levelData.rounds[Math.min(state.roundIndex, state.levelData.rounds.length - 1)];
   const total = state.levelData.rounds.length;
 
@@ -144,13 +149,24 @@ export default function GameShell({ game, level, classLevel, profileId, onExit }
         confetti({ particleCount: 45, spread: 42, origin: { y: 0.65 }, disableForReducedMotion: true });
         window.setTimeout(() => dispatch({ type: 'ADVANCE' }), FEEDBACK_CORRECT_MS);
       } else {
-        // Неправильно: показати фідбек, тоді повернути до idle (повтор того ж раунду).
         dispatch({ type: 'WRONG' });
-        window.setTimeout(() => dispatch({ type: 'CLEAR_FEEDBACK' }), FEEDBACK_WRONG_MS);
+
+        // EP1: якщо гра вміє пояснити ЧОМУ — показуємо пояснення і НЕ прибираємо
+        // фідбек за таймером: 1.1 с не вистачить, щоб його прочитати. Далі веде
+        // дитина кнопкою. Гра без explain поводиться точно як раніше.
+        const why = game.explain?.(round, answer) ?? null;
+        if (why) setExplain(why);
+        else window.setTimeout(() => dispatch({ type: 'CLEAR_FEEDBACK' }), FEEDBACK_WRONG_MS);
       }
     },
-    [state.answerState, state.finished, checkCorrect],
+    [state.answerState, state.finished, checkCorrect, game, round],
   );
+
+  /** «Зрозуміло» після пояснення — повертає до тієї ж задачі, ще спроба. */
+  const dismissExplain = useCallback(() => {
+    setExplain(null);
+    dispatch({ type: 'CLEAR_FEEDBACK' });
+  }, []);
 
   const handleMistake = useCallback(() => dispatch({ type: 'MISTAKE' }), []);
 
@@ -239,6 +255,40 @@ export default function GameShell({ game, level, classLevel, profileId, onExit }
             onAnswer={handleAnswer}
             onMistake={handleMistake}
           />
+
+          {/* EP1 — «чому», а не лише «правильна відповідь: X». Акцент перевернутий:
+              головне зелене «як правильно», причина помилки — дрібним і нейтрально. */}
+          {explain && (
+            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12, animation: 'fadeInUp .3s ease both' }}>
+              <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 14.5, color: 'var(--c-primary)' }}>
+                {encouragementFor(state.mistakes)}
+              </div>
+
+              <div style={{ background: '#F0FBF4', border: '1px solid #C6EFD4', borderRadius: 'var(--c-r-sm)', padding: '14px 16px' }}>
+                <div style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.04em', color: '#15803D', marginBottom: 8 }}>
+                  Ось як правильно 👇
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                  {explain.steps.map((s, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 9, fontWeight: 800, fontSize: 15, color: '#15803D' }}>
+                      <span style={{ flexShrink: 0 }}>✓</span>
+                      <span>{s}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {explain.why && (
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--c-mut)', textAlign: 'center', lineHeight: 1.4 }}>
+                  💡 {explain.why}
+                </div>
+              )}
+
+              <button className="g-btn primary" onClick={dismissExplain}>
+                Спробувати ще раз →
+              </button>
+            </div>
+          )}
         </div>
        </div>
       </div>
