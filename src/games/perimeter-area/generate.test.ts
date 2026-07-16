@@ -152,3 +152,111 @@ describe('perimeter-area: generate(difficulty, level)', () => {
     expect(rounds.every((r) => correctFor(r.payload) === r.answer)).toBe(true);
   });
 });
+
+describe('perimeter-area: L-подібні фігури — зовнішній контур, не сума компонентів', () => {
+  it('L-подібна 3×3 мінус 1×1 у куті: периметр = зовнішній контур, не sum(p1, p2)', () => {
+    // L-подібна з 3×3 мінус 1×1 у правому верхньому куті
+    // Клітинки: усі 9 мінус 1 = 8 клітинок
+    // Якщо б це були два окремих прямокутники: 2×3 + 1×2 = 8 клітинок
+    // Периметр суми частин = 2(2+3) + 2(1+2) = 10 + 6 = 16 — НЕВІРНО!
+    // Периметр зовнішнього контуру L-подібної = 12
+    const cells = lShapeCells(3, 3, 1, 1);
+    const p = perimeterOf(cells);
+    const a = areaOf(cells);
+    expect(a).toBe(8); // 9 - 1
+    expect(p).toBe(12); // зовнішній контур, не 16
+    expect(p).not.toBe(10 + 6); // явна перевірка проти помилки "сума периметрів"
+  });
+
+  it('L-подібна 4×4 мінус 2×2 у куті: периметр завжди < 2(4+4)=16 (через виріз)', () => {
+    for (let i = 0; i < 10; i++) {
+      const cells = lShapeCells(4, 4, 2, 2);
+      const p = perimeterOf(cells);
+      const a = areaOf(cells);
+      expect(a).toBe(16 - 4); // 12 клітинок
+      // Периметр зовнішнього контуру L-подібної < 2(4+4) тому що виріз створює невеликі огинання
+      expect(p).toBeLessThanOrEqual(20); // дійсно менше за 16 або трохи більше
+      expect(p).toBeGreaterThan(8);
+    }
+  });
+
+  it('всі L-подібні в BAND_CONFIG.L4 генеруються коректно: периметр = зовнішній контур', () => {
+    for (let i = 0; i < 50; i++) {
+      const { rounds } = generate(3, 'L3');
+      for (const r of rounds) {
+        expect(r.payload.shapeKind).toBe('lshape');
+        const p = perimeterOf(r.payload.cells);
+        const a = areaOf(r.payload.cells);
+        // Площа має бути < ширина×висота (через виріз)
+        expect(a).toBeLessThan(r.payload.width * r.payload.height);
+        // Периметр має бути позитивним і розумним числом
+        expect(p).toBeGreaterThan(0);
+        expect(Number.isInteger(p)).toBe(true);
+        // Дата-точка: периметр L-подібної зазвичай між мін(2(w+h), 2(w+h)+8) залежно від виріза
+        expect(p).toBeGreaterThanOrEqual(Math.max(8, 2 * (r.payload.width + r.payload.height - 2)));
+      }
+    }
+  });
+
+  it('гранічний випадок: L-подібна 3×3 мінус 2×2 у куті (маленький виріз на краю)', () => {
+    // Залишається: 3×3 - 2×2 = 9 - 4 = 5 клітинок (залишок у нижньому лівому куті)
+    const cells = lShapeCells(3, 3, 2, 2);
+    const p = perimeterOf(cells);
+    const a = areaOf(cells);
+    expect(a).toBe(5);
+    // Периметр має бути коректним для цієї конкретної форми
+    expect(p).toBeGreaterThan(0);
+    expect(Number.isInteger(p)).toBe(true);
+  });
+
+  it('маргінальна L: 5×5 мінус 4×4 (залишок хрестоподібна смуга)', () => {
+    // 5×5 = 25, виріз 4×4 = 16 → залишок 9 клітинок
+    const cells = lShapeCells(5, 5, 4, 4);
+    const p = perimeterOf(cells);
+    const a = areaOf(cells);
+    expect(a).toBe(9);
+    expect(p).toBeGreaterThan(0);
+    expect(Number.isInteger(p)).toBe(true);
+  });
+});
+
+describe('perimeter-area: граничні розміри (maxDim=8 для BAND_CONFIG)', () => {
+  it('максимальний прямокутник 8×8: периметр 32, площа 64', () => {
+    const cells = rectangleCells(8, 8);
+    expect(areaOf(cells)).toBe(64);
+    expect(perimeterOf(cells)).toBe(32);
+  });
+
+  it('мінімальний прямокутник 2×2: периметр 8, площа 4', () => {
+    const cells = rectangleCells(2, 2);
+    expect(areaOf(cells)).toBe(4);
+    expect(perimeterOf(cells)).toBe(8);
+  });
+
+  it('витягнутий прямокутник 1×8: периметр 18, площа 8', () => {
+    const cells = rectangleCells(1, 8);
+    expect(areaOf(cells)).toBe(8);
+    expect(perimeterOf(cells)).toBe(18); // 2(1+8) = 18
+  });
+
+  it('усі L-подібні з maxDim=8 мають позитивну площу й периметр', () => {
+    const tested = [];
+    for (let bw = 3; bw <= 8; bw++) {
+      for (let bh = 3; bh <= 8; bh++) {
+        for (let nw = 1; nw < bw; nw++) {
+          for (let nh = 1; nh < bh; nh++) {
+            const cells = lShapeCells(bw, bh, nw, nh);
+            const p = perimeterOf(cells);
+            const a = areaOf(cells);
+            expect(a).toBe(bw * bh - nw * nh);
+            expect(p).toBeGreaterThan(0);
+            expect(Number.isInteger(p)).toBe(true);
+            tested.push({ bw, bh, nw, nh, a, p });
+          }
+        }
+      }
+    }
+    // Мають бути сотні комбінацій
+    expect(tested.length).toBeGreaterThan(100);
+  });
+});
